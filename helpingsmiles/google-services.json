@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "184616052527",
+    "project_id": "helpingsmilesfirebase",
+    "storage_bucket": "helpingsmilesfirebase.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:184616052527:android:83bc194e82989c1fa4e3da",
+        "android_client_info": {
+          "package_name": "com.example.helpingsmiles"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDLrD7RCsG0WcvTC8KZ3INCYMA8fd_B234"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
