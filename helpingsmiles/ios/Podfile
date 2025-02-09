@@ -1,4 +1,7 @@
 
+platform :ios, '18.0'
+
+
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
 
 project 'Runner', {
@@ -24,6 +27,8 @@ require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelpe
 
 flutter_ios_podfile_setup
 
+source 'https://github.com/google/boringssl.git'
+
 target 'Runner' do
   use_frameworks!
   use_modular_headers!
@@ -34,7 +39,6 @@ target 'Runner' do
   end
 end
 
-pod 'BoringSSL-GRPC', '~> 0.0.36'
 
 post_install do |installer|
   installer.pods_project.targets.each do |target|
