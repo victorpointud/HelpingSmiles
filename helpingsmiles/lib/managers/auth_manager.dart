@@ -16,13 +16,13 @@ class AuthManager {
       // Guardar en Firestore
       await _db.collection('users').doc(userCredential.user!.uid).set({
         'email': email,
-        'role': role, // Puede ser 'admin' o 'user'
+        'role': role, 
         'createdAt': FieldValue.serverTimestamp(),
       });
 
-      return null; // Éxito
+      return null; 
     } on FirebaseAuthException catch (e) {
-      return e.message; // Devuelve el error si falla
+      return e.message; 
     }
   }
 
@@ -30,9 +30,9 @@ class AuthManager {
   static Future<String?> loginUser(String email, String password) async {
     try {
       await _auth.signInWithEmailAndPassword(email: email, password: password);
-      return null; // Éxito
+      return null; 
     } on FirebaseAuthException catch (e) {
-      return e.message; // Devuelve el error si falla
+      return e.message; 
     }
   }
 
