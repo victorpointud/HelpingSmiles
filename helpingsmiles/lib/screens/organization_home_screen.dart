@@ -25,9 +25,16 @@ class OrganizationHomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Organization Home", style: TextStyle(color: Colors.black)),
+        title: const Text(
+          "Organization Home",
+          style: TextStyle(
+            color: Colors.black, 
+            fontWeight: FontWeight.bold, 
+            fontSize: 20,
+          ),
+        ),
         iconTheme: const IconThemeData(color: Colors.white),
-        backgroundColor: Colors.red,
+        backgroundColor: const Color(0xFFE57373), // 🔹 Color rojo más suave
         actions: [
           IconButton(
             icon: const Icon(Icons.person, color: Colors.white),
