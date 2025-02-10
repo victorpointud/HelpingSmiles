@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'login_screen.dart';
+import 'dart:async';
+import 'intro_screen.dart';
 
-/// Pantalla de bienvenida que se muestra por 3 segundos antes de redirigir al login.
+/// Splash Screen before the IntroScreen
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -13,14 +14,11 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(const Duration(seconds: 3), () {
-        if (mounted) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const LoginScreen()),
-          );
-        }
-      });
+    Timer(const Duration(seconds: 4), () {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const IntroScreen()),
+      );
     });
   }
 
@@ -33,8 +31,8 @@ class _SplashScreenState extends State<SplashScreen> {
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color.fromARGB(255, 180, 40, 40), 
-              Colors.white 
+              Color.fromARGB(255, 255, 255, 255), 
+              Colors.red
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -43,11 +41,31 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.volunteer_activism, size: 80, color: Colors.white),
+            // Nuevo logo en lugar del icono
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 10,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Image.asset(
+                  'lib/assets/logo.png', // Ruta del nuevo logo
+                  height: 120,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
             const SizedBox(height: 20),
             const Text(
               'Helping Smiles',
-              style: TextStyle(fontSize: 24, color: Colors.white, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 24, color: Colors.black, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
             const CircularProgressIndicator(color: Colors.white),

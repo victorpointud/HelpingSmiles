@@ -1,58 +1,62 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthManager {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
   static final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  /// Registra un nuevo usuario y lo almacena en Firestore
+  /// Registers a new user and stores data in Firestore
   static Future<String?> registerUser(String email, String password, String role) async {
     try {
+      // Create user in Firebase Authentication
       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      // Guardar en Firestore
-      await _db.collection('users').doc(userCredential.user!.uid).set({
+      // Get the user ID
+      String uid = userCredential.user!.uid;
+
+      // Save user data in Firestore
+      await _db.collection('users').doc(uid).set({
         'email': email,
-        'role': role, 
-        'createdAt': FieldValue.serverTimestamp(),
+        'role': role, // Stores 'volunteer' or 'organization'
+        'createdAt': FieldValue.serverTimestamp(), // Timestamp for record creation
       });
 
-      return null; 
+      return null; // Success
     } on FirebaseAuthException catch (e) {
-      return e.message; 
+      return e.message; // Return Firebase authentication errors
+    } catch (e) {
+      return 'An error occurred during registration.';
     }
   }
 
-  /// Inicia sesión con Firebase Authentication
+  /// Logs in a user and retrieves their role
   static Future<String?> loginUser(String email, String password) async {
     try {
-      await _auth.signInWithEmailAndPassword(email: email, password: password);
-      return null; 
+      // Sign in with Firebase Authentication
+      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      // Get user ID
+      String uid = userCredential.user!.uid;
+
+      // Fetch the user's role from Firestore
+      DocumentSnapshot userDoc = await _db.collection('users').doc(uid).get();
+
+      if (userDoc.exists) {
+        String role = userDoc.get('role'); // Retrieve role (volunteer/organization)
+        return role; // Return the user's role
+      } else {
+        return 'User data not found.';
+      }
     } on FirebaseAuthException catch (e) {
-      return e.message; 
+      return e.message; // Return Firebase authentication errors
+    } catch (e) {
+      return 'An error occurred during login.';
     }
-  }
-
-  /// Obtiene el usuario actual
-  static User? getCurrentUser() {
-    return _auth.currentUser;
-  }
-
-  /// Obtiene la información del usuario desde Firestore
-  static Future<Map<String, dynamic>?> getUserData() async {
-    User? user = _auth.currentUser;
-    if (user != null) {
-      DocumentSnapshot doc = await _db.collection('users').doc(user.uid).get();
-      return doc.data() as Map<String, dynamic>?;
-    }
-    return null;
-  }
-
-  /// Cierra sesión
-  static Future<void> logout() async {
-    await _auth.signOut();
   }
 }

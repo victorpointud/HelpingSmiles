@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../managers/auth_manager.dart';
 
-/// Register Screen with an Improved UI.
+/// Register Screen with Role Selection
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -15,6 +15,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _confirmPasswordController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   String? _errorMessage;
+  String _selectedRole = 'volunteer'; // Default role
 
   void _register() async {
     if (!_formKey.currentState!.validate()) return;
@@ -29,7 +30,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     String? error = await AuthManager.registerUser(
       _emailController.text.trim(),
       _passwordController.text.trim(),
-      'user', // Default role: user
+      _selectedRole, // Guardar el rol seleccionado
     );
 
     if (error == null) {
@@ -50,8 +51,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color.fromARGB(255, 180, 40, 40), 
-              Colors.white 
+              Color.fromARGB(255, 180, 40, 40), // Red
+              Colors.white // White
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -78,7 +79,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Text(
-                      'Sign up',
+                      'Register',
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -144,6 +145,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         return null;
                       },
                     ),
+                    const SizedBox(height: 15),
+                    // Dropdown para elegir el rol
+                    DropdownButtonFormField<String>(
+                      value: _selectedRole,
+                      items: const [
+                        DropdownMenuItem(value: 'volunteer', child: Text('Volunteer')),
+                        DropdownMenuItem(value: 'organization', child: Text('Organization')),
+                      ],
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedRole = value!;
+                        });
+                      },
+                      decoration: InputDecoration(
+                        labelText: 'Select Role',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
                     const SizedBox(height: 10),
                     if (_errorMessage != null)
                       Text(
@@ -157,7 +178,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         onPressed: _register,
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 15),
-                          backgroundColor: Color.fromARGB(255, 180, 40, 40), 
+                          backgroundColor: const Color.fromARGB(255, 180, 40, 40), // Red
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
