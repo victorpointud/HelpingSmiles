@@ -25,20 +25,22 @@ class OrganizationHomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Organization Home'),
+        title: const Text("Organization Home", style: TextStyle(color: Colors.black)),
+        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor: Colors.red,
         actions: [
           IconButton(
-            icon: const Icon(Icons.person),
+            icon: const Icon(Icons.person, color: Colors.white),
             onPressed: () => _goToProfile(context),
           ),
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.logout, color: Colors.white),
             onPressed: () => _logout(context),
           ),
         ],
       ),
       body: const Center(
-        child: Text("Welcome, Organization!"),
+        child: Text("Welcome, Organization!", style: TextStyle(fontSize: 20)),
       ),
     );
   }

@@ -21,7 +21,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  Widget _initialScreen = const SplashScreen(); // ✅ Siempre inicia con SplashScreen
+  Widget _initialScreen = const SplashScreen(); // Siempre inicia con SplashScreen
 
   @override
   void initState() {
@@ -30,7 +30,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _checkUserSession() async {
-    await Future.delayed(const Duration(seconds: 3)); // ⏳ Espera 3 segundos en SplashScreen
+    await Future.delayed(const Duration(seconds: 3)); // Espera 3 segundos en SplashScreen
 
     User? user = FirebaseAuth.instance.currentUser;
 
@@ -66,7 +66,7 @@ class _MyAppState extends State<MyApp> {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: _initialScreen, // ✅ Ahora siempre inicia con SplashScreen
+      home: _initialScreen,
     );
   }
 }

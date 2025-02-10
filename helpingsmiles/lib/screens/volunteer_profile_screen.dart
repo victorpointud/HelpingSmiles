@@ -6,7 +6,10 @@ class VolunteerProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Volunteer Profile')),
+      appBar: AppBar(
+        title: const Text("Volunteer Profile"),
+        backgroundColor: Colors.red,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

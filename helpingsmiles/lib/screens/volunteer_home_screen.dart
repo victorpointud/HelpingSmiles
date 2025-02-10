@@ -25,20 +25,22 @@ class VolunteerHomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Volunteer Home'),
+        title: const Text("Volunteer Home", style: TextStyle(color: Colors.black)),
+        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor: Colors.red,
         actions: [
           IconButton(
-            icon: const Icon(Icons.person),
+            icon: const Icon(Icons.person, color: Colors.white),
             onPressed: () => _goToProfile(context),
           ),
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.logout, color: Colors.white),
             onPressed: () => _logout(context),
           ),
         ],
       ),
       body: const Center(
-        child: Text("Welcome, Volunteer!"),
+        child: Text("Welcome, Volunteer!", style: TextStyle(fontSize: 20)),
       ),
     );
   }
