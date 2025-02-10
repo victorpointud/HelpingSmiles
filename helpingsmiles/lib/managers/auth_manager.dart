@@ -5,6 +5,9 @@ class AuthManager {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
   static final FirebaseFirestore _db = FirebaseFirestore.instance;
 
+  static Future<void> logoutUser() async {
+      await _auth.signOut();
+    }
   /// Registers a new user and stores data in Firestore
   static Future<String?> registerUser(String email, String password, String role) async {
     try {
