@@ -8,55 +8,61 @@ class AuthManager {
   /// Registers a new user and stores data in Firestore
   static Future<String?> registerUser(String email, String password, String role) async {
     try {
-      // Create user in Firebase Authentication
       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      // Get the user ID
       String uid = userCredential.user!.uid;
 
-      // Save user data in Firestore
       await _db.collection('users').doc(uid).set({
         'email': email,
-        'role': role, // Stores 'volunteer' or 'organization'
-        'createdAt': FieldValue.serverTimestamp(), // Timestamp for record creation
+        'role': role,
+        'createdAt': FieldValue.serverTimestamp(),
       });
 
       return null; // Success
     } on FirebaseAuthException catch (e) {
-      return e.message; // Return Firebase authentication errors
+      return e.message;
     } catch (e) {
       return 'An error occurred during registration.';
     }
   }
 
-  /// Logs in a user and retrieves their role
+  /// Logs in a user and navigates based on role
   static Future<String?> loginUser(String email, String password) async {
     try {
-      // Sign in with Firebase Authentication
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      // Get user ID
       String uid = userCredential.user!.uid;
-
-      // Fetch the user's role from Firestore
       DocumentSnapshot userDoc = await _db.collection('users').doc(uid).get();
 
       if (userDoc.exists) {
-        String role = userDoc.get('role'); // Retrieve role (volunteer/organization)
-        return role; // Return the user's role
+        return null; // Login successful
       } else {
         return 'User data not found.';
       }
     } on FirebaseAuthException catch (e) {
-      return e.message; // Return Firebase authentication errors
+      return e.message;
     } catch (e) {
       return 'An error occurred during login.';
+    }
+  }
+
+  /// Retrieves the user role from Firestore
+  static Future<String?> getUserRole(String uid) async {
+    try {
+      DocumentSnapshot userDoc = await _db.collection('users').doc(uid).get();
+      if (userDoc.exists) {
+        return userDoc.get('role');
+      } else {
+        return 'Role not found';
+      }
+    } catch (e) {
+      return 'Error retrieving role';
     }
   }
 }

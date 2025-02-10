@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../managers/auth_manager.dart';
 import 'home_screen.dart';
-import 'register_screen.dart';
 
-/// Login Screen with an Improved UI.
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -16,6 +15,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   String? _errorMessage;
+  String? _userRole;
 
   void _login() async {
     if (!_formKey.currentState!.validate()) return;
@@ -26,12 +26,24 @@ class _LoginScreenState extends State<LoginScreen> {
     );
 
     if (error == null) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const HomeScreen(title: 'Helping Smiles'),
-        ),
-      );
+      // Si el login es exitoso, obtenemos el rol correctamente
+      String? role = await AuthManager.getUserRole(FirebaseAuth.instance.currentUser!.uid);
+
+      if (role != null) {
+        setState(() {
+          _userRole = role;
+        });
+
+        // Navegar a HomeScreen después de obtener el rol
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomeScreen(title: 'Welcome, $role!')),
+        );
+      } else {
+        setState(() {
+          _errorMessage = 'Error retrieving user role';
+        });
+      }
     } else {
       setState(() {
         _errorMessage = error;
@@ -47,10 +59,7 @@ class _LoginScreenState extends State<LoginScreen> {
         padding: const EdgeInsets.all(20),
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [
-              Color.fromARGB(255, 180, 40, 40), // Red
-              Colors.white // White
-            ],
+            colors: [Colors.white, Colors.red],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -77,10 +86,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     const Text(
                       'Login',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 20),
                     TextFormField(
@@ -96,9 +102,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter your email';
-                        }
-                        if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                          return 'Enter a valid email';
                         }
                         return null;
                       },
@@ -118,9 +121,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         if (value == null || value.isEmpty) {
                           return 'Enter your password';
                         }
-                        if (value.length < 6) {
-                          return 'Password must be at least 6 characters';
-                        }
                         return null;
                       },
                     ),
@@ -130,6 +130,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         _errorMessage!,
                         style: const TextStyle(color: Colors.red),
                       ),
+                    if (_userRole != null)
+                      Text(
+                        'Role: $_userRole',
+                        style: const TextStyle(color: Colors.red, fontSize: 16),
+                      ),
                     const SizedBox(height: 20),
                     SizedBox(
                       width: double.infinity,
@@ -137,35 +142,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: _login,
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 15),
-                          backgroundColor: Color.fromARGB(255, 180, 40, 40), // Red
+                          backgroundColor: Colors.red,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
                         child: const Text(
                           'Login',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const RegisterScreen(),
-                          ),
-                        );
-                      },
-                      child: const Text(
-                        "Don't have an account? Sign up",
-                        style: TextStyle(
-                          color: Colors.black54,
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
                         ),
                       ),
                     ),
