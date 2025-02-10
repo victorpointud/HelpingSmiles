@@ -11,15 +11,25 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  Timer? _timer; // ✅ Variable para manejar el Timer
+
   @override
   void initState() {
     super.initState();
-    Timer(const Duration(seconds: 4), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const IntroScreen()),
-      );
+    _timer = Timer(const Duration(seconds: 4), () {
+      if (mounted) { // ✅ Evita ejecutar si el widget ha sido desmontado
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const IntroScreen()),
+        );
+      }
     });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel(); // ✅ Cancela el Timer si el usuario sale antes de tiempo
+    super.dispose();
   }
 
   @override

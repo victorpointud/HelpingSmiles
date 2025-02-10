@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'screens/home_screen.dart';
+import 'managers/auth_manager.dart';
+import 'screens/volunteer_home_screen.dart';
+import 'screens/organization_home_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/splash_screen.dart';
 
@@ -19,7 +21,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  late Widget _initialScreen;
+  Widget _initialScreen = const SplashScreen(); // ✅ Siempre inicia con SplashScreen
 
   @override
   void initState() {
@@ -28,16 +30,32 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _checkUserSession() async {
-    // Verifica si hay un usuario autenticado
+    await Future.delayed(const Duration(seconds: 3)); // ⏳ Espera 3 segundos en SplashScreen
+
     User? user = FirebaseAuth.instance.currentUser;
+
     if (user != null) {
-      // Si el usuario está autenticado, ve a HomeScreen
-      _initialScreen = HomeScreen(title: 'Welcome Back!');
+      // Obtiene el rol del usuario desde Firestore
+      String? role = await AuthManager.getUserRole(user.uid);
+
+      if (role == "volunteer") {
+        setState(() {
+          _initialScreen = const VolunteerHomeScreen();
+        });
+      } else if (role == "organization") {
+        setState(() {
+          _initialScreen = const OrganizationHomeScreen();
+        });
+      } else {
+        setState(() {
+          _initialScreen = const LoginScreen();
+        });
+      }
     } else {
-      // Si no hay usuario, ve a LoginScreen
-      _initialScreen = const LoginScreen();
+      setState(() {
+        _initialScreen = const LoginScreen();
+      });
     }
-    setState(() {}); // Redibuja la UI con la pantalla correcta
   }
 
   @override
@@ -48,7 +66,7 @@ class _MyAppState extends State<MyApp> {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: _initialScreen ?? const SplashScreen(), // Muestra SplashScreen mientras carga
+      home: _initialScreen, // ✅ Ahora siempre inicia con SplashScreen
     );
   }
 }
