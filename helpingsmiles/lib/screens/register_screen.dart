@@ -50,8 +50,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color.fromARGB(255, 180, 40, 40), // Red
-              Colors.white // White
+              Color.fromARGB(255, 180, 40, 40), 
+              Colors.white 
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -157,7 +157,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         onPressed: _register,
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 15),
-                          backgroundColor: Color.fromARGB(255, 180, 40, 40), // Red
+                          backgroundColor: Color.fromARGB(255, 180, 40, 40), 
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
