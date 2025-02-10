@@ -12,7 +12,12 @@
           "package_name": "com.example.helpingsmiles"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "184616052527-r4ae5oluls9lnv5s72p6fea049np8k63.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDLrD7RCsG0WcvTC8KZ3INCYMA8fd_B234"
@@ -20,7 +25,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "184616052527-r4ae5oluls9lnv5s72p6fea049np8k63.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
