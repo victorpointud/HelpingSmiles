@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../managers/auth_manager.dart';
 import 'organization_profile_screen.dart';
 import 'login_screen.dart';
-import 'add_activity_screen.dart'; // New screen for adding activities
+import 'add_activity_screen.dart';
 
 class OrganizationHomeScreen extends StatefulWidget {
   const OrganizationHomeScreen({super.key});
@@ -14,6 +15,7 @@ class OrganizationHomeScreen extends StatefulWidget {
 
 class _OrganizationHomeScreenState extends State<OrganizationHomeScreen> {
   String? organizationName;
+  List<Map<String, dynamic>> events = [];
 
   @override
   void initState() {
@@ -28,11 +30,27 @@ class _OrganizationHomeScreenState extends State<OrganizationHomeScreen> {
       setState(() {
         organizationName = orgName ?? "Unknown Organization";
       });
+
+      _loadEvents(user.uid);
     }
   }
 
+  Future<void> _loadEvents(String userId) async {
+  final querySnapshot = await FirebaseFirestore.instance
+      .collection('events')
+      .where('organizationId', isEqualTo: userId)
+      .get();
+
+  if (!mounted) return; // ✅ Prevent setState() if widget is disposed
+
+  setState(() {
+    events = querySnapshot.docs.map((doc) => doc.data()).toList();
+  });
+}
+
   void _navigate(BuildContext context, Widget screen) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
+    Navigator.push(context, MaterialPageRoute(builder: (_) => screen))
+        .then((_) => _loadOrganizationData()); // Reload after adding event
   }
 
   @override
@@ -42,11 +60,11 @@ class _OrganizationHomeScreenState extends State<OrganizationHomeScreen> {
         title: Text(organizationName ?? "Loading..."),
         actions: [
           IconButton(
-            icon: const Icon(Icons.person, color: Colors.white), 
+            icon: const Icon(Icons.person, color: Colors.white),
             onPressed: () => _navigate(context, const OrganizationProfileScreen()),
           ),
           IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white), 
+            icon: const Icon(Icons.logout, color: Colors.white),
             onPressed: () async {
               await AuthManager.logoutUser();
               Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
@@ -62,12 +80,7 @@ class _OrganizationHomeScreenState extends State<OrganizationHomeScreen> {
             Text("Welcome, $organizationName!", style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             const SizedBox(height: 20),
             _buildSectionTitle("Upcoming Events"),
-            _buildEventCard("Charity Fundraiser", "Feb 18, 3 PM"),
-            _buildEventCard("Health Camp", "Feb 22, 9 AM"),
-            const SizedBox(height: 20),
-            _buildSectionTitle("Pending Volunteer Requests"),
-            _buildVolunteerRequest("John Doe", "Community Cleanup"),
-            _buildVolunteerRequest("Alice Smith", "Food Drive"),
+            _buildEventList(),
           ],
         ),
       ),
@@ -80,30 +93,30 @@ class _OrganizationHomeScreenState extends State<OrganizationHomeScreen> {
   }
 
   Widget _buildSectionTitle(String title) {
-    return Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold));
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+    );
   }
 
-  Widget _buildEventCard(String event, String date) {
+  Widget _buildEventList() {
+    if (events.isEmpty) {
+      return const Center(child: Text("No upcoming events. Add one!"));
+    }
+    return Column(
+      children: events.map((event) => _buildEventCard(event)).toList(),
+    );
+  }
+
+  Widget _buildEventCard(Map<String, dynamic> event) {
     return Card(
       elevation: 3,
       margin: const EdgeInsets.symmetric(vertical: 8),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: ListTile(
-        title: Text(event, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(date),
+        title: Text(event["name"], style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text("${event["date"]} • ${event["location"]}"),
         trailing: const Icon(Icons.event),
-      ),
-    );
-  }
-
-  Widget _buildVolunteerRequest(String name, String task) {
-    return Card(
-      elevation: 3,
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      child: ListTile(
-        title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text("Applied for: $task"),
-        trailing: const Icon(Icons.check_circle_outline),
       ),
     );
   }

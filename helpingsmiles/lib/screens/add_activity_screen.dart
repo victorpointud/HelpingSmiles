@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AddActivityScreen extends StatefulWidget {
   const AddActivityScreen({super.key});
@@ -16,9 +18,21 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
   final _locationController = TextEditingController();
   final _descriptionController = TextEditingController();
 
-  void _saveActivity() {
+  void _saveActivity() async {
     if (_formKey.currentState!.validate()) {
-      // TODO: Save activity data to Firestore or database
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      await FirebaseFirestore.instance.collection('events').add({
+        'organizationId': user.uid,
+        'name': _activityNameController.text.trim(),
+        'date': _dateController.text.trim(),
+        'duration': _durationController.text.trim(),
+        'volunteerType': _volunteerTypeController.text.trim(),
+        'location': _locationController.text.trim(),
+        'description': _descriptionController.text.trim(),
+      });
+
       Navigator.pop(context);
     }
   }
