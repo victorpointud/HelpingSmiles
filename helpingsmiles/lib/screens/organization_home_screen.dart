@@ -4,8 +4,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../managers/auth_manager.dart';
 import 'organization_profile_screen.dart';
 import 'login_screen.dart';
-import 'add_activity_screen.dart';
-import 'edit_activity_screen.dart'; // New screen for editing events
+import '../managers/add_org_activity_manager.dart'; // Updated import
+import '../managers/edit_org_activity_manager.dart'; // Updated import
+
 
 class OrganizationHomeScreen extends StatefulWidget {
   const OrganizationHomeScreen({super.key});
@@ -25,33 +26,59 @@ class _OrganizationHomeScreenState extends State<OrganizationHomeScreen> {
   }
 
   Future<void> _loadOrganizationData() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user != null) {
+    try {
       String? orgName = await AuthManager.getOrganizationName(user.uid);
+      if (orgName == null || orgName.isEmpty) {
+        orgName = "Unknown Organization"; // ✅ Manejo de caso cuando es nulo
+      }
+
+      if (!mounted) return; // ✅ Evita llamar setState si el widget ya no está montado
       setState(() {
-        organizationName = orgName ?? "Unknown Organization";
+        organizationName = orgName;
       });
 
       _loadEvents(user.uid);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        organizationName = "Error retrieving organization"; // ✅ Mensaje de error adecuado
+      });
+      print("Error fetching organization name: $e"); // Debugging
     }
   }
+}
+
 
   Future<void> _loadEvents(String userId) async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) {
+    print("User not authenticated");
+    return;
+  }
+
+  try {
     final querySnapshot = await FirebaseFirestore.instance
         .collection('events')
         .where('organizationId', isEqualTo: userId)
         .get();
 
-    if (!mounted) return; // ✅ Prevent setState() if widget is disposed
+    if (!mounted) return; // Evita errores si el widget fue descartado
 
     setState(() {
       events = querySnapshot.docs.map((doc) {
-        final data = doc.data();
-        data['id'] = doc.id; // Store document ID for edits & deletes
-        return data;
+        final eventData = doc.data();
+        eventData["id"] = doc.id; // ✅ Agregar ID del documento
+        return eventData;
       }).toList();
     });
+  } catch (e) {
+    print("Error loading events: $e");
   }
+}
+
+
 
   void _navigate(BuildContext context, Widget screen) {
   Navigator.push(context, MaterialPageRoute(builder: (_) => screen)).then((result) {
@@ -96,7 +123,7 @@ class _OrganizationHomeScreenState extends State<OrganizationHomeScreen> {
             onPressed: () => _navigate(context, const OrganizationProfileScreen()),
           ),
           IconButton(
-            icon: const Icon(Icons.logout, color: Color.fromARGB(255, 0, 0, 0)),
+            icon: const Icon(Icons.logout, color: Color.fromARGB(255, 255, 0, 0)),
             onPressed: () async {
               await AuthManager.logoutUser();
               Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
@@ -116,8 +143,8 @@ class _OrganizationHomeScreenState extends State<OrganizationHomeScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.red,
-        onPressed: () => _navigate(context, const AddActivityScreen()),
-        child: const Icon(Icons.add, color: Colors.white),
+        onPressed: () => _navigate(context, const AddOrgActivityManager()),
+        child: const Icon(Icons.add, color: Color.fromARGB(255, 255, 255, 255)),
       ),
     );
   }
@@ -140,16 +167,16 @@ class _OrganizationHomeScreenState extends State<OrganizationHomeScreen> {
 
   Widget _buildEventCard(Map<String, dynamic> event) {
     return GestureDetector(
-      onTap: () => _navigate(context, EditActivityScreen(eventId: event["id"], eventData: event)), // Edit Event
+      onTap: () => _navigate(context, EditOrgActivityManager(eventId: event["id"], eventData: event)), // Edit Event
       onLongPress: () => _confirmDelete(event["id"]), // Delete on Long Press
       child: Card(
         elevation: 3,
         margin: const EdgeInsets.symmetric(vertical: 8),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         child: ListTile(
-          title: Text(event["name"], style: const TextStyle(fontWeight: FontWeight.bold)),
+          title: Text(event["name"], style: const TextStyle(fontWeight: FontWeight.bold, color: Color.fromARGB(255, 255, 0, 0))),
           subtitle: Text("${event["date"]} • ${event["location"]}"),
-          trailing: const Icon(Icons.event),
+          trailing: const Icon(Icons.event, color: Color.fromARGB(255, 0, 0, 0)),
         ),
       ),
     );

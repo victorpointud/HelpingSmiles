@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class EditActivityScreen extends StatefulWidget {
+class EditOrgActivityManager extends StatefulWidget {
   final String eventId;
   final Map<String, dynamic> eventData;
 
-  const EditActivityScreen({super.key, required this.eventId, required this.eventData});
+  const EditOrgActivityManager({super.key, required this.eventId, required this.eventData});
 
   @override
-  _EditActivityScreenState createState() => _EditActivityScreenState();
+  _EditOrgActivityManagerState createState() => _EditOrgActivityManagerState();
 }
 
-class _EditActivityScreenState extends State<EditActivityScreen> {
+class _EditOrgActivityManagerState extends State<EditOrgActivityManager> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _activityNameController;
   late TextEditingController _dateController;
@@ -42,13 +42,13 @@ class _EditActivityScreenState extends State<EditActivityScreen> {
         'description': _descriptionController.text.trim(),
       });
 
-      Navigator.pop(context, true); // Return true to indicate update
+      Navigator.pop(context, true);
     }
   }
 
   Future<void> _deleteEvent() async {
     await FirebaseFirestore.instance.collection('events').doc(widget.eventId).delete();
-    Navigator.pop(context, true); // Return true to indicate deletion
+    Navigator.pop(context, true);
   }
 
   void _confirmDelete() {
@@ -82,7 +82,7 @@ class _EditActivityScreenState extends State<EditActivityScreen> {
           child: Column(
             children: [
               _buildTextField(_activityNameController, "Activity Name", Icons.event),
-              _buildTextField(_dateController, "Start Date (YYYY-MM-DD)", Icons.calendar_today),
+              _buildTextField(_dateController, "Date (YYYY-MM-DD)", Icons.calendar_today),
               _buildTextField(_durationController, "Duration (hours)", Icons.timelapse),
               _buildTextField(_volunteerTypeController, "Volunteer Type", Icons.people),
               _buildTextField(_locationController, "Location", Icons.location_on),
@@ -91,10 +91,7 @@ class _EditActivityScreenState extends State<EditActivityScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  ElevatedButton(
-                    onPressed: _updateEvent,
-                    child: const Text("Save Changes"),
-                  ),
+                  ElevatedButton(onPressed: _updateEvent, child: const Text("Save Changes")),
                   ElevatedButton(
                     onPressed: _confirmDelete,
                     style: ElevatedButton.styleFrom(backgroundColor: Colors.red),

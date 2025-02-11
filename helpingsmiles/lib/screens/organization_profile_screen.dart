@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../managers/edit_org_profile_manager.dart';
 
 class OrganizationProfileScreen extends StatefulWidget {
   const OrganizationProfileScreen({super.key});
@@ -8,31 +11,77 @@ class OrganizationProfileScreen extends StatefulWidget {
 }
 
 class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
-  String mission = "Supporting communities through volunteer efforts.";
-  String objectives = "• Education support\n• Environmental sustainability\n• Charity events";
+  List<String> objectives = [];
+  List<String> volunteerTypes = [];
+  List<String> locations = [];
+  List<String> missions = [];
 
-  void _editProfile() {
-    TextEditingController missionController = TextEditingController(text: mission);
-    TextEditingController objectivesController = TextEditingController(text: objectives);
+  @override
+  void initState() {
+    super.initState();
+    _loadOrganizationData();
+  }
 
-    showModalBottomSheet(
-      context: context,
-      builder: (_) => Padding(
-        padding: const EdgeInsets.all(20),
+  Future<void> _loadOrganizationData() async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user != null) {
+    final doc = await FirebaseFirestore.instance.collection('organizations').doc(user.uid).get();
+    if (doc.exists) {
+      setState(() {
+        missions = _convertToList(doc.data()?['missions']);
+        objectives = _convertToList(doc.data()?['objectives']);
+        volunteerTypes = _convertToList(doc.data()?['volunteerTypes']);
+        locations = _convertToList(doc.data()?['locations']);
+      });
+    }
+  }
+}
+
+// Método corregido para evitar errores
+List<String> _convertToList(dynamic data) {
+  if (data is List) {
+    return data.whereType<String>().toList(); // Convierte solo elementos tipo String
+  } else if (data is String) {
+    return [data]; // Convierte un solo String en una lista con un solo elemento
+  } else {
+    return []; // Retorna lista vacía si es nulo u otro tipo
+  }
+}
+
+
+  void _navigateToEditProfile() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const EditOrgProfileManager()),
+    ).then((result) {
+      if (result == true) _loadOrganizationData(); // Refresh data
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Organization Profile")),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            _buildTextField(missionController, "Mission"),
-            _buildTextField(objectivesController, "Objectives"),
+            CircleAvatar(
+              radius: 50,
+              backgroundColor: const Color.fromARGB(255, 224, 63, 63),
+              child: const Icon(Icons.business, size: 50, color: Colors.white),
+            ),
+            const SizedBox(height: 20),
+            _buildProfileList(Icons.flag, "Mission", missions),
+            _buildProfileList(Icons.list, "Objectives", objectives),
+            _buildProfileList(Icons.people, "Volunteer Types", volunteerTypes),
+            _buildProfileList(Icons.location_on, "Locations", locations),
+            const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  mission = missionController.text;
-                  objectives = objectivesController.text;
-                });
-                Navigator.pop(context);
-              },
-              child: const Text("Save Changes"),
+              onPressed: _navigateToEditProfile,
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              child: const Text("Edit Profile", style: TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -40,34 +89,21 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: TextField(controller: controller, decoration: InputDecoration(labelText: label)),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Organization Profile"), actions: [IconButton(icon: const Icon(Icons.edit), onPressed: _editProfile)]),
-      body: Padding(
+  Widget _buildProfileList(IconData icon, String title, List<String> items) {
+    return Card(
+      elevation: 4,
+      margin: const EdgeInsets.symmetric(vertical: 10),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const CircleAvatar(radius: 50, child: Icon(Icons.business, size: 50)),
-            _buildProfileSection("Mission", mission),
-            _buildProfileSection("Objectives", objectives),
+            Row(children: [Icon(icon, color: Colors.red), const SizedBox(width: 10), Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold))]),
+            ...items.map((item) => Text("• $item")),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildProfileSection(String title, String content) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      child: ListTile(title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)), subtitle: Text(content)),
     );
   }
 }
