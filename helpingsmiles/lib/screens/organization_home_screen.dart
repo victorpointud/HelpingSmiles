@@ -6,49 +6,24 @@ import 'login_screen.dart';
 class OrganizationHomeScreen extends StatelessWidget {
   const OrganizationHomeScreen({super.key});
 
-  void _logout(BuildContext context) async {
-    await AuthManager.logoutUser();
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const LoginScreen()),
-    );
-  }
-
-  void _goToProfile(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const OrganizationProfileScreen()),
-    );
+  void _navigate(BuildContext context, Widget screen) {
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => screen));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "Organization Home",
-          style: TextStyle(
-            color: Colors.black, 
-            fontWeight: FontWeight.bold, 
-            fontSize: 20,
-          ),
-        ),
-        iconTheme: const IconThemeData(color: Colors.white),
-        backgroundColor: const Color(0xFFE57373), // 🔹 Color rojo más suave
+        title: const Text("Organization Home"),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.person, color: Colors.white),
-            onPressed: () => _goToProfile(context),
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
-            onPressed: () => _logout(context),
-          ),
+          IconButton(icon: const Icon(Icons.person), onPressed: () => _navigate(context, const OrganizationProfileScreen())),
+          IconButton(icon: const Icon(Icons.logout), onPressed: () async {
+            await AuthManager.logoutUser();
+            _navigate(context, const LoginScreen());
+          }),
         ],
       ),
-      body: const Center(
-        child: Text("Welcome, Organization!", style: TextStyle(fontSize: 20)),
-      ),
+      body: const Center(child: Text("Welcome, Organization!")),
     );
   }
 }

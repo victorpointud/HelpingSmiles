@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../managers/auth_manager.dart';
+import 'login_screen.dart';
 
-/// Register Screen with Role Selection
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -10,208 +10,132 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
   String? _errorMessage;
-  String _selectedRole = 'volunteer'; // Default role
+  String _selectedRole = 'volunteer';
 
-  void _register() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    if (_passwordController.text != _confirmPasswordController.text) {
-      setState(() {
-        _errorMessage = 'Passwords do not match.';
-      });
+  Future<void> _register() async {
+    if (!_formKey.currentState!.validate() || _passwordController.text != _confirmPasswordController.text) {
+      setState(() => _errorMessage = 'Passwords do not match.');
       return;
     }
 
-    String? error = await AuthManager.registerUser(
+    final error = await AuthManager.registerUser(
       _emailController.text.trim(),
       _passwordController.text.trim(),
-      _selectedRole, // Guardar el rol seleccionado
+      _selectedRole,
     );
 
     if (error == null) {
       Navigator.pop(context);
     } else {
-      setState(() {
-        _errorMessage = error;
-      });
+      setState(() => _errorMessage = error);
     }
+  }
+
+  void _navigateToLogin() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(20),
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color.fromARGB(255, 180, 40, 40), // Red
-              Colors.white // White
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: Center(
-          child: SingleChildScrollView(
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(15),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 10,
-                    spreadRadius: 2,
-                  ),
-                ],
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('lib/assets/background.png'), 
+                fit: BoxFit.cover,
               ),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text(
-                      'Register',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    TextFormField(
-                      controller: _emailController,
-                      decoration: InputDecoration(
-                        labelText: 'Email',
-                        prefixIcon: const Icon(Icons.email),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          Container(
+            color: Colors.black.withOpacity(0.6), // Dark Overlay
+          ),
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Card(
+                elevation: 10,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          'Register',
+                          style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
                         ),
-                      ),
-                      keyboardType: TextInputType.emailAddress,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your email';
-                        }
-                        if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                          return 'Enter a valid email';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 15),
-                    TextFormField(
-                      controller: _passwordController,
-                      obscureText: true,
-                      decoration: InputDecoration(
-                        labelText: 'Password',
-                        prefixIcon: const Icon(Icons.lock),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
+                        _buildTextField(_emailController, 'Email', Icons.email),
+                        _buildTextField(_passwordController, 'Password', Icons.lock, isPassword: true),
+                        _buildTextField(_confirmPasswordController, 'Confirm Password', Icons.lock_outline, isPassword: true),
+                        _buildRoleDropdown(),
+                        if (_errorMessage != null) 
+                          Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: _register,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                          child: const Text('Sign Up', style: TextStyle(fontSize: 18, color: Colors.white)),
                         ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Enter your password';
-                        }
-                        if (value.length < 6) {
-                          return 'Password must be at least 6 characters';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 15),
-                    TextFormField(
-                      controller: _confirmPasswordController,
-                      obscureText: true,
-                      decoration: InputDecoration(
-                        labelText: 'Confirm Password',
-                        prefixIcon: const Icon(Icons.lock_outline),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
+                        const SizedBox(height: 10),
+                        TextButton(
+                          onPressed: _navigateToLogin,
+                          child: const Text("Already have an account? Login"),
                         ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Confirm your password';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 15),
-                    // Dropdown para elegir el rol
-                    DropdownButtonFormField<String>(
-                      value: _selectedRole,
-                      items: const [
-                        DropdownMenuItem(value: 'volunteer', child: Text('Volunteer')),
-                        DropdownMenuItem(value: 'organization', child: Text('Organization')),
                       ],
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedRole = value!;
-                        });
-                      },
-                      decoration: InputDecoration(
-                        labelText: 'Select Role',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
                     ),
-                    const SizedBox(height: 10),
-                    if (_errorMessage != null)
-                      Text(
-                        _errorMessage!,
-                        style: const TextStyle(color: Colors.red),
-                      ),
-                    const SizedBox(height: 20),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _register,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 15),
-                          backgroundColor: const Color.fromARGB(255, 180, 40, 40), // Red
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        child: const Text(
-                          'Sign Up',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      child: const Text(
-                        "Already have an account? Login",
-                        style: TextStyle(
-                          color: Colors.black54,
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
+        ],
       ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String label, IconData icon, {bool isPassword = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: TextFormField(
+        controller: controller,
+        obscureText: isPassword,
+        decoration: InputDecoration(
+          labelText: label,
+          prefixIcon: Icon(icon),
+          filled: true,
+          fillColor: Colors.white,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+        validator: (value) => value!.isEmpty ? 'Please enter $label' : null,
+      ),
+    );
+  }
+
+  Widget _buildRoleDropdown() {
+    return DropdownButtonFormField<String>(
+      value: _selectedRole,
+      items: const [
+        DropdownMenuItem(value: 'volunteer', child: Text('Volunteer')),
+        DropdownMenuItem(value: 'organization', child: Text('Organization')),
+      ],
+      onChanged: (value) => setState(() => _selectedRole = value!),
+      decoration: const InputDecoration(labelText: 'Select Role'),
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../managers/auth_manager.dart';
 import 'home_screen.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -11,154 +12,117 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
   String? _errorMessage;
-  String? _userRole;
 
-  void _login() async {
+  Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
 
-    String? error = await AuthManager.loginUser(
+    final error = await AuthManager.loginUser(
       _emailController.text.trim(),
       _passwordController.text.trim(),
     );
 
     if (error == null) {
-      // Si el login es exitoso, obtenemos el rol correctamente
-      String? role = await AuthManager.getUserRole(FirebaseAuth.instance.currentUser!.uid);
-
-      if (role != null) {
-        setState(() {
-          _userRole = role;
-        });
-
-        // Navegar a HomeScreen después de obtener el rol
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => HomeScreen(title: 'Welcome, $role!')),
-        );
-      } else {
-        setState(() {
-          _errorMessage = 'Error retrieving user role';
-        });
-      }
+      final user = FirebaseAuth.instance.currentUser;
+      final role = await AuthManager.getUserRole(user!.uid);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => HomeScreen(title: 'Welcome, $role!')),
+      );
     } else {
-      setState(() {
-        _errorMessage = error;
-      });
+      setState(() => _errorMessage = error);
     }
+  }
+
+  void _navigateToRegister() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const RegisterScreen()),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(20),
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.white, Colors.red],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: Center(
-          child: SingleChildScrollView(
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(15),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 10,
-                    spreadRadius: 2,
-                  ),
-                ],
+      body: Stack(
+        children: [
+          // Background Image
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('lib/assets/background.png'), 
+                fit: BoxFit.cover,
               ),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text(
-                      'Login',
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 20),
-                    TextFormField(
-                      controller: _emailController,
-                      decoration: InputDecoration(
-                        labelText: 'Email',
-                        prefixIcon: const Icon(Icons.email),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      keyboardType: TextInputType.emailAddress,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter your email';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 15),
-                    TextFormField(
-                      controller: _passwordController,
-                      obscureText: true,
-                      decoration: InputDecoration(
-                        labelText: 'Password',
-                        prefixIcon: const Icon(Icons.lock),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Enter your password';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 10),
-                    if (_errorMessage != null)
-                      Text(
-                        _errorMessage!,
-                        style: const TextStyle(color: Colors.red),
-                      ),
-                    if (_userRole != null)
-                      Text(
-                        'Role: $_userRole',
-                        style: const TextStyle(color: Colors.red, fontSize: 16),
-                      ),
-                    const SizedBox(height: 20),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _login,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 15),
-                          backgroundColor: Colors.red,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                        child: const Text(
+            ),
+          ),
+          Container(
+            color: Colors.black.withOpacity(0.6), // Dark Overlay
+          ),
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Card(
+                elevation: 10,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
                           'Login',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                          style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
                         ),
-                      ),
+                        _buildTextField(_emailController, 'Email', Icons.email),
+                        _buildTextField(_passwordController, 'Password', Icons.lock, isPassword: true),
+                        if (_errorMessage != null) 
+                          Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: _login,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                          child: const Text('Login', style: TextStyle(fontSize: 18, color: Colors.white)),
+                        ),
+                        const SizedBox(height: 10),
+                        TextButton(
+                          onPressed: _navigateToRegister,
+                          child: const Text("Don't have an account? Register"),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String label, IconData icon, {bool isPassword = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: TextFormField(
+        controller: controller,
+        obscureText: isPassword,
+        decoration: InputDecoration(
+          labelText: label,
+          prefixIcon: Icon(icon),
+          filled: true,
+          fillColor: Colors.white,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         ),
+        validator: (value) => value!.isEmpty ? 'Please enter $label' : null,
       ),
     );
   }

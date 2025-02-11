@@ -6,11 +6,15 @@ class HomeScreen extends StatelessWidget {
   final String title;
   const HomeScreen({super.key, required this.title});
 
-  void _logout(BuildContext context) async {
+  Future<void> _logout(BuildContext context) async {
     await AuthManager.logoutUser();
+    _navigateToLogin(context);
+  }
+
+  void _navigateToLogin(BuildContext context) {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const LoginScreen()),
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
     );
   }
 
@@ -20,15 +24,10 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(title),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => _logout(context),
-          ),
+          IconButton(icon: const Icon(Icons.logout), onPressed: () => _logout(context)),
         ],
       ),
-      body: const Center(
-        child: Text("You're logged in!"),
-      ),
+      body: const Center(child: Text("You're logged in!")),
     );
   }
 }
