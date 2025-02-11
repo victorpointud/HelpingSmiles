@@ -50,7 +50,7 @@ class _AddActivityScreenState extends State<AddActivityScreen> {
           child: Column(
             children: [
               _buildTextField(_activityNameController, "Activity Name", Icons.event),
-              _buildTextField(_dateController, "Date (YYYY-MM-DD)", Icons.calendar_today),
+              _buildTextField(_dateController, "Start Date (YYYY-MM-DD)", Icons.calendar_today),
               _buildTextField(_durationController, "Duration (hours)", Icons.timelapse),
               _buildTextField(_volunteerTypeController, "Volunteer Type", Icons.people),
               _buildTextField(_locationController, "Location", Icons.location_on),

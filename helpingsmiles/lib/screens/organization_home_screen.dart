@@ -54,9 +54,11 @@ class _OrganizationHomeScreenState extends State<OrganizationHomeScreen> {
   }
 
   void _navigate(BuildContext context, Widget screen) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => screen))
-        .then((_) => _loadOrganizationData()); // Reload events after changes
-  }
+  Navigator.push(context, MaterialPageRoute(builder: (_) => screen)).then((result) {
+    if (result == true) _loadOrganizationData(); // Reload after changes
+  });
+}
+
 
   Future<void> _deleteEvent(String eventId) async {
     await FirebaseFirestore.instance.collection('events').doc(eventId).delete();
@@ -87,14 +89,14 @@ class _OrganizationHomeScreenState extends State<OrganizationHomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(organizationName ?? "Loading..."),
+        title: Text("Welcome, $organizationName!", style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.person, color: Colors.white),
+            icon: const Icon(Icons.person, color: Color.fromARGB(255, 0, 0, 0)),
             onPressed: () => _navigate(context, const OrganizationProfileScreen()),
           ),
           IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
+            icon: const Icon(Icons.logout, color: Color.fromARGB(255, 0, 0, 0)),
             onPressed: () async {
               await AuthManager.logoutUser();
               Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
@@ -106,9 +108,7 @@ class _OrganizationHomeScreenState extends State<OrganizationHomeScreen> {
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("Welcome, $organizationName!", style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 20),
+          children: [    
             _buildSectionTitle("Upcoming Events"),
             _buildEventList(),
           ],

@@ -42,8 +42,33 @@ class _EditActivityScreenState extends State<EditActivityScreen> {
         'description': _descriptionController.text.trim(),
       });
 
-      Navigator.pop(context);
+      Navigator.pop(context, true); // Return true to indicate update
     }
+  }
+
+  Future<void> _deleteEvent() async {
+    await FirebaseFirestore.instance.collection('events').doc(widget.eventId).delete();
+    Navigator.pop(context, true); // Return true to indicate deletion
+  }
+
+  void _confirmDelete() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Delete Event"),
+        content: const Text("Are you sure you want to delete this event?"),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
+          TextButton(
+            onPressed: () {
+              _deleteEvent();
+              Navigator.pop(context);
+            },
+            child: const Text("Delete", style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -57,15 +82,25 @@ class _EditActivityScreenState extends State<EditActivityScreen> {
           child: Column(
             children: [
               _buildTextField(_activityNameController, "Activity Name", Icons.event),
-              _buildTextField(_dateController, "Date (YYYY-MM-DD)", Icons.calendar_today),
+              _buildTextField(_dateController, "Start Date (YYYY-MM-DD)", Icons.calendar_today),
               _buildTextField(_durationController, "Duration (hours)", Icons.timelapse),
               _buildTextField(_volunteerTypeController, "Volunteer Type", Icons.people),
               _buildTextField(_locationController, "Location", Icons.location_on),
               _buildTextField(_descriptionController, "Description", Icons.description, isMultiline: true),
               const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _updateEvent,
-                child: const Text("Save Changes"),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: _updateEvent,
+                    child: const Text("Save Changes"),
+                  ),
+                  ElevatedButton(
+                    onPressed: _confirmDelete,
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                    child: const Text("Delete Event", style: TextStyle(color: Colors.white)),
+                  ),
+                ],
               ),
             ],
           ),
