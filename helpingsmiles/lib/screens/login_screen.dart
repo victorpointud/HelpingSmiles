@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../managers/auth_manager.dart';
-import 'home_screen.dart';
+import 'volunteer_home_screen.dart';
+import 'organization_home_screen.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -27,21 +28,29 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (error == null) {
       final user = FirebaseAuth.instance.currentUser;
-      final role = await AuthManager.getUserRole(user!.uid);
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => HomeScreen(title: 'Welcome, $role!')),
-      );
+      if (user != null) {
+        String? role = await AuthManager.getUserRole(user.uid);
+
+        // Check if widget is still mounted before using context
+        if (!mounted) return;
+
+        if (role == "volunteer") {
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const VolunteerHomeScreen()));
+        } else if (role == "organization") {
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const OrganizationHomeScreen()));
+        } else {
+          setState(() => _errorMessage = "Error retrieving user role.");
+        }
+      }
     } else {
-      setState(() => _errorMessage = error);
+      if (mounted) {
+        setState(() => _errorMessage = error);
+      }
     }
   }
 
   void _navigateToRegister() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const RegisterScreen()),
-    );
+    Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterScreen()));
   }
 
   @override
@@ -49,17 +58,16 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Background Image
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('lib/assets/background.png'), 
+                image: AssetImage('lib/assets/background.png'),
                 fit: BoxFit.cover,
               ),
             ),
           ),
           Container(
-            color: Colors.black.withOpacity(0.6), // Dark Overlay
+            color: Colors.black.withOpacity(0.6),
           ),
           Center(
             child: Padding(
@@ -83,15 +91,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         if (_errorMessage != null) 
                           Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
                         const SizedBox(height: 20),
-                        ElevatedButton(
-                          onPressed: _login,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          ),
-                          child: const Text('Login', style: TextStyle(fontSize: 18, color: Colors.white)),
-                        ),
+                        _buildLoginButton(),
                         const SizedBox(height: 10),
                         TextButton(
                           onPressed: _navigateToRegister,
@@ -123,6 +123,21 @@ class _LoginScreenState extends State<LoginScreen> {
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         ),
         validator: (value) => value!.isEmpty ? 'Please enter $label' : null,
+      ),
+    );
+  }
+
+  Widget _buildLoginButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: _login,
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          backgroundColor: Colors.red,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+        child: const Text('Login', style: TextStyle(fontSize: 18, color: Colors.white)),
       ),
     );
   }
