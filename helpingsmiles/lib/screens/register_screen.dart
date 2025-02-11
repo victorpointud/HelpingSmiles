@@ -13,6 +13,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _organizationNameController = TextEditingController(); // New field
   final _formKey = GlobalKey<FormState>();
   String? _errorMessage;
   String _selectedRole = 'volunteer';
@@ -27,6 +28,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _emailController.text.trim(),
       _passwordController.text.trim(),
       _selectedRole,
+      _selectedRole == "organization" ? _organizationNameController.text.trim() : null, // Pass org name
     );
 
     if (error == null) {
@@ -37,10 +39,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void _navigateToLogin() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-    );
+    Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
   }
 
   @override
@@ -50,15 +49,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
         children: [
           Container(
             decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('lib/assets/background.png'), 
-                fit: BoxFit.cover,
-              ),
+              image: DecorationImage(image: AssetImage('lib/assets/background.png'), fit: BoxFit.cover),
             ),
           ),
-          Container(
-            color: Colors.black.withOpacity(0.6), // Dark Overlay
-          ),
+          Container(color: Colors.black.withOpacity(0.6)),
           Center(
             child: Padding(
               padding: const EdgeInsets.all(20),
@@ -72,14 +66,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text(
-                          'Register',
-                          style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-                        ),
+                        const Text('Register', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
                         _buildTextField(_emailController, 'Email', Icons.email),
                         _buildTextField(_passwordController, 'Password', Icons.lock, isPassword: true),
                         _buildTextField(_confirmPasswordController, 'Confirm Password', Icons.lock_outline, isPassword: true),
                         _buildRoleDropdown(),
+                        if (_selectedRole == "organization") // Show field only if 'Organization' is selected
+                          _buildTextField(_organizationNameController, 'Organization Name', Icons.business),
                         if (_errorMessage != null) 
                           Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
                         const SizedBox(height: 20),
