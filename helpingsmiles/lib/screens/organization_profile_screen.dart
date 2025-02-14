@@ -67,10 +67,10 @@ List<String> _convertToList(dynamic data) {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            CircleAvatar(
+            const CircleAvatar(
               radius: 50,
-              backgroundColor: const Color.fromARGB(255, 224, 63, 63),
-              child: const Icon(Icons.business, size: 50, color: Colors.white),
+              backgroundColor: Color.fromARGB(255, 224, 63, 63),
+              child: Icon(Icons.business, size: 50, color: Colors.white),
             ),
             const SizedBox(height: 20),
             _buildProfileList(Icons.flag, "Mission", missions),

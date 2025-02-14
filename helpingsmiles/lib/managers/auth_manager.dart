@@ -9,36 +9,41 @@ class AuthManager {
   static Future<void> logoutUser() async => await _auth.signOut();
 
   /// Registers a new user and stores their role + organization name (if applicable)
-  static Future<String?> registerUser(String email, String password, String role, {String? organizationName}) async {
-  try {
-    final userCredential = await _auth.createUserWithEmailAndPassword(email: email, password: password);
-    final uid = userCredential.user!.uid;
+  static Future<String?> registerUser({
+    required String email,
+    required String password,
+    required String role,
+    String? name,
+    String? lastName,
+    String? organizationName,
+  }) async {
+    try {
+      final userCredential = await _auth.createUserWithEmailAndPassword(
+        email: email, 
+        password: password
+      );
 
-    // Guarda en la colección de usuarios
-    await _db.collection('users').doc(uid).set({
-      'email': email,
-      'role': role,
-      'createdAt': FieldValue.serverTimestamp(),
-    });
-
-    // Si es una organización, guarda en la colección de organizaciones
-    if (role == "organization" && organizationName != null) {
-      await _db.collection('organizations').doc(uid).set({
-        'name': organizationName,
-        'mission': "",
-        'objectives': [],
-        'volunteerTypes': [],
-        'locations': [],
+      await _db.collection('users').doc(userCredential.user!.uid).set({
+        'email': email,
+        'role': role,
+        'name': role == 'volunteer' ? "$name $lastName" : organizationName,
         'createdAt': FieldValue.serverTimestamp(),
       });
+
+      return null; // Successful registration
+    } catch (e) {
+      return e is FirebaseAuthException ? e.message : 'Registration error.';
     }
-
-    return null; // Éxito
-  } catch (e) {
-    return e is FirebaseAuthException ? e.message : 'Registration error.';
   }
-}
 
+static Future<String?> getUserName(String uid) async {
+    try {
+      final userDoc = await _db.collection('users').doc(uid).get();
+      return userDoc.exists ? userDoc.get('name') : "Volunteer";
+    } catch (e) {
+      return "Volunteer"; // Default name in case of error
+    }
+  }
 
   /// Logs in a user and verifies their role
   static Future<String?> loginUser(String email, String password) async {

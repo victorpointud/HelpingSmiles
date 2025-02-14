@@ -1,10 +1,60 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../managers/auth_manager.dart';
 import 'volunteer_profile_screen.dart';
 import 'login_screen.dart';
 
-class VolunteerHomeScreen extends StatelessWidget {
+class VolunteerHomeScreen extends StatefulWidget {
   const VolunteerHomeScreen({super.key});
+
+  @override
+  _VolunteerHomeScreenState createState() => _VolunteerHomeScreenState();
+}
+
+class _VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
+  String? volunteerName;
+  List<Map<String, dynamic>> organizations = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadVolunteerData();
+    _loadOrganizations();
+    _loadUserData();
+  }
+
+  /// Cargar el nombre del voluntario autenticado
+  Future<void> _loadVolunteerData() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      String? name = await AuthManager.getUserName(user.uid);
+      setState(() {
+        volunteerName = name ?? "Volunteer";
+      });
+    }
+  }
+
+Future<void> _loadUserData() async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user != null) {
+    String? userName = await AuthManager.getUserName(user.uid);
+    setState(() {
+      volunteerName = userName ?? "Volunteer";
+    });
+  }
+}
+  /// Cargar todas las organizaciones registradas en Firebase
+  Future<void> _loadOrganizations() async {
+    try {
+      final querySnapshot = await FirebaseFirestore.instance.collection('organizations').get();
+      setState(() {
+        organizations = querySnapshot.docs.map((doc) => doc.data()).toList();
+      });
+    } catch (e) {
+      print("Error loading organizations: $e");
+    }
+  }
 
   void _navigate(BuildContext context, Widget screen) {
     Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
@@ -14,13 +64,19 @@ class VolunteerHomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Volunteer Dashboard"),
+        title: Text("Welcome, $volunteerName!", style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
         actions: [
-          IconButton(icon: const Icon(Icons.person), onPressed: () => _navigate(context, const VolunteerProfileScreen())),
-          IconButton(icon: const Icon(Icons.logout), onPressed: () async {
-            await AuthManager.logoutUser();
-            _navigate(context, const LoginScreen());
-          }),
+          IconButton(
+            icon: const Icon(Icons.person, color: Colors.black),
+            onPressed: () => _navigate(context, const VolunteerProfileScreen()),
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.red),
+            onPressed: () async {
+              await AuthManager.logoutUser();
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+            },
+          ),
         ],
       ),
       body: Padding(
@@ -28,92 +84,39 @@ class VolunteerHomeScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Profile Card
-            _buildProfileCard(),
-
-            const SizedBox(height: 20),
-
-            // Upcoming Tasks
-            _buildSectionTitle("Upcoming Activities"),
-            _buildTaskCard("Community Cleanup", "Feb 12, 10 AM"),
-            _buildTaskCard("Food Drive", "Feb 15, 2 PM"),
-
-            const SizedBox(height: 20),
-
-            // Progress Tracker
-            _buildSectionTitle("Your Impact"),
-            _buildProgressTracker(),
-
-            const SizedBox(height: 10),
-
-            // Buttons
-            _buildNavigationButton(context, "View Profile", Icons.account_circle, const VolunteerProfileScreen()),
+            _buildSectionTitle("Registered Organizations"),
+            _buildOrganizationList(),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildProfileCard() {
-    return Card(
-      elevation: 5,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      child: ListTile(
-        
-        title: const Text("Welcome, Volunteer!", style: TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: const Text("Your next task is coming up soon."),
-        trailing: const Icon(Icons.volunteer_activism, color: Colors.red),
       ),
     );
   }
 
   Widget _buildSectionTitle(String title) {
-    return Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold));
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+    );
   }
 
-  Widget _buildTaskCard(String task, String date) {
+  Widget _buildOrganizationList() {
+    if (organizations.isEmpty) {
+      return const Center(child: Text("No organizations available."));
+    }
+    return Column(
+      children: organizations.map((org) => _buildOrganizationCard(org)).toList(),
+    );
+  }
+
+  Widget _buildOrganizationCard(Map<String, dynamic> org) {
     return Card(
       elevation: 3,
       margin: const EdgeInsets.symmetric(vertical: 8),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: ListTile(
-        title: Text(task, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(date),
-        trailing: const Icon(Icons.arrow_forward_ios),
-      ),
-    );
-  }
-
-  Widget _buildProgressTracker() {
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      child: Padding(
-        padding: const EdgeInsets.all(15),
-        child: Column(
-          children: [
-            const Text("Activities Completed", style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 10),
-            const Text("5", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.red)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavigationButton(BuildContext context, String text, IconData icon, Widget screen) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton.icon(
-        onPressed: () => _navigate(context, screen),
-        icon: Icon(icon),
-        label: Text(text),
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          backgroundColor: Colors.red,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
+        title: Text(org["name"] ?? "Unknown Organization", style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text(org["mission"] ?? "No mission available"),
+        trailing: const Icon(Icons.business, color: Colors.red),
       ),
     );
   }
