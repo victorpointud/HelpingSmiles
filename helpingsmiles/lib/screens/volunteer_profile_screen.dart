@@ -12,6 +12,10 @@ class VolunteerProfileScreen extends StatefulWidget {
 
 class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
   String? name;
+  String? email;
+  String? phone;
+  String? dateOfBirth;
+  String? password;
   String? location;
   List<String> interests = [];
   List<String> skills = [];
@@ -22,46 +26,36 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
     _loadVolunteerData();
   }
 
- Future<void> _loadVolunteerData() async {
+  Future<void> _loadVolunteerData() async {
   final user = FirebaseAuth.instance.currentUser;
   if (user != null) {
     final doc = await FirebaseFirestore.instance.collection('volunteers').doc(user.uid).get();
     if (doc.exists) {
       setState(() {
-        name = doc['name'] ?? "Unknown";
-        location = doc['location'] ?? "Not specified";
+        name = doc.data()?['name'] ?? "Not specified"; // ✅ Se obtiene correctamente el nombre
+        email = user.email ?? "Not specified"; // ✅ Email directamente de FirebaseAuth
+        phone = doc.data()?['phone'] ?? "Not specified"; // ✅ Se obtiene el teléfono
+        dateOfBirth = doc.data()?['dob'] ?? "Not specified"; // ✅ Se obtiene la fecha de nacimiento
+        location = doc.data()?['location'] ?? "Not specified"; // ✅ Se obtiene la ubicación
 
-        // Ensure 'interests' is always a list
-        final dynamic interestsData = doc['interests'];
-        if (interestsData is List) {
-          interests = interestsData.cast<String>();
-        } else if (interestsData is String) {
-          interests = [interestsData]; // Convert single string to list
-        } else {
-          interests = [];
-        }
+        // Convert interests to a list
+        final dynamic interestsData = doc.data()?['interests'];
+        interests = (interestsData is List) ? interestsData.cast<String>() : [];
 
-        // Ensure 'skills' is always a list
-        final dynamic skillsData = doc['skills'];
-        if (skillsData is List) {
-          skills = skillsData.cast<String>();
-        } else if (skillsData is String) {
-          skills = [skillsData]; // Convert single string to list
-        } else {
-          skills = [];
-        }
+        // Convert skills to a list
+        final dynamic skillsData = doc.data()?['skills'];
+        skills = (skillsData is List) ? skillsData.cast<String>() : [];
       });
     }
   }
 }
-
 
   void _navigateToEditProfile() {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const EditVolProfileManager()),
     ).then((result) {
-      if (result == true) _loadVolunteerData(); // Refresh data after editing
+      if (result == true) _loadVolunteerData();
     });
   }
 
@@ -80,9 +74,14 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
               child: const Icon(Icons.person, size: 50, color: Colors.white),
             ),
             const SizedBox(height: 20),
+            _buildProfileSection(Icons.person, "Name", name ?? "Not specified"),
+            _buildProfileSection(Icons.email, "Email", email ?? "Not specified"),
+            _buildProfileSection(Icons.phone, "Phone Number", phone ?? "Not specified"),
+            _buildProfileSection(Icons.calendar_today, "Date of Birth", dateOfBirth ?? "Not specified"),
+            _buildProfileSection(Icons.lock, "Password", password ?? "Not specified"),
+            _buildProfileSection(Icons.location_on, "Location", location ?? "Not specified"),
             _buildProfileList(Icons.favorite, "Interests", interests),
             _buildProfileList(Icons.star, "Skills", skills),
-            _buildProfileSection(Icons.location_on, "Location", location ?? "Not specified"),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _navigateToEditProfile,
@@ -107,9 +106,19 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
             Icon(icon, color: Colors.red),
             const SizedBox(width: 10),
             Expanded(
-              child: Text(
-                "$title:\n$content",
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              child: Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(
+                      text: "$title: ",
+                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+                    ),
+                    TextSpan(
+                      text: content,
+                      style: const TextStyle(fontWeight: FontWeight.normal, color: Colors.black),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -128,8 +137,12 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(children: [Icon(icon, color: Colors.red), const SizedBox(width: 10), Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold))]),
-            ...items.map((item) => Text("• $item", style: const TextStyle(fontSize: 16))),
+            Row(children: [
+              Icon(icon, color: Colors.red),
+              const SizedBox(width: 10),
+              Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black))
+            ]),
+            ...items.map((item) => Text("• $item", style: const TextStyle(fontSize: 16, color: Colors.black))),
           ],
         ),
       ),

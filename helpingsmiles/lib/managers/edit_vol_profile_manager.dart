@@ -11,6 +11,11 @@ class EditVolProfileManager extends StatefulWidget {
 
 class _EditVolProfileManagerState extends State<EditVolProfileManager> {
   final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _dobController = TextEditingController(); // Date of Birth
   final _locationController = TextEditingController();
   final _interestsController = TextEditingController();
   final _skillsController = TextEditingController();
@@ -27,9 +32,13 @@ class _EditVolProfileManagerState extends State<EditVolProfileManager> {
       final doc = await FirebaseFirestore.instance.collection('volunteers').doc(user.uid).get();
       if (doc.exists) {
         setState(() {
-          _locationController.text = doc['location'] ?? "";
-          _interestsController.text = (doc['interests'] as List<dynamic>?)?.join("\n") ?? "";
-          _skillsController.text = (doc['skills'] as List<dynamic>?)?.join("\n") ?? "";
+          _nameController.text = doc.data()?['name'] ?? "Unknown";
+          _emailController.text = user.email ?? "";
+          _phoneController.text = doc.data()?['phone'] ?? "";
+          _dobController.text = doc.data()?['dob'] ?? "";
+          _locationController.text = doc.data()?['location'] ?? "";
+          _interestsController.text = (doc.data()?['interests'] as List<dynamic>?)?.join("\n") ?? "";
+          _skillsController.text = (doc.data()?['skills'] as List<dynamic>?)?.join("\n") ?? "";
         });
       }
     }
@@ -39,13 +48,31 @@ class _EditVolProfileManagerState extends State<EditVolProfileManager> {
     if (_formKey.currentState!.validate()) {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        await FirebaseFirestore.instance.collection('volunteers').doc(user.uid).set({
-          'location': _locationController.text.trim(),
-          'interests': _interestsController.text.trim().split("\n"),
-          'skills': _skillsController.text.trim().split("\n"),
-        }, SetOptions(merge: true));
+        try {
+          // ✅ Actualizar email si fue cambiado
+          if (_emailController.text.trim() != user.email) {
+            await user.updateEmail(_emailController.text.trim());
+          }
 
-        Navigator.pop(context, true);
+          // ✅ Actualizar contraseña si fue ingresada una nueva
+          if (_passwordController.text.trim().isNotEmpty) {
+            await user.updatePassword(_passwordController.text.trim());
+          }
+
+          // ✅ Guardar los cambios en Firestore
+          await FirebaseFirestore.instance.collection('volunteers').doc(user.uid).set({
+            'name': _nameController.text.trim(),
+            'phone': _phoneController.text.trim(),
+            'dob': _dobController.text.trim(),
+            'location': _locationController.text.trim(),
+            'interests': _interestsController.text.trim().split("\n"),
+            'skills': _skillsController.text.trim().split("\n"),
+          }, SetOptions(merge: true));
+
+          Navigator.pop(context, true);
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error updating profile: $e")));
+        }
       }
     }
   }
@@ -60,6 +87,11 @@ class _EditVolProfileManagerState extends State<EditVolProfileManager> {
           key: _formKey,
           child: Column(
             children: [
+              _buildTextField(_nameController, "Full Name", Icons.person),
+              _buildTextField(_emailController, "Email", Icons.email),
+              _buildTextField(_passwordController, "New Password (Leave blank if unchanged)", Icons.lock, isPassword: true),
+              _buildTextField(_phoneController, "Phone Number", Icons.phone),
+              _buildTextField(_dobController, "Date of Birth (YYYY-MM-DD)", Icons.calendar_today),
               _buildTextField(_locationController, "Location", Icons.location_on),
               _buildTextField(_interestsController, "Interests (One per line)", Icons.favorite, isMultiline: true),
               _buildTextField(_skillsController, "Skills (One per line)", Icons.star, isMultiline: true),
@@ -76,11 +108,12 @@ class _EditVolProfileManagerState extends State<EditVolProfileManager> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label, IconData icon, {bool isMultiline = false}) {
+  Widget _buildTextField(TextEditingController controller, String label, IconData icon, {bool isMultiline = false, bool isPassword = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: TextFormField(
         controller: controller,
+        obscureText: isPassword,
         decoration: InputDecoration(labelText: label, prefixIcon: Icon(icon)),
         maxLines: isMultiline ? 3 : 1,
       ),

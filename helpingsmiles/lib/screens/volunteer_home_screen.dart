@@ -27,9 +27,11 @@ class _VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       String? fullName = await AuthManager.getUserName(user.uid);
-      setState(() {
-        userName = fullName ?? "Unknown Volunteer";
-      });
+      if (mounted) { // ✅ Verifica si el widget aún está en pantalla
+        setState(() {
+          userName = fullName ?? "Unknown Volunteer";
+        });
+      }
     }
   }
 

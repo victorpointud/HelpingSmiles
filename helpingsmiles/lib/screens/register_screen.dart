@@ -17,39 +17,41 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _nameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _organizationController = TextEditingController();
-  final _phoneController = TextEditingController(); // ✅ Added phone field
+  final _phoneController = TextEditingController();
+  final _dobController = TextEditingController(); // ✅ Added date of birth field
 
   String? _errorMessage;
   String _selectedRole = 'volunteer';
 
   Future<void> _register() async {
-  if (!_formKey.currentState!.validate() || _passwordController.text != _confirmPasswordController.text) {
-    if (mounted) {
-      setState(() => _errorMessage = 'Passwords do not match.');
+    if (!_formKey.currentState!.validate() || _passwordController.text != _confirmPasswordController.text) {
+      if (mounted) {
+        setState(() => _errorMessage = 'Passwords do not match.');
+      }
+      return;
     }
-    return;
-  }
 
-  final error = await AuthManager.registerUser(
-    email: _emailController.text.trim(),
-    password: _passwordController.text.trim(),
-    role: _selectedRole,
-    phone: _phoneController.text.trim(),
-    name: _selectedRole == 'volunteer' ? _nameController.text.trim() : null,
-    lastName: _selectedRole == 'volunteer' ? _lastNameController.text.trim() : null,
-    organizationName: _selectedRole == 'organization' ? _organizationController.text.trim() : null,
-  );
+    final error = await AuthManager.registerUser(
+      email: _emailController.text.trim(),
+      password: _passwordController.text.trim(),
+      role: _selectedRole,
+      phone: _phoneController.text.trim(),
+      dateOfBirth: _dobController.text.trim(), // ✅ Added date of birth
+      name: _selectedRole == 'volunteer' ? _nameController.text.trim() : null,
+      lastName: _selectedRole == 'volunteer' ? _lastNameController.text.trim() : null,
+      organizationName: _selectedRole == 'organization' ? _organizationController.text.trim() : null,
+    );
 
-  if (error == null) {
-    if (mounted) {
-      Navigator.pop(context);
-    }
-  } else {
-    if (mounted) {
-      setState(() => _errorMessage = error);
+    if (error == null) {
+      if (mounted) {
+        Navigator.pop(context);
+      }
+    } else {
+      if (mounted) {
+        setState(() => _errorMessage = error);
+      }
     }
   }
-}
 
   void _navigateToLogin() {
     Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
@@ -87,6 +89,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         _buildRoleDropdown(),
 
                         _buildTextField(_phoneController, 'Phone Number', Icons.phone), // ✅ Added phone field
+                        _buildTextField(_dobController, 'Date of Birth', Icons.calendar_today), // ✅ Added date of birth field
 
                         if (_selectedRole == 'volunteer') ...[
                           _buildTextField(_nameController, 'First Name', Icons.person),
