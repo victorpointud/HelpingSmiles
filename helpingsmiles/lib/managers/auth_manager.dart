@@ -14,37 +14,49 @@ class AuthManager {
     required String password,
     required String role,
     required String phone,
-    required String dateOfBirth, // ✅ Ahora se almacena la fecha de nacimiento
+    required String dateOfBirth, // ✅ Se almacena la fecha de nacimiento
     String? name,
     String? lastName,
     String? organizationName,
   }) async {
     try {
       final userCredential = await _auth.createUserWithEmailAndPassword(
-        email: email, 
-        password: password
+        email: email,
+        password: password,
       );
 
       String fullName = role == 'volunteer' ? "$name $lastName" : organizationName ?? "No Name";
 
+      // Guardar datos generales del usuario en la colección 'users'
       await _db.collection('users').doc(userCredential.user!.uid).set({
         'email': email,
         'role': role,
         'phone': phone,
-        'dateOfBirth': dateOfBirth, // ✅ Se guarda la fecha de nacimiento
-        'name': fullName, 
+        'dateOfBirth': dateOfBirth,
+        'name': fullName,
         'createdAt': FieldValue.serverTimestamp(),
       });
 
       if (role == 'volunteer') {
         await _db.collection('volunteers').doc(userCredential.user!.uid).set({
-          'name': fullName, 
-          'email': email, // ✅ Ahora se guarda también el email
+          'name': fullName,
+          'email': email,
           'phone': phone,
-          'dateOfBirth': dateOfBirth, // ✅ Se guarda también en la colección de voluntarios
+          'dateOfBirth': dateOfBirth,
           'location': "",
           'interests': [],
           'skills': [],
+        });
+      } else if (role == 'organization') {
+        await _db.collection('organizations').doc(userCredential.user!.uid).set({
+          'name': fullName,
+          'email': email,
+          'phone': phone,
+          'dob': dateOfBirth, // ⚠️ Asegúrate de que Firestore usa "dob" y no "dateOfBirth" para organizaciones
+          'missions': [],
+          'objectives': [],
+          'volunteerTypes': [],
+          'locations': [],
         });
       }
 
@@ -54,46 +66,65 @@ class AuthManager {
     }
   }
 
-  /// Retrieves the user's name from Firestore (prioritizing 'volunteers' collection)
+  /// Retrieves the user's name from Firestore (checking both 'volunteers' and 'organizations')
   static Future<String?> getUserName(String uid) async {
     try {
-      // Check in 'volunteers' collection first
+      // Buscar primero en 'volunteers'
       final volunteerDoc = await _db.collection('volunteers').doc(uid).get();
-      if (volunteerDoc.exists && volunteerDoc.data()!.containsKey('name')) {
+      if (volunteerDoc.exists && volunteerDoc.data()?['name'] != null) {
         return volunteerDoc.get('name');
       }
 
-      // If not found in 'volunteers', check in 'users' collection
+      // Si no está en 'volunteers', buscar en 'organizations'
+      final orgDoc = await _db.collection('organizations').doc(uid).get();
+      if (orgDoc.exists && orgDoc.data()?['name'] != null) {
+        return orgDoc.get('name');
+      }
+
+      // Si tampoco está en 'organizations', buscar en 'users'
       final userDoc = await _db.collection('users').doc(uid).get();
-      if (userDoc.exists && userDoc.data()!.containsKey('name')) {
+      if (userDoc.exists && userDoc.data()?['name'] != null) {
         return userDoc.get('name');
       }
 
-      return "Not specified"; // Default value if no name found
+      return "Not specified"; // Valor por defecto si no se encuentra el nombre
     } catch (e) {
-      return "Not specified"; // Default in case of error
+      return "Not specified"; // En caso de error
     }
   }
 
-  /// Retrieves the full profile of the user (including phone, email, and dateOfBirth)
+  /// Retrieves the full profile of a volunteer
   static Future<Map<String, dynamic>?> getVolunteerProfile(String uid) async {
     try {
-      final userDoc = await _db.collection('users').doc(uid).get();
-      if (userDoc.exists) {
-        return userDoc.data();
+      final userDoc = await _db.collection('volunteers').doc(uid).get();
+      return userDoc.exists ? userDoc.data() : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+    /// Retrieves the full profile of an organization
+  static Future<Map<String, dynamic>?> getOrganizationProfile(String uid) async {
+    try {
+      final orgDoc = await _db.collection('organizations').doc(uid).get();
+      if (orgDoc.exists) {
+        final data = orgDoc.data();
+        data?['email'] = await getUserEmail(uid); // Asegurar que se obtiene el email
+        return data;
       }
       return null;
     } catch (e) {
       return null;
     }
   }
+
 
   /// Logs in a user and verifies their role
   static Future<String?> loginUser(String email, String password) async {
     try {
       final userCredential = await _auth.signInWithEmailAndPassword(
-        email: email, 
-        password: password
+        email: email,
+        password: password,
       );
 
       final userDoc = await _db.collection('users').doc(userCredential.user!.uid).get();
@@ -116,14 +147,80 @@ class AuthManager {
   /// Retrieves the organization name from Firestore
   static Future<String?> getOrganizationName(String uid) async {
     try {
-      final doc = await FirebaseFirestore.instance.collection('organizations').doc(uid).get();
+      final doc = await _db.collection('organizations').doc(uid).get();
       if (doc.exists) {
-        return doc.data()?['name'] ?? "No Name Available"; 
+        return doc.data()?['name'] ?? "No Name Available";
       } else {
-        return "Organization Not Found"; 
+        return "Organization Not Found";
       }
     } catch (e) {
-      return "Error retrieving organization"; 
+      return "Error retrieving organization";
     }
   }
+
+  /// Updates the profile of a volunteer or organization
+  static Future<void> updateProfile({
+    required String uid,
+    required String role,
+    String? name,
+    String? email,
+    String? phone,
+    String? dateOfBirth,
+  }) async {
+    try {
+      // Construir los datos para actualizar
+      Map<String, dynamic> updatedData = {};
+      if (name != null) updatedData['name'] = name;
+      if (email != null) updatedData['email'] = email;
+      if (phone != null) updatedData['phone'] = phone;
+      if (dateOfBirth != null) {
+        if (role == 'organization') {
+          updatedData['dob'] = dateOfBirth; // ⚠️ Se usa "dob" para organizaciones
+        } else {
+          updatedData['dateOfBirth'] = dateOfBirth; // Se usa "dateOfBirth" para voluntarios
+        }
+      }
+
+      // Actualizar en 'users'
+      await _db.collection('users').doc(uid).set(updatedData, SetOptions(merge: true));
+
+      // Actualizar en la colección correspondiente
+      if (role == 'volunteer') {
+        await _db.collection('volunteers').doc(uid).set(updatedData, SetOptions(merge: true));
+      } else if (role == 'organization') {
+        await _db.collection('organizations').doc(uid).set(updatedData, SetOptions(merge: true));
+      }
+    } catch (e) {
+      print("Error updating profile: $e");
+    }
+  }
+
+
+    /// Retrieves the user's email from Firestore
+  static Future<String?> getUserEmail(String uid) async {
+    try {
+      // Primero verificar en 'volunteers'
+      final volunteerDoc = await _db.collection('volunteers').doc(uid).get();
+      if (volunteerDoc.exists && volunteerDoc.data()?['email'] != null) {
+        return volunteerDoc.get('email');
+      }
+
+      // Luego verificar en 'organizations'
+      final orgDoc = await _db.collection('organizations').doc(uid).get();
+      if (orgDoc.exists && orgDoc.data()?['email'] != null) {
+        return orgDoc.get('email');
+      }
+
+      // Finalmente verificar en 'users'
+      final userDoc = await _db.collection('users').doc(uid).get();
+      if (userDoc.exists && userDoc.data()?['email'] != null) {
+        return userDoc.get('email');
+      }
+
+      return "Not specified"; // Si no se encuentra el email
+    } catch (e) {
+      return "Not specified"; // En caso de error
+    }
+  }
+
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../managers/edit_org_profile_manager.dart';
+import '../managers/auth_manager.dart';
 
 class OrganizationProfileScreen extends StatefulWidget {
   const OrganizationProfileScreen({super.key});
@@ -11,6 +12,10 @@ class OrganizationProfileScreen extends StatefulWidget {
 }
 
 class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
+  String? name;
+  String? email;
+  String? phone;
+  String? dob;
   List<String> objectives = [];
   List<String> volunteerTypes = [];
   List<String> locations = [];
@@ -22,39 +27,48 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
     _loadOrganizationData();
   }
 
-  Future<void> _loadOrganizationData() async {
-  final user = FirebaseAuth.instance.currentUser;
-  if (user != null) {
-    final doc = await FirebaseFirestore.instance.collection('organizations').doc(user.uid).get();
-    if (doc.exists) {
+    Future<void> _loadOrganizationData() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final doc = await FirebaseFirestore.instance.collection('organizations').doc(user.uid).get();
+      if (doc.exists) {
+        setState(() {
+          name = doc['name'] ?? "Not specified";
+          phone = doc['phone'] ?? "Not specified";
+          dob = doc['dob'] ?? "Not specified";
+          missions = _convertToList(doc['missions']);
+          objectives = _convertToList(doc['objectives']);
+          volunteerTypes = _convertToList(doc['volunteerTypes']);
+          locations = _convertToList(doc['locations']);
+        });
+      }
+
+      // 🚀 Cargar el email por separado
+      String? userEmail = await AuthManager.getUserEmail(user.uid);
       setState(() {
-        missions = _convertToList(doc.data()?['missions']);
-        objectives = _convertToList(doc.data()?['objectives']);
-        volunteerTypes = _convertToList(doc.data()?['volunteerTypes']);
-        locations = _convertToList(doc.data()?['locations']);
+        email = userEmail ?? "Not specified";
       });
     }
   }
-}
 
-// Método corregido para evitar errores
-List<String> _convertToList(dynamic data) {
-  if (data is List) {
-    return data.whereType<String>().toList(); // Convierte solo elementos tipo String
-  } else if (data is String) {
-    return [data]; // Convierte un solo String en una lista con un solo elemento
-  } else {
-    return []; // Retorna lista vacía si es nulo u otro tipo
+
+
+  List<String> _convertToList(dynamic data) {
+    if (data is List) {
+      return data.whereType<String>().toList();
+    } else if (data is String) {
+      return [data];
+    } else {
+      return [];
+    }
   }
-}
-
 
   void _navigateToEditProfile() {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const EditOrgProfileManager()),
     ).then((result) {
-      if (result == true) _loadOrganizationData(); // Refresh data
+      if (result == true) _loadOrganizationData(); // Refresh data after editing
     });
   }
 
@@ -67,12 +81,10 @@ List<String> _convertToList(dynamic data) {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const CircleAvatar(
-              radius: 50,
-              backgroundColor: Color.fromARGB(255, 224, 63, 63),
-              child: Icon(Icons.business, size: 50, color: Colors.white),
-            ),
-            const SizedBox(height: 20),
+            _buildProfileSection(Icons.business, "Name", name),
+            _buildProfileSection(Icons.email, "Email", email),
+            _buildProfileSection(Icons.phone, "Phone Number", phone),
+            _buildProfileSection(Icons.calendar_today, "Date of Birth", dob),
             _buildProfileList(Icons.flag, "Mission", missions),
             _buildProfileList(Icons.list, "Objectives", objectives),
             _buildProfileList(Icons.people, "Volunteer Types", volunteerTypes),
@@ -82,6 +94,29 @@ List<String> _convertToList(dynamic data) {
               onPressed: _navigateToEditProfile,
               style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
               child: const Text("Edit Profile", style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfileSection(IconData icon, String title, String? content) {
+    return Card(
+      elevation: 4,
+      margin: const EdgeInsets.symmetric(vertical: 10),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          children: [
+            Icon(icon, color: Colors.red),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                "$title:\n${content ?? 'Not specified'}",
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
             ),
           ],
         ),
@@ -100,7 +135,7 @@ List<String> _convertToList(dynamic data) {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(children: [Icon(icon, color: Colors.red), const SizedBox(width: 10), Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold))]),
-            ...items.map((item) => Text("• $item")),
+            ...items.map((item) => Text("• $item", style: const TextStyle(fontSize: 16))),
           ],
         ),
       ),
