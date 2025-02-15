@@ -68,11 +68,7 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            CircleAvatar(
-              radius: 50,
-              backgroundColor: Colors.redAccent,
-              child: const Icon(Icons.person, size: 50, color: Colors.white),
-            ),
+            
             const SizedBox(height: 20),
             _buildProfileSection(Icons.person, "Name", name ?? "Not specified"),
             _buildProfileSection(Icons.email, "Email", email ?? "Not specified"),
