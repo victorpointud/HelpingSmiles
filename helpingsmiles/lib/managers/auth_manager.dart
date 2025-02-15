@@ -13,8 +13,10 @@ class AuthManager {
     required String email,
     required String password,
     required String role,
+    required String phoneNumber, // New field
     String? name,
     String? lastName,
+    String? dateOfBirth, // Only for volunteers
     String? organizationName,
   }) async {
     try {
@@ -26,9 +28,11 @@ class AuthManager {
       await _db.collection('users').doc(userCredential.user!.uid).set({
         'email': email,
         'role': role,
+        'phone': phoneNumber,
         'name': role == 'volunteer' ? "$name $lastName" : organizationName,
         'createdAt': FieldValue.serverTimestamp(),
       });
+    
 
       return null; // Successful registration
     } catch (e) {

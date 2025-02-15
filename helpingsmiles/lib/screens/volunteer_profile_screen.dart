@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../managers/edit_vol_profile_manager.dart';
 
 class VolunteerProfileScreen extends StatefulWidget {
   const VolunteerProfileScreen({super.key});
@@ -8,31 +11,83 @@ class VolunteerProfileScreen extends StatefulWidget {
 }
 
 class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
-  List<String> interests = ["Community Service", "Environmental Work", "Education Support"];
-  List<String> skills = ["First Aid", "Public Speaking", "Team Leadership"];
+  String? name;
+  String? location;
+  List<String> interests = [];
+  List<String> skills = [];
 
-  void _editProfile() {
-    TextEditingController interestsController = TextEditingController(text: interests.join("\n"));
-    TextEditingController skillsController = TextEditingController(text: skills.join("\n"));
+  @override
+  void initState() {
+    super.initState();
+    _loadVolunteerData();
+  }
 
-    showModalBottomSheet(
-      context: context,
-      builder: (_) => Padding(
-        padding: const EdgeInsets.all(20),
+ Future<void> _loadVolunteerData() async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user != null) {
+    final doc = await FirebaseFirestore.instance.collection('volunteers').doc(user.uid).get();
+    if (doc.exists) {
+      setState(() {
+        name = doc['name'] ?? "Unknown";
+        location = doc['location'] ?? "Not specified";
+
+        // Ensure 'interests' is always a list
+        final dynamic interestsData = doc['interests'];
+        if (interestsData is List) {
+          interests = interestsData.cast<String>();
+        } else if (interestsData is String) {
+          interests = [interestsData]; // Convert single string to list
+        } else {
+          interests = [];
+        }
+
+        // Ensure 'skills' is always a list
+        final dynamic skillsData = doc['skills'];
+        if (skillsData is List) {
+          skills = skillsData.cast<String>();
+        } else if (skillsData is String) {
+          skills = [skillsData]; // Convert single string to list
+        } else {
+          skills = [];
+        }
+      });
+    }
+  }
+}
+
+
+  void _navigateToEditProfile() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const EditVolProfileManager()),
+    ).then((result) {
+      if (result == true) _loadVolunteerData(); // Refresh data after editing
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Volunteer Profile")),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            _buildTextField(interestsController, "Interests"),
-            _buildTextField(skillsController, "Skills"),
+            CircleAvatar(
+              radius: 50,
+              backgroundColor: Colors.redAccent,
+              child: const Icon(Icons.person, size: 50, color: Colors.white),
+            ),
+            const SizedBox(height: 20),
+            _buildProfileList(Icons.favorite, "Interests", interests),
+            _buildProfileList(Icons.star, "Skills", skills),
+            _buildProfileSection(Icons.location_on, "Location", location ?? "Not specified"),
+            const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  interests = interestsController.text.split("\n");
-                  skills = skillsController.text.split("\n");
-                });
-                Navigator.pop(context);
-              },
-              child: const Text("Save Changes"),
+              onPressed: _navigateToEditProfile,
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              child: const Text("Edit Profile", style: TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -40,36 +95,43 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: TextField(controller: controller, decoration: InputDecoration(labelText: label)),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Volunteer Profile"), actions: [IconButton(icon: const Icon(Icons.edit), onPressed: _editProfile)]),
-      body: Padding(
+  Widget _buildProfileSection(IconData icon, String title, String content) {
+    return Card(
+      elevation: 4,
+      margin: const EdgeInsets.symmetric(vertical: 10),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
+        child: Row(
           children: [
-            const CircleAvatar(radius: 50, child: Icon(Icons.person, size: 50)),
-            _buildProfileSection("Interests", interests),
-            _buildProfileSection("Skills", skills),
+            Icon(icon, color: Colors.red),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                "$title:\n$content",
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildProfileSection(String title, List<String> items) {
+  Widget _buildProfileList(IconData icon, String title, List<String> items) {
     return Card(
+      elevation: 4,
       margin: const EdgeInsets.symmetric(vertical: 10),
-      child: ListTile(
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start, children: items.map((item) => Text("• $item")).toList()),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [Icon(icon, color: Colors.red), const SizedBox(width: 10), Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold))]),
+            ...items.map((item) => Text("• $item", style: const TextStyle(fontSize: 16))),
+          ],
+        ),
       ),
     );
   }

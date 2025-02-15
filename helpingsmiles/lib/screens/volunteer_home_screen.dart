@@ -13,70 +13,65 @@ class VolunteerHomeScreen extends StatefulWidget {
 }
 
 class _VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
-  String? volunteerName;
+  String? userName;
   List<Map<String, dynamic>> organizations = [];
 
   @override
   void initState() {
     super.initState();
-    _loadVolunteerData();
-    _loadOrganizations();
     _loadUserData();
+    _loadOrganizations();
   }
 
-  /// Cargar el nombre del voluntario autenticado
-  Future<void> _loadVolunteerData() async {
+  Future<void> _loadUserData() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      String? name = await AuthManager.getUserName(user.uid);
+      String? fullName = await AuthManager.getUserName(user.uid);
       setState(() {
-        volunteerName = name ?? "Volunteer";
+        userName = fullName ?? "Unknown Volunteer";
       });
     }
   }
 
-Future<void> _loadUserData() async {
-  final user = FirebaseAuth.instance.currentUser;
-  if (user != null) {
-    String? userName = await AuthManager.getUserName(user.uid);
+  Future<void> _loadOrganizations() async {
+  try {
+    final querySnapshot = await FirebaseFirestore.instance.collection('organizations').get();
+
     setState(() {
-      volunteerName = userName ?? "Volunteer";
+      organizations = querySnapshot.docs.map((doc) {
+        final data = doc.data();
+        return {
+          'name': data['name'] ?? "Unknown Organization",
+          'mission': (data['missions'] as List<dynamic>?)?.join(", ") ?? "No mission available",
+          'volunteerTypes': (data['volunteerTypes'] as List<dynamic>?)?.join(", ") ?? "No volunteer types specified",
+          'locations': (data['locations'] != null && data['locations'] is List<dynamic>) 
+              ? (data['locations'] as List<dynamic>).join(", ") 
+              : "No location specified",
+        };
+      }).toList();
     });
+  } catch (e) {
+    print("Error loading organizations: $e");
   }
 }
-  /// Cargar todas las organizaciones registradas en Firebase
-  Future<void> _loadOrganizations() async {
-    try {
-      final querySnapshot = await FirebaseFirestore.instance.collection('organizations').get();
-      setState(() {
-        organizations = querySnapshot.docs.map((doc) => doc.data()).toList();
-      });
-    } catch (e) {
-      print("Error loading organizations: $e");
-    }
+
+  void _logout() async {
+    await AuthManager.logoutUser();
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
   }
 
-  void _navigate(BuildContext context, Widget screen) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
+  void _navigateToProfile() {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => const VolunteerProfileScreen()));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Welcome, $volunteerName!", style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        title: Text("Welcome, ${userName ?? 'Loading...'}!", style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.person, color: Colors.black),
-            onPressed: () => _navigate(context, const VolunteerProfileScreen()),
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.red),
-            onPressed: () async {
-              await AuthManager.logoutUser();
-              Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
-            },
-          ),
+          IconButton(icon: const Icon(Icons.person), onPressed: _navigateToProfile),
+          IconButton(icon: const Icon(Icons.logout, color: Colors.red), onPressed: _logout),
         ],
       ),
       body: Padding(
@@ -101,7 +96,7 @@ Future<void> _loadUserData() async {
 
   Widget _buildOrganizationList() {
     if (organizations.isEmpty) {
-      return const Center(child: Text("No organizations available."));
+      return const Center(child: Text("No registered organizations."));
     }
     return Column(
       children: organizations.map((org) => _buildOrganizationCard(org)).toList(),
@@ -113,10 +108,20 @@ Future<void> _loadUserData() async {
       elevation: 3,
       margin: const EdgeInsets.symmetric(vertical: 8),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      child: ListTile(
-        title: Text(org["name"] ?? "Unknown Organization", style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(org["mission"] ?? "No mission available"),
-        trailing: const Icon(Icons.business, color: Colors.red),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(org["name"], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red)),
+            const SizedBox(height: 5),
+            Text("Mission: ${org["mission"]}", style: const TextStyle(fontSize: 14)),
+            const SizedBox(height: 5),
+            Text("Volunteer Types: ${org["volunteerTypes"]}", style: const TextStyle(fontSize: 14)),
+            const SizedBox(height: 5),
+            Text("Locations: ${org["locations"]}", style: const TextStyle(fontSize: 14)),
+          ],
+        ),
       ),
     );
   }
