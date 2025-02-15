@@ -8,15 +8,14 @@ class AuthManager {
   /// Logs out the current user
   static Future<void> logoutUser() async => await _auth.signOut();
 
-  /// Registers a new user and stores their role + organization name (if applicable)
+  /// Registers a new user and stores their role, name, and phone number
   static Future<String?> registerUser({
     required String email,
     required String password,
     required String role,
-    required String phoneNumber, // New field
+    required String phone,
     String? name,
     String? lastName,
-    String? dateOfBirth, // Only for volunteers
     String? organizationName,
   }) async {
     try {
@@ -28,11 +27,10 @@ class AuthManager {
       await _db.collection('users').doc(userCredential.user!.uid).set({
         'email': email,
         'role': role,
-        'phone': phoneNumber,
+        'phone': phone,
         'name': role == 'volunteer' ? "$name $lastName" : organizationName,
         'createdAt': FieldValue.serverTimestamp(),
       });
-    
 
       return null; // Successful registration
     } catch (e) {
@@ -40,7 +38,7 @@ class AuthManager {
     }
   }
 
-static Future<String?> getUserName(String uid) async {
+  static Future<String?> getUserName(String uid) async {
     try {
       final userDoc = await _db.collection('users').doc(uid).get();
       return userDoc.exists ? userDoc.get('name') : "Volunteer";
@@ -72,18 +70,16 @@ static Future<String?> getUserName(String uid) async {
 
   /// Retrieves the organization name from Firestore
   static Future<String?> getOrganizationName(String uid) async {
-  try {
-    final doc = await FirebaseFirestore.instance.collection('organizations').doc(uid).get();
-
-    if (doc.exists) {
-      return doc.data()?['name'] ?? "No Name Available"; // ✅ Verifica que haya datos
-    } else {
-      return "Organization Not Found"; // ✅ Manejo si no hay organización
+    try {
+      final doc = await FirebaseFirestore.instance.collection('organizations').doc(uid).get();
+      if (doc.exists) {
+        return doc.data()?['name'] ?? "No Name Available"; // ✅ Verifies data exists
+      } else {
+        return "Organization Not Found"; // ✅ Handles missing organizations
+      }
+    } catch (e) {
+      print("Error retrieving organization name: $e");
+      return "Error retrieving organization"; // ✅ Avoids returning null
     }
-  } catch (e) {
-    print("Error retrieving organization name: $e");
-    return "Error retrieving organization"; // ✅ Evita mostrar null
   }
-}
-
 }

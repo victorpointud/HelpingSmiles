@@ -17,56 +17,39 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _nameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _organizationController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _dobController = TextEditingController();
+  final _phoneController = TextEditingController(); // ✅ Added phone field
 
   String? _errorMessage;
   String _selectedRole = 'volunteer';
 
   Future<void> _register() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    if (_passwordController.text != _confirmPasswordController.text) {
+  if (!_formKey.currentState!.validate() || _passwordController.text != _confirmPasswordController.text) {
+    if (mounted) {
       setState(() => _errorMessage = 'Passwords do not match.');
-      return;
     }
+    return;
+  }
 
-    if (_selectedRole == 'volunteer') {
-      final dob = DateTime.tryParse(_dobController.text);
-      if (dob == null || _calculateAge(dob) < 21) {
-        setState(() => _errorMessage = 'You must be at least 21 years old to register.');
-        return;
-      }
-    }
+  final error = await AuthManager.registerUser(
+    email: _emailController.text.trim(),
+    password: _passwordController.text.trim(),
+    role: _selectedRole,
+    phone: _phoneController.text.trim(),
+    name: _selectedRole == 'volunteer' ? _nameController.text.trim() : null,
+    lastName: _selectedRole == 'volunteer' ? _lastNameController.text.trim() : null,
+    organizationName: _selectedRole == 'organization' ? _organizationController.text.trim() : null,
+  );
 
-    final error = await AuthManager.registerUser(
-      email: _emailController.text.trim(),
-      password: _passwordController.text.trim(),
-      role: _selectedRole,
-      phoneNumber: _phoneController.text.trim(), // Store phone number
-      name: _selectedRole == 'volunteer' ? _nameController.text.trim() : null,
-      lastName: _selectedRole == 'volunteer' ? _lastNameController.text.trim() : null,
-      dateOfBirth: _selectedRole == 'volunteer' ? _dobController.text.trim() : null,
-      organizationName: _selectedRole == 'organization' ? _organizationController.text.trim() : null,
-    );
-
-    if (error == null) {
+  if (error == null) {
+    if (mounted) {
       Navigator.pop(context);
-    } else {
+    }
+  } else {
+    if (mounted) {
       setState(() => _errorMessage = error);
     }
   }
-
-  int _calculateAge(DateTime dob) {
-    final today = DateTime.now();
-    int age = today.year - dob.year;
-    if (today.month < dob.month || (today.month == dob.month && today.day < dob.day)) {
-      age--;
-    }
-    return age;
-  }
+}
 
   void _navigateToLogin() {
     Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
@@ -77,7 +60,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          Container(color: Colors.black.withOpacity(0.6)),
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(image: AssetImage('lib/assets/background.png'), fit: BoxFit.cover),
+            ),
+          ),
+          Container(color: Colors.black.withOpacity(0.6)), // Dark Overlay
           Center(
             child: Padding(
               padding: const EdgeInsets.all(20),
@@ -95,15 +83,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         _buildTextField(_emailController, 'Email', Icons.email),
                         _buildTextField(_passwordController, 'Password', Icons.lock, isPassword: true),
                         _buildTextField(_confirmPasswordController, 'Confirm Password', Icons.lock_outline, isPassword: true),
-
+                        
                         _buildRoleDropdown(),
 
-                        _buildTextField(_phoneController, 'Phone Number', Icons.phone),
+                        _buildTextField(_phoneController, 'Phone Number', Icons.phone), // ✅ Added phone field
 
                         if (_selectedRole == 'volunteer') ...[
                           _buildTextField(_nameController, 'First Name', Icons.person),
                           _buildTextField(_lastNameController, 'Last Name', Icons.person_outline),
-                          _buildTextField(_dobController, 'Date of Birth (YYYY-MM-DD)', Icons.cake),
                         ],
 
                         if (_selectedRole == 'organization') 
