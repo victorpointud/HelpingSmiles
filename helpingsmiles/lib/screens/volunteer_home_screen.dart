@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../managers/auth_manager.dart';
 import 'volunteer_profile_screen.dart';
 import 'login_screen.dart';
+import 'organization_details_screen.dart'; // ✅ Nueva pantalla de detalles
 
 class VolunteerHomeScreen extends StatefulWidget {
   const VolunteerHomeScreen({super.key});
@@ -43,18 +44,24 @@ class _VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
         organizations = querySnapshot.docs.map((doc) {
           final data = doc.data();
           return {
+            'id': doc.id, // ✅ Asegurar que cada organización tenga un ID
             'name': data['name'] ?? "Unknown Organization",
             'mission': (data['missions'] as List<dynamic>?)?.join(", ") ?? "No mission available",
-            'volunteerTypes': (data['volunteerTypes'] as List<dynamic>?)?.join(", ") ?? "No volunteer types specified",
-            'locations': (data['locations'] != null && data['locations'] is List<dynamic>) 
-                ? (data['locations'] as List<dynamic>).join(", ") 
-                : "No location specified",
           };
         }).toList();
       });
     } catch (e) {
       print("Error loading organizations: $e");
     }
+  }
+
+  void _navigateToOrganizationDetails(String orgId) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => OrganizationDetailsScreen(organizationId: orgId),
+      ),
+    );
   }
 
   void _logout() async {
@@ -110,41 +117,16 @@ class _VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
       elevation: 3,
       margin: const EdgeInsets.symmetric(vertical: 8),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(org["name"], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red)),
-            const SizedBox(height: 5),
-            Text.rich(
-              TextSpan(
-                children: [
-                  TextSpan(text: "Mission: ", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                  TextSpan(text: org["mission"], style: const TextStyle(fontSize: 14)),
-                ],
-              ),
-            ),
-            const SizedBox(height: 5),
-            Text.rich(
-              TextSpan(
-                children: [
-                  TextSpan(text: "Volunteer Types: ", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                  TextSpan(text: org["volunteerTypes"], style: const TextStyle(fontSize: 14)),
-                ],
-              ),
-            ),
-            const SizedBox(height: 5),
-            Text.rich(
-              TextSpan(
-                children: [
-                  TextSpan(text: "Locations: ", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                  TextSpan(text: org["locations"], style: const TextStyle(fontSize: 14)),
-                ],
-              ),
-            ),
-          ],
-        ),
+      child: ListTile(
+        title: Text(org["name"], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red)),
+        subtitle: Text("${org["mission"]}\n\nClick to see more info", style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 0, 0, 0))),
+        onTap: () {
+          if (org['id'] != null) {
+            _navigateToOrganizationDetails(org['id']);
+          } else {
+            print("⚠️ Warning: Organization ID is null!");
+          }
+        },
       ),
     );
   }
