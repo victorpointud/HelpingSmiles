@@ -31,24 +31,27 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
   if (user != null) {
     final doc = await FirebaseFirestore.instance.collection('volunteers').doc(user.uid).get();
     if (doc.exists) {
-      setState(() {
-        name = doc.data()?['name'] ?? "Not specified"; // ✅ Se obtiene correctamente el nombre
-        email = user.email ?? "Not specified"; // ✅ Email directamente de FirebaseAuth
-        phone = doc.data()?['phone'] ?? "Not specified"; // ✅ Se obtiene el teléfono
-        dateOfBirth = doc.data()?['dob'] ?? "Not specified"; // ✅ Se obtiene la fecha de nacimiento
-        location = doc.data()?['location'] ?? "Not specified"; // ✅ Se obtiene la ubicación
+      if (mounted) { // ✅ Verificar si el widget sigue en pantalla antes de actualizar
+        setState(() {
+          name = doc.data()?['name'] ?? "Not specified"; 
+          email = user.email ?? "Not specified"; 
+          phone = doc.data()?['phone'] ?? "Not specified"; 
+          dateOfBirth = doc.data()?['dob'] ?? "Not specified"; 
+          location = doc.data()?['location'] ?? "Not specified"; 
 
-        // Convert interests to a list
-        final dynamic interestsData = doc.data()?['interests'];
-        interests = (interestsData is List) ? interestsData.cast<String>() : [];
+          // Convert interests to a list
+          final dynamic interestsData = doc.data()?['interests'];
+          interests = (interestsData is List) ? interestsData.cast<String>() : [];
 
-        // Convert skills to a list
-        final dynamic skillsData = doc.data()?['skills'];
-        skills = (skillsData is List) ? skillsData.cast<String>() : [];
-      });
+          // Convert skills to a list
+          final dynamic skillsData = doc.data()?['skills'];
+          skills = (skillsData is List) ? skillsData.cast<String>() : [];
+        });
+      }
     }
   }
 }
+
 
   void _navigateToEditProfile() {
     Navigator.push(
