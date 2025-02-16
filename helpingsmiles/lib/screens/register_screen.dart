@@ -18,7 +18,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _lastNameController = TextEditingController();
   final _organizationController = TextEditingController();
   final _phoneController = TextEditingController();
-  final _dobController = TextEditingController(); // ✅ Added date of birth field
+  final _dateController = TextEditingController(); // ✅ Added date of birth field
 
   String? _errorMessage;
   String _selectedRole = 'volunteer';
@@ -36,7 +36,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       password: _passwordController.text.trim(),
       role: _selectedRole,
       phone: _phoneController.text.trim(),
-      dateOfBirth: _dobController.text.trim(), // ✅ Added date of birth
+      date: _dateController.text.trim(), // ✅ Added date of birth
       name: _selectedRole == 'volunteer' ? _nameController.text.trim() : null,
       lastName: _selectedRole == 'volunteer' ? _lastNameController.text.trim() : null,
       organizationName: _selectedRole == 'organization' ? _organizationController.text.trim() : null,
@@ -89,7 +89,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         _buildRoleDropdown(),
 
                         _buildTextField(_phoneController, 'Phone Number', Icons.phone), // ✅ Added phone field
-                        _buildTextField(_dobController, 'Date of Birth', Icons.calendar_today), // ✅ Added date of birth field
+                        _buildTextField(_dateController, 'Date of Birth', Icons.calendar_today), // ✅ Added date of birth field
 
                         if (_selectedRole == 'volunteer') ...[
                           _buildTextField(_nameController, 'First Name', Icons.person),

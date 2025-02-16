@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class OrganizationDetailsScreen extends StatefulWidget {
   final String organizationId;
+  final String organizationName;
 
-  const OrganizationDetailsScreen({super.key, required this.organizationId});
+  const OrganizationDetailsScreen({super.key, required this.organizationId, required this.organizationName});
 
   @override
   _OrganizationDetailsScreenState createState() => _OrganizationDetailsScreenState();
 }
 
 class _OrganizationDetailsScreenState extends State<OrganizationDetailsScreen> {
-  String? name;
-  String? mission;
-  List<String> volunteerTypes = [];
-  List<String> locations = [];
+  String? phone;
+  String? date;
+  List<String> missions = [];
+  List<String> objectives = [];
   List<String> upcomingEvents = [];
 
   @override
@@ -29,10 +29,10 @@ class _OrganizationDetailsScreenState extends State<OrganizationDetailsScreen> {
     final doc = await FirebaseFirestore.instance.collection('organizations').doc(widget.organizationId).get();
     if (doc.exists) {
       setState(() {
-        name = doc.data()?['name'] ?? "Not specified";
-        mission = (doc.data()?['missions'] is List && (doc.data()?['missions'] as List).isNotEmpty) ? (doc.data()?['missions'] as List).first : "Not specified";
-        volunteerTypes = _convertToList(doc.data()?['volunteerTypes']);
-        locations = _convertToList(doc.data()?['locations']);
+        phone = doc.data()?['phone'] ?? "Not specified";
+        date = doc.data()?['date'] ?? "Not specified";
+        missions = _convertToList(doc.data()?['missions']);
+        objectives = _convertToList(doc.data()?['objectives']);
       });
     }
   }
@@ -45,7 +45,7 @@ class _OrganizationDetailsScreenState extends State<OrganizationDetailsScreen> {
 
     setState(() {
       upcomingEvents = querySnapshot.docs
-          .map((doc) => doc.data().containsKey('title') ? doc['title'] as String : "Unnamed Event")
+          .map((doc) => doc.data().containsKey('name') ? doc['name'] as String : "Unnamed Event")
           .toList();
     });
   }
@@ -63,17 +63,17 @@ class _OrganizationDetailsScreenState extends State<OrganizationDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Organization Details")),
+      appBar: AppBar(title: Text(widget.organizationName)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            _buildProfileSection(Icons.business, "Organization", name ?? "Not specified"),
-            _buildProfileSection(Icons.flag, "Mission", mission ?? "Not specified"),
-            _buildProfileList(Icons.people, "Volunteer Types", volunteerTypes),
-            _buildProfileList(Icons.location_on, "Locations", locations),
-            _buildProfileList(Icons.event, "Upcoming Events", upcomingEvents),
+            _buildProfileSection(Icons.phone, "Phone", phone ?? "Not specified"),
+            _buildProfileSection(Icons.date_range, "Date Created", date ?? "Not specified"),
+            _buildProfileList(Icons.flag, "Mission", missions),
+            _buildProfileList(Icons.list, "Objectives", objectives),
+            _buildProfileList(Icons.calendar_today, "Upcoming Events", upcomingEvents),
           ],
         ),
       ),
@@ -97,11 +97,11 @@ class _OrganizationDetailsScreenState extends State<OrganizationDetailsScreen> {
                   children: [
                     TextSpan(
                       text: "$title: ",
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                     TextSpan(
                       text: content,
-                      style: const TextStyle(fontWeight: FontWeight.normal, fontSize: 16, color: Colors.black),
+                      style: const TextStyle(fontSize: 16),
                     ),
                   ],
                 ),
@@ -126,9 +126,9 @@ class _OrganizationDetailsScreenState extends State<OrganizationDetailsScreen> {
             Row(children: [
               Icon(icon, color: Colors.red),
               const SizedBox(width: 10),
-              Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
+              Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
             ]),
-            ...items.map((item) => Text("• $item", style: const TextStyle(fontSize: 16, color: Colors.black))),
+            ...items.map((item) => Text("• $item", style: const TextStyle(fontSize: 16))),
           ],
         ),
       ),

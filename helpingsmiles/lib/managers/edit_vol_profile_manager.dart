@@ -15,7 +15,7 @@ class _EditVolProfileManagerState extends State<EditVolProfileManager> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _phoneController = TextEditingController();
-  final _dobController = TextEditingController(); // Date of Birth
+  final _dateController = TextEditingController(); // Date of Birth
   final _locationController = TextEditingController();
   final _interestsController = TextEditingController();
   final _skillsController = TextEditingController();
@@ -35,7 +35,7 @@ class _EditVolProfileManagerState extends State<EditVolProfileManager> {
           _nameController.text = doc.data()?['name'] ?? "Unknown";
           _emailController.text = user.email ?? "";
           _phoneController.text = doc.data()?['phone'] ?? "";
-          _dobController.text = doc.data()?['dob'] ?? "";
+          _dateController.text = doc.data()?['date'] ?? "";
           _locationController.text = doc.data()?['location'] ?? "";
           _interestsController.text = (doc.data()?['interests'] as List<dynamic>?)?.join("\n") ?? "";
           _skillsController.text = (doc.data()?['skills'] as List<dynamic>?)?.join("\n") ?? "";
@@ -63,7 +63,7 @@ class _EditVolProfileManagerState extends State<EditVolProfileManager> {
           await FirebaseFirestore.instance.collection('volunteers').doc(user.uid).set({
             'name': _nameController.text.trim(),
             'phone': _phoneController.text.trim(),
-            'dob': _dobController.text.trim(),
+            'date': _dateController.text.trim(),
             'location': _locationController.text.trim(),
             'interests': _interestsController.text.trim().split("\n"),
             'skills': _skillsController.text.trim().split("\n"),
@@ -91,7 +91,7 @@ class _EditVolProfileManagerState extends State<EditVolProfileManager> {
               _buildTextField(_emailController, "Email", Icons.email),
               _buildTextField(_passwordController, "New Password (Leave blank if unchanged)", Icons.lock, isPassword: true),
               _buildTextField(_phoneController, "Phone Number", Icons.phone),
-              _buildTextField(_dobController, "Date of Birth (YYYY-MM-DD)", Icons.calendar_today),
+              _buildTextField(_dateController, "Date of Birth (YYYY-MM-DD)", Icons.calendar_today),
               _buildTextField(_locationController, "Location", Icons.location_on),
               _buildTextField(_interestsController, "Interests (One per line)", Icons.favorite, isMultiline: true),
               _buildTextField(_skillsController, "Skills (One per line)", Icons.star, isMultiline: true),

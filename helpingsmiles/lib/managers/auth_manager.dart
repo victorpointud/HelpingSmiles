@@ -14,7 +14,7 @@ class AuthManager {
     required String password,
     required String role,
     required String phone,
-    required String dateOfBirth, // ✅ Se almacena la fecha de nacimiento
+    required String date, // ✅ Se almacena la fecha de nacimiento
     String? name,
     String? lastName,
     String? organizationName,
@@ -32,7 +32,7 @@ class AuthManager {
         'email': email,
         'role': role,
         'phone': phone,
-        'dateOfBirth': dateOfBirth,
+        'date': date,
         'name': fullName,
         'createdAt': FieldValue.serverTimestamp(),
       });
@@ -42,7 +42,7 @@ class AuthManager {
           'name': fullName,
           'email': email,
           'phone': phone,
-          'dateOfBirth': dateOfBirth,
+          'date': date,
           'location': "",
           'interests': [],
           'skills': [],
@@ -52,7 +52,7 @@ class AuthManager {
           'name': fullName,
           'email': email,
           'phone': phone,
-          'dob': dateOfBirth, // ⚠️ Asegúrate de que Firestore usa "dob" y no "dateOfBirth" para organizaciones
+          'date': date, // ⚠️ Asegúrate de que Firestore usa "date" y no "date" para organizaciones
           'missions': [],
           'objectives': [],
           'volunteerTypes': [],
@@ -165,7 +165,7 @@ class AuthManager {
     String? name,
     String? email,
     String? phone,
-    String? dateOfBirth,
+    String? date,
   }) async {
     try {
       // Construir los datos para actualizar
@@ -173,11 +173,11 @@ class AuthManager {
       if (name != null) updatedData['name'] = name;
       if (email != null) updatedData['email'] = email;
       if (phone != null) updatedData['phone'] = phone;
-      if (dateOfBirth != null) {
+      if (date != null) {
         if (role == 'organization') {
-          updatedData['dob'] = dateOfBirth; // ⚠️ Se usa "dob" para organizaciones
+          updatedData['date'] = date; // ⚠️ Se usa "date" para organizaciones
         } else {
-          updatedData['dateOfBirth'] = dateOfBirth; // Se usa "dateOfBirth" para voluntarios
+          updatedData['date'] = date; // Se usa "date" para voluntarios
         }
       }
 

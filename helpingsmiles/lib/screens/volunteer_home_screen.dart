@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../managers/auth_manager.dart';
 import 'volunteer_profile_screen.dart';
 import 'login_screen.dart';
-import 'organization_details_screen.dart'; // ✅ Nueva pantalla de detalles
+import 'organization_details_screen.dart';
 
 class VolunteerHomeScreen extends StatefulWidget {
   const VolunteerHomeScreen({super.key});
@@ -44,7 +44,7 @@ class _VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
         organizations = querySnapshot.docs.map((doc) {
           final data = doc.data();
           return {
-            'id': doc.id, // ✅ Asegurar que cada organización tenga un ID
+            'id': doc.id, // ✅ Guardamos el ID
             'name': data['name'] ?? "Unknown Organization",
             'mission': (data['missions'] as List<dynamic>?)?.join(", ") ?? "No mission available",
           };
@@ -55,15 +55,6 @@ class _VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
     }
   }
 
-  void _navigateToOrganizationDetails(String orgId) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => OrganizationDetailsScreen(organizationId: orgId),
-      ),
-    );
-  }
-
   void _logout() async {
     await AuthManager.logoutUser();
     Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
@@ -71,6 +62,18 @@ class _VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
 
   void _navigateToProfile() {
     Navigator.push(context, MaterialPageRoute(builder: (_) => const VolunteerProfileScreen()));
+  }
+
+  void _navigateToOrganizationDetails(String orgId, String orgName) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => OrganizationDetailsScreen(
+          organizationId: orgId,
+          organizationName: orgName,
+        ),
+      ),
+    );
   }
 
   @override
@@ -113,20 +116,25 @@ class _VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
   }
 
   Widget _buildOrganizationCard(Map<String, dynamic> org) {
-    return Card(
-      elevation: 3,
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      child: ListTile(
-        title: Text(org["name"], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red)),
-        subtitle: Text("${org["mission"]}\n\nClick to see more info", style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 0, 0, 0))),
-        onTap: () {
-          if (org['id'] != null) {
-            _navigateToOrganizationDetails(org['id']);
-          } else {
-            print("⚠️ Warning: Organization ID is null!");
-          }
-        },
+    return GestureDetector(
+      onTap: () => _navigateToOrganizationDetails(org["id"], org["name"]),
+      child: Card(
+        elevation: 3,
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(org["name"], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red)),
+              const SizedBox(height: 5),
+              Text("Mission: ${org["mission"]}", style: const TextStyle(fontSize: 14)),
+              const SizedBox(height: 5),
+              const Text("Click to see more info", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.blue)),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -14,7 +14,7 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
   String? name;
   String? email;
   String? phone;
-  String? dateOfBirth;
+  String? date;
   String? password;
   String? location;
   List<String> interests = [];
@@ -36,7 +36,7 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
           name = doc.data()?['name'] ?? "Not specified"; 
           email = user.email ?? "Not specified"; 
           phone = doc.data()?['phone'] ?? "Not specified"; 
-          dateOfBirth = doc.data()?['dob'] ?? "Not specified"; 
+          date = doc.data()?['date'] ?? "Not specified"; 
           location = doc.data()?['location'] ?? "Not specified"; 
 
           // Convert interests to a list
@@ -76,7 +76,7 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
             _buildProfileSection(Icons.person, "Name", name ?? "Not specified"),
             _buildProfileSection(Icons.email, "Email", email ?? "Not specified"),
             _buildProfileSection(Icons.phone, "Phone Number", phone ?? "Not specified"),
-            _buildProfileSection(Icons.calendar_today, "Date of Birth", dateOfBirth ?? "Not specified"),
+            _buildProfileSection(Icons.calendar_today, "Date of Birth", date ?? "Not specified"),
             _buildProfileSection(Icons.lock, "Password", password ?? "Not specified"),
             _buildProfileSection(Icons.location_on, "Location", location ?? "Not specified"),
             _buildProfileList(Icons.favorite, "Interests", interests),
