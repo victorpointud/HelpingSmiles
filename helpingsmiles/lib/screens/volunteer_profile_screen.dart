@@ -65,13 +65,15 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Volunteer Profile")),
+      appBar: AppBar(
+        title: Text(name ?? "Volunteer Profile", 
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            
             const SizedBox(height: 20),
             _buildProfileSection(Icons.person, "Name", name ?? "Not specified"),
             _buildProfileSection(Icons.email, "Email", email ?? "Not specified"),

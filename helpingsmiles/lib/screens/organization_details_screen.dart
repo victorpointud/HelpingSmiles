@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../screens/event_list_screen.dart';
 
 class OrganizationDetailsScreen extends StatefulWidget {
   final String organizationId;
   final String organizationName;
 
-  const OrganizationDetailsScreen({super.key, required this.organizationId, required this.organizationName});
+  const OrganizationDetailsScreen({
+    super.key,
+    required this.organizationId,
+    required this.organizationName,
+  });
 
   @override
   _OrganizationDetailsScreenState createState() => _OrganizationDetailsScreenState();
@@ -31,8 +36,8 @@ class _OrganizationDetailsScreenState extends State<OrganizationDetailsScreen> {
       setState(() {
         phone = doc.data()?['phone'] ?? "Not specified";
         date = doc.data()?['date'] ?? "Not specified";
-        missions = _convertToList(doc.data()?['missions']);
-        objectives = _convertToList(doc.data()?['objectives']);
+        missions = (doc.data()?['missions'] as List<dynamic>?)?.cast<String>() ?? [];
+        objectives = (doc.data()?['objectives'] as List<dynamic>?)?.cast<String>() ?? [];
       });
     }
   }
@@ -45,19 +50,19 @@ class _OrganizationDetailsScreenState extends State<OrganizationDetailsScreen> {
 
     setState(() {
       upcomingEvents = querySnapshot.docs
-          .map((doc) => doc.data().containsKey('name') ? doc['name'] as String : "Unnamed Event")
+          .map((doc) => doc['name'] ?? "Unnamed Event")
+          .whereType<String>()
           .toList();
     });
   }
 
-  List<String> _convertToList(dynamic data) {
-    if (data is List) {
-      return data.whereType<String>().toList();
-    } else if (data is String) {
-      return [data];
-    } else {
-      return [];
-    }
+  void _navigateToEventList() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => EventListScreen(organizationId: widget.organizationId),
+      ),
+    );
   }
 
   @override
@@ -67,13 +72,21 @@ class _OrganizationDetailsScreenState extends State<OrganizationDetailsScreen> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildProfileSection(Icons.phone, "Phone", phone ?? "Not specified"),
-            _buildProfileSection(Icons.date_range, "Date Created", date ?? "Not specified"),
+            _buildProfileSection(Icons.calendar_today, "Date Created", date ?? "Not specified"),
             _buildProfileList(Icons.flag, "Mission", missions),
             _buildProfileList(Icons.list, "Objectives", objectives),
-            _buildProfileList(Icons.calendar_today, "Upcoming Events", upcomingEvents),
+
+            // 📌 Botón para ver los eventos
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: _navigateToEventList,
+              icon: const Icon(Icons.event),
+              label: const Text("View Upcoming Events"),
+              style: ElevatedButton.styleFrom(backgroundColor: const Color.fromARGB(255, 221, 38, 38), foregroundColor: Colors.white),
+            ),
           ],
         ),
       ),
@@ -85,30 +98,10 @@ class _OrganizationDetailsScreenState extends State<OrganizationDetailsScreen> {
       elevation: 4,
       margin: const EdgeInsets.symmetric(vertical: 10),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Row(
-          children: [
-            Icon(icon, color: Colors.red),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text.rich(
-                TextSpan(
-                  children: [
-                    TextSpan(
-                      text: "$title: ",
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                    ),
-                    TextSpan(
-                      text: content,
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+      child: ListTile(
+        leading: Icon(icon, color: Colors.red),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text(content),
       ),
     );
   }
@@ -123,12 +116,8 @@ class _OrganizationDetailsScreenState extends State<OrganizationDetailsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(children: [
-              Icon(icon, color: Colors.red),
-              const SizedBox(width: 10),
-              Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
-            ]),
-            ...items.map((item) => Text("• $item", style: const TextStyle(fontSize: 16))),
+            Row(children: [Icon(icon, color: Colors.red), const SizedBox(width: 10), Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold))]),
+            ...items.map((item) => Text("• $item")),
           ],
         ),
       ),

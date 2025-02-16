@@ -129,9 +129,9 @@ class _VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
             children: [
               Text(org["name"], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red)),
               const SizedBox(height: 5),
-              Text("Mission: ${org["mission"]}", style: const TextStyle(fontSize: 14)),
+              Text(org["mission"], style: const TextStyle(fontSize: 14, color: Color.fromARGB(255, 0, 0, 0))), // ✅ Muestra solo la misión
               const SizedBox(height: 5),
-              const Text("Click to see more info", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.blue)),
+              const Text("Click to see more info", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 222, 36, 51))),
             ],
           ),
         ),
