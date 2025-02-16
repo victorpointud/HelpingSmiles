@@ -27,7 +27,7 @@ class _VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       String? fullName = await AuthManager.getUserName(user.uid);
-      if (mounted) { // ✅ Verifica si el widget aún está en pantalla
+      if (mounted) {
         setState(() {
           userName = fullName ?? "Unknown Volunteer";
         });
@@ -36,26 +36,26 @@ class _VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
   }
 
   Future<void> _loadOrganizations() async {
-  try {
-    final querySnapshot = await FirebaseFirestore.instance.collection('organizations').get();
+    try {
+      final querySnapshot = await FirebaseFirestore.instance.collection('organizations').get();
 
-    setState(() {
-      organizations = querySnapshot.docs.map((doc) {
-        final data = doc.data();
-        return {
-          'name': data['name'] ?? "Unknown Organization",
-          'mission': (data['missions'] as List<dynamic>?)?.join(", ") ?? "No mission available",
-          'volunteerTypes': (data['volunteerTypes'] as List<dynamic>?)?.join(", ") ?? "No volunteer types specified",
-          'locations': (data['locations'] != null && data['locations'] is List<dynamic>) 
-              ? (data['locations'] as List<dynamic>).join(", ") 
-              : "No location specified",
-        };
-      }).toList();
-    });
-  } catch (e) {
-    print("Error loading organizations: $e");
+      setState(() {
+        organizations = querySnapshot.docs.map((doc) {
+          final data = doc.data();
+          return {
+            'name': data['name'] ?? "Unknown Organization",
+            'mission': (data['missions'] as List<dynamic>?)?.join(", ") ?? "No mission available",
+            'volunteerTypes': (data['volunteerTypes'] as List<dynamic>?)?.join(", ") ?? "No volunteer types specified",
+            'locations': (data['locations'] != null && data['locations'] is List<dynamic>) 
+                ? (data['locations'] as List<dynamic>).join(", ") 
+                : "No location specified",
+          };
+        }).toList();
+      });
+    } catch (e) {
+      print("Error loading organizations: $e");
+    }
   }
-}
 
   void _logout() async {
     await AuthManager.logoutUser();
@@ -117,11 +117,32 @@ class _VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
           children: [
             Text(org["name"], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red)),
             const SizedBox(height: 5),
-            Text("Mission: ${org["mission"]}", style: const TextStyle(fontSize: 14)),
+            Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(text: "Mission: ", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  TextSpan(text: org["mission"], style: const TextStyle(fontSize: 14)),
+                ],
+              ),
+            ),
             const SizedBox(height: 5),
-            Text("Volunteer Types: ${org["volunteerTypes"]}", style: const TextStyle(fontSize: 14)),
+            Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(text: "Volunteer Types: ", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  TextSpan(text: org["volunteerTypes"], style: const TextStyle(fontSize: 14)),
+                ],
+              ),
+            ),
             const SizedBox(height: 5),
-            Text("Locations: ${org["locations"]}", style: const TextStyle(fontSize: 14)),
+            Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(text: "Locations: ", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                  TextSpan(text: org["locations"], style: const TextStyle(fontSize: 14)),
+                ],
+              ),
+            ),
           ],
         ),
       ),
