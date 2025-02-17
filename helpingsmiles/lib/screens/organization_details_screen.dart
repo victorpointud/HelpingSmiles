@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../screens/event_list_screen.dart';
+import 'event_list_screen.dart';
 
 class OrganizationDetailsScreen extends StatefulWidget {
   final String organizationId;
   final String organizationName;
 
-  const OrganizationDetailsScreen({
-    super.key,
-    required this.organizationId,
-    required this.organizationName,
-  });
+  const OrganizationDetailsScreen({super.key, required this.organizationId, required this.organizationName});
 
   @override
   _OrganizationDetailsScreenState createState() => _OrganizationDetailsScreenState();
@@ -41,12 +37,10 @@ class _OrganizationDetailsScreenState extends State<OrganizationDetailsScreen> {
     }
   }
 
-  /// 🔹 **Función para inscribirse a la organización**
   Future<void> _registerForOrganization() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       try {
-        // Obtener información del voluntario desde Firestore
         final volunteerDoc = await FirebaseFirestore.instance
             .collection('volunteers')
             .doc(user.uid)
@@ -59,7 +53,6 @@ class _OrganizationDetailsScreenState extends State<OrganizationDetailsScreen> {
           return;
         }
 
-        // Datos del voluntario
         final volunteerData = volunteerDoc.data() ?? {};
         final name = volunteerData['name'] ?? "Not specified";
         final email = user.email ?? "Not specified";
@@ -69,7 +62,6 @@ class _OrganizationDetailsScreenState extends State<OrganizationDetailsScreen> {
         final location = volunteerData['location'] ?? "Not specified";
         final date = volunteerData['date'] ?? "Not specified";
 
-        // Guardar el registro en la subcolección 'registrations' dentro de la organización
         await FirebaseFirestore.instance
             .collection('organizations')
             .doc(widget.organizationId)
@@ -99,7 +91,6 @@ class _OrganizationDetailsScreenState extends State<OrganizationDetailsScreen> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -113,10 +104,8 @@ class _OrganizationDetailsScreenState extends State<OrganizationDetailsScreen> {
             _buildProfileSection(Icons.calendar_today, "Date Created", date ?? "Not specified"),
             _buildProfileList(Icons.flag, "Mission", missions),
             _buildProfileList(Icons.list, "Objectives", objectives),
-
-            // 📌 Botón para ver los eventos
             const SizedBox(height: 20),
-            Center( // 📌 Centrar los botones
+            Center(
               child: ElevatedButton.icon(
                 onPressed: _navigateToEventList,
                 icon: const Icon(Icons.event),
@@ -128,13 +117,12 @@ class _OrganizationDetailsScreenState extends State<OrganizationDetailsScreen> {
                 ),
               ),
             ),
-
             const SizedBox(height: 20),
-            Center( // 📌 Centrar los botones
+            Center(
               child: ElevatedButton.icon(
                 onPressed: _registerForOrganization,
                 icon: const Icon(Icons.how_to_reg),
-                label: const Text("Suscribe to this Organization"),
+                label: const Text("Subscribe to this Organization"),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color.fromARGB(255, 0, 0, 0),
                   foregroundColor: Colors.white,

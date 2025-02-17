@@ -27,7 +27,7 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
     _loadOrganizationData();
   }
 
-    Future<void> _loadOrganizationData() async {
+  Future<void> _loadOrganizationData() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       final doc = await FirebaseFirestore.instance.collection('organizations').doc(user.uid).get();
@@ -47,8 +47,6 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
     }
   }
 
-
-
   List<String> _convertToList(dynamic data) {
     if (data is List) {
       return data.whereType<String>().toList();
@@ -64,7 +62,7 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
       context,
       MaterialPageRoute(builder: (_) => const EditOrgProfileManager()),
     ).then((result) {
-      if (result == true) _loadOrganizationData(); // Refresh data after editing
+      if (result == true) _loadOrganizationData();
     });
   }
 
@@ -98,46 +96,46 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
     );
   }
 
- Widget _buildProfileSection(IconData icon, String title, String? content) {
-  return Card(
-    elevation: 4,
-    margin: const EdgeInsets.symmetric(vertical: 10),
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-    child: Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Row(
-        children: [
-          Icon(icon, color: Colors.red),
-          const SizedBox(width: 10),
-          Expanded(
-            child: RichText(
-              text: TextSpan(
-                children: [
-                  TextSpan(
-                    text: "$title: ",
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold, // ✅ Negrita para el título
-                      color: Colors.black, // ✅ Color negro para el texto
+  Widget _buildProfileSection(IconData icon, String title, String? content) {
+    return Card(
+      elevation: 4,
+      margin: const EdgeInsets.symmetric(vertical: 10),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          children: [
+            Icon(icon, color: Colors.red),
+            const SizedBox(width: 10),
+            Expanded(
+              child: RichText(
+                text: TextSpan(
+                  children: [
+                    TextSpan(
+                      text: "$title: ",
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
                     ),
-                  ),
-                  TextSpan(
-                    text: content ?? 'Not specified',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.normal, // ✅ Normal para la info
-                      color: Colors.black, // ✅ Color negro para el texto
+                    TextSpan(
+                      text: content ?? 'Not specified',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.normal,
+                        color: Colors.black,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildProfileList(IconData icon, String title, List<String> items) {
     return Card(

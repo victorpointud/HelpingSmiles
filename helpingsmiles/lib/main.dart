@@ -21,7 +21,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  Widget _initialScreen = const SplashScreen(); // Siempre inicia con SplashScreen
+  Widget _initialScreen = const SplashScreen();
 
   @override
   void initState() {
@@ -30,12 +30,11 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _checkUserSession() async {
-    await Future.delayed(const Duration(seconds: 3)); // Espera 3 segundos en SplashScreen
+    await Future.delayed(const Duration(seconds: 3));
 
     User? user = FirebaseAuth.instance.currentUser;
 
     if (user != null) {
-      // Obtiene el rol del usuario desde Firestore
       String? role = await AuthManager.getUserRole(user.uid);
 
       if (role == "volunteer") {

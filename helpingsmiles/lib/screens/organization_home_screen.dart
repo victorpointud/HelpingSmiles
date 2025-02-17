@@ -4,9 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../managers/auth_manager.dart';
 import 'organization_profile_screen.dart';
 import 'login_screen.dart';
-import '../managers/add_org_activity_manager.dart'; // Updated import
-import '../managers/edit_org_activity_manager.dart'; // Updated import
-
+import '../managers/add_org_activity_manager.dart';
+import '../managers/edit_org_activity_manager.dart';
 
 class OrganizationHomeScreen extends StatefulWidget {
   const OrganizationHomeScreen({super.key});
@@ -26,66 +25,60 @@ class _OrganizationHomeScreenState extends State<OrganizationHomeScreen> {
   }
 
   Future<void> _loadOrganizationData() async {
-  final user = FirebaseAuth.instance.currentUser;
-  if (user != null) {
-    try {
-      String? orgName = await AuthManager.getOrganizationName(user.uid);
-      if (orgName == null || orgName.isEmpty) {
-        orgName = "Unknown Organization"; // ✅ Manejo de caso cuando es nulo
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        String? orgName = await AuthManager.getOrganizationName(user.uid);
+        if (orgName == null || orgName.isEmpty) {
+          orgName = "Unknown Organization";
+        }
+
+        if (!mounted) return;
+        setState(() {
+          organizationName = orgName;
+        });
+
+        _loadEvents(user.uid);
+      } catch (e) {
+        if (!mounted) return;
+        setState(() {
+          organizationName = "Error retrieving organization";
+        });
       }
-
-      if (!mounted) return; // ✅ Evita llamar setState si el widget ya no está montado
-      setState(() {
-        organizationName = orgName;
-      });
-
-      _loadEvents(user.uid);
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        organizationName = "Error retrieving organization"; // ✅ Mensaje de error adecuado
-      });
-      print("Error fetching organization name: $e"); // Debugging
     }
   }
-}
-
 
   Future<void> _loadEvents(String userId) async {
-  final user = FirebaseAuth.instance.currentUser;
-  if (user == null) {
-    print("User not authenticated");
-    return;
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return;
+    }
+
+    try {
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('events')
+          .where('organizationId', isEqualTo: userId)
+          .get();
+
+      if (!mounted) return;
+
+      setState(() {
+        events = querySnapshot.docs.map((doc) {
+          final eventData = doc.data();
+          eventData["id"] = doc.id;
+          return eventData;
+        }).toList();
+      });
+    } catch (e) {
+      print("Error loading events: $e");
+    }
   }
-
-  try {
-    final querySnapshot = await FirebaseFirestore.instance
-        .collection('events')
-        .where('organizationId', isEqualTo: userId)
-        .get();
-
-    if (!mounted) return; // Evita errores si el widget fue descartado
-
-    setState(() {
-      events = querySnapshot.docs.map((doc) {
-        final eventData = doc.data();
-        eventData["id"] = doc.id; // ✅ Agregar ID del documento
-        return eventData;
-      }).toList();
-    });
-  } catch (e) {
-    print("Error loading events: $e");
-  }
-}
-
-
 
   void _navigate(BuildContext context, Widget screen) {
-  Navigator.push(context, MaterialPageRoute(builder: (_) => screen)).then((result) {
-    if (result == true) _loadOrganizationData(); // Reload after changes
-  });
-}
-
+    Navigator.push(context, MaterialPageRoute(builder: (_) => screen)).then((result) {
+      if (result == true) _loadOrganizationData();
+    });
+  }
 
   Future<void> _deleteEvent(String eventId) async {
     await FirebaseFirestore.instance.collection('events').doc(eventId).delete();
@@ -167,8 +160,8 @@ class _OrganizationHomeScreenState extends State<OrganizationHomeScreen> {
 
   Widget _buildEventCard(Map<String, dynamic> event) {
     return GestureDetector(
-      onTap: () => _navigate(context, EditOrgActivityManager(eventId: event["id"], eventData: event)), // Edit Event
-      onLongPress: () => _confirmDelete(event["id"]), // Delete on Long Press
+      onTap: () => _navigate(context, EditOrgActivityManager(eventId: event["id"], eventData: event)),
+      onLongPress: () => _confirmDelete(event["id"]),
       child: Card(
         elevation: 3,
         margin: const EdgeInsets.symmetric(vertical: 8),

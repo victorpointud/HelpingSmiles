@@ -31,7 +31,7 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
   if (user != null) {
     final doc = await FirebaseFirestore.instance.collection('volunteers').doc(user.uid).get();
     if (doc.exists) {
-      if (mounted) { // ✅ Verificar si el widget sigue en pantalla antes de actualizar
+      if (mounted) { 
         setState(() {
           name = doc.data()?['name'] ?? "Not specified"; 
           email = doc.data()?['email'] ?? "Not specified"; 
@@ -39,11 +39,8 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
           date = doc.data()?['date'] ?? "Not specified"; 
           location = doc.data()?['location'] ?? "Not specified"; 
           password = doc.data()?['password'] ?? "Not specified";
-          // Convert interests to a list
           final dynamic interestsData = doc.data()?['interests'];
           interests = (interestsData is List) ? interestsData.cast<String>() : [];
-
-          // Convert skills to a list
           final dynamic skillsData = doc.data()?['skills'];
           skills = (skillsData is List) ? skillsData.cast<String>() : [];
         });

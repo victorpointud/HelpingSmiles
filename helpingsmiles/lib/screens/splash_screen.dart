@@ -24,7 +24,6 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Background Image
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
@@ -33,11 +32,9 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
             ),
           ),
-          // Dark Overlay
           Container(
             color: Colors.black.withOpacity(0.6),
           ),
-          // Centered Logo with Bordered Box
           Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,

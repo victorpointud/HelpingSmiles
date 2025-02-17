@@ -39,12 +39,11 @@ class _VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
   Future<void> _loadOrganizations() async {
     try {
       final querySnapshot = await FirebaseFirestore.instance.collection('organizations').get();
-
       setState(() {
         organizations = querySnapshot.docs.map((doc) {
           final data = doc.data();
           return {
-            'id': doc.id, // ✅ Guardamos el ID
+            'id': doc.id,
             'name': data['name'] ?? "Unknown Organization",
             'mission': (data['missions'] as List<dynamic>?)?.join(", ") ?? "No mission available",
           };
@@ -129,7 +128,7 @@ class _VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
             children: [
               Text(org["name"], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red)),
               const SizedBox(height: 5),
-              Text(org["mission"], style: const TextStyle(fontSize: 14, color: Color.fromARGB(255, 0, 0, 0))), // ✅ Muestra solo la misión
+              Text(org["mission"], style: const TextStyle(fontSize: 14, color: Color.fromARGB(255, 0, 0, 0))),
               const SizedBox(height: 5),
               const Text("Click to see more info", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 0, 0, 0))),
             ],
