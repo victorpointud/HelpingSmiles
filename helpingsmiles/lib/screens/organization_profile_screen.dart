@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../managers/edit_org_profile_manager.dart';
-import '../../../managers/auth_manager.dart';
 
 class OrganizationProfileScreen extends StatefulWidget {
   const OrganizationProfileScreen({super.key});
