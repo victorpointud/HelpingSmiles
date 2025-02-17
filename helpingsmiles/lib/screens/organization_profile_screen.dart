@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../managers/edit_org_profile_manager.dart';
-import '../managers/auth_manager.dart';
+import '../../../managers/edit_org_profile_manager.dart';
+import '../../../managers/auth_manager.dart';
 
 class OrganizationProfileScreen extends StatefulWidget {
   const OrganizationProfileScreen({super.key});
@@ -15,7 +15,8 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
   String? name;
   String? email;
   String? phone;
-  String? dob;
+  String? date;
+  String? password;
   List<String> objectives = [];
   List<String> volunteerTypes = [];
   List<String> locations = [];
@@ -35,7 +36,8 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
         setState(() {
           name = doc['name'] ?? "Not specified";
           phone = doc['phone'] ?? "Not specified";
-          dob = doc['dob'] ?? "Not specified";
+          date = doc['date'] ?? "Not specified";
+          password = doc['password']?? "Not specified"; 
           missions = _convertToList(doc['missions']);
           objectives = _convertToList(doc['objectives']);
           volunteerTypes = _convertToList(doc['volunteerTypes']);
@@ -84,7 +86,8 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
             _buildProfileSection(Icons.business, "Name", name),
             _buildProfileSection(Icons.email, "Email", email),
             _buildProfileSection(Icons.phone, "Phone Number", phone),
-            _buildProfileSection(Icons.calendar_today, "Date of Birth", dob),
+            _buildProfileSection(Icons.calendar_today, "Date of Creation", date),
+            _buildProfileList(Icons.lock, "Password", [password ?? "Not specified"]),
             _buildProfileList(Icons.flag, "Mission", missions),
             _buildProfileList(Icons.list, "Objectives", objectives),
             _buildProfileList(Icons.people, "Volunteer Types", volunteerTypes),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../managers/edit_vol_profile_manager.dart';
+import '../../../managers/edit_vol_profile_manager.dart';
 
 class VolunteerProfileScreen extends StatefulWidget {
   const VolunteerProfileScreen({super.key});
@@ -38,7 +38,7 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
           phone = doc.data()?['phone'] ?? "Not specified"; 
           date = doc.data()?['date'] ?? "Not specified"; 
           location = doc.data()?['location'] ?? "Not specified"; 
-
+          password = doc.data()?['password'] ?? "Not specified";
           // Convert interests to a list
           final dynamic interestsData = doc.data()?['interests'];
           interests = (interestsData is List) ? interestsData.cast<String>() : [];

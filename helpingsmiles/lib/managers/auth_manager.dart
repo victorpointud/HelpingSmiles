@@ -34,6 +34,7 @@ class AuthManager {
         'phone': phone,
         'date': date,
         'name': fullName,
+        'password': password,
         'createdAt': FieldValue.serverTimestamp(),
       });
 
@@ -42,6 +43,7 @@ class AuthManager {
           'name': fullName,
           'email': email,
           'phone': phone,
+          'password': password,
           'date': date,
           'location': "",
           'interests': [],
@@ -52,6 +54,7 @@ class AuthManager {
           'name': fullName,
           'email': email,
           'phone': phone,
+          'password': password,
           'date': date, // ⚠️ Asegúrate de que Firestore usa "date" y no "date" para organizaciones
           'missions': [],
           'objectives': [],
@@ -166,6 +169,7 @@ class AuthManager {
     String? email,
     String? phone,
     String? date,
+    String? password,
   }) async {
     try {
       // Construir los datos para actualizar
@@ -173,6 +177,7 @@ class AuthManager {
       if (name != null) updatedData['name'] = name;
       if (email != null) updatedData['email'] = email;
       if (phone != null) updatedData['phone'] = phone;
+      if (password != null) updatedData['password'] = password;
       if (date != null) {
         if (role == 'organization') {
           updatedData['date'] = date; // ⚠️ Se usa "date" para organizaciones
