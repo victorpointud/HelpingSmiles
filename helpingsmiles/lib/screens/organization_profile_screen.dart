@@ -16,10 +16,10 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
   String? phone;
   String? date;
   String? password;
+  String? mission;
   List<String> objectives = [];
   List<String> volunteerTypes = [];
   List<String> locations = [];
-  List<String> missions = [];
 
   @override
   void initState() {
@@ -38,7 +38,7 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
           date = doc['date'] ?? "Not specified";
           email = doc['email'] ?? "Not specified";
           password = doc['password'] ?? "Not specified";
-          missions = _convertToList(doc['missions']);
+          mission = doc['mission'] ?? "Not specified";
           objectives = _convertToList(doc['objectives']);
           volunteerTypes = _convertToList(doc['volunteerTypes']);
           locations = _convertToList(doc['locations']);
@@ -99,7 +99,7 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
                   _buildProfileSection(Icons.phone, "Phone Number", phone),
                   _buildProfileSection(Icons.calendar_today, "Date of Creation", date),
                   _buildProfileSection(Icons.lock, "Password", password ?? "Not specified"),
-                  _buildProfileList(Icons.flag, "Mission", missions),
+                  _buildProfileSection(Icons.flag, "Mission", mission),
                   _buildProfileList(Icons.list, "Objectives", objectives),
                   _buildProfileList(Icons.people, "Volunteer Types", volunteerTypes),
                   _buildProfileList(Icons.location_on, "Locations", locations),

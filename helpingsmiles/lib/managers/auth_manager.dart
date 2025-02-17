@@ -13,6 +13,7 @@ class AuthManager {
     required String role,
     required String phone,
     required String date,
+    String? mission,
     String? name,
     String? lastName,
     String? organizationName,
@@ -53,7 +54,7 @@ class AuthManager {
           'phone': phone,
           'password': password,
           'date': date,
-          'missions': [],
+          'mission': mission,
           'objectives': [],
           'volunteerTypes': [],
           'locations': [],
@@ -101,11 +102,7 @@ class AuthManager {
   static Future<Map<String, dynamic>?> getOrganizationProfile(String uid) async {
     try {
       final orgDoc = await _db.collection('organizations').doc(uid).get();
-      if (orgDoc.exists) {
-        final data = orgDoc.data();
-        return data;
-      }
-      return null;
+      return orgDoc.exists ? orgDoc.data() : null;
     } catch (e) {
       return null;
     }
@@ -154,29 +151,40 @@ class AuthManager {
     String? email,
     String? phone,
     String? date,
-    String? password,
+    String? location,
+    String? mission,
+    List<String>? skills,
+    List<String>? interests,
+    List<String>? objectives,
+    List<String>? volunteerTypes,
+    List<String>? locations,  // Ya no hay conflicto con 'location'
   }) async {
     try {
       Map<String, dynamic> updatedData = {};
+
       if (name != null) updatedData['name'] = name;
       if (email != null) updatedData['email'] = email;
       if (phone != null) updatedData['phone'] = phone;
-      if (password != null) updatedData['password'] = password;
-      if (date != null) {
-        if (role == 'organization') {
-          updatedData['date'] = date;
-        } else {
-          updatedData['date'] = date;
-        }
-      }
+      if (date != null) updatedData['date'] = date;
+      if (location != null) updatedData['location'] = location;
+      if (skills != null) updatedData['skills'] = skills;  // Se asegura que sea lista
+      if (interests != null) updatedData['interests'] = interests; // Se asegura que sea lista
+      if (mission != null) updatedData['mission'] = mission; // Se asegura que sea lista
+      if (objectives != null) updatedData['objectives'] = objectives; // Se asegura que sea lista
+      if (volunteerTypes != null) updatedData['volunteerTypes'] = volunteerTypes; // Se asegura que sea lista
+      if (locations != null) updatedData['locations'] = locations; // Se asegura que sea lista
 
+      // Actualizar Firestore en 'users'
       await _db.collection('users').doc(uid).set(updatedData, SetOptions(merge: true));
 
+      // Actualizar Firestore en 'volunteers' o 'organizations' según el rol
       if (role == 'volunteer') {
         await _db.collection('volunteers').doc(uid).set(updatedData, SetOptions(merge: true));
       } else if (role == 'organization') {
         await _db.collection('organizations').doc(uid).set(updatedData, SetOptions(merge: true));
       }
+
+      print("Profile updated successfully");
     } catch (e) {
       print("Error updating profile: $e");
     }

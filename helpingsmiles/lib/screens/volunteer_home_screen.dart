@@ -45,7 +45,7 @@ class _VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
           return {
             'id': doc.id,
             'name': data['name'] ?? "Unknown Organization",
-            'mission': (data['missions'] as List<dynamic>?)?.join(", ") ?? "No mission available",
+            'mission': data['mission'] ?? "Unknown Mission",
           };
         }).toList();
       });

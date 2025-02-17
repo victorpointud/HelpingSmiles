@@ -88,14 +88,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         _buildTextField(_passwordController, 'Password', Icons.lock, isPassword: true),
                         _buildTextField(_confirmPasswordController, 'Confirm Password', Icons.lock_outline, isPassword: true),
                         _buildRoleDropdown(),
-                        _buildTextField(_phoneController, 'Phone Number', Icons.phone), 
-                        _buildTextField(_dateController, 'Date of Birth', Icons.calendar_today), 
+                        
                         if (_selectedRole == 'volunteer') ...[
+                          _buildTextField(_dateController, 'Date of Birth (YYYY-MM-DD)', Icons.calendar_today), 
                           _buildTextField(_nameController, 'First Name', Icons.person),
                           _buildTextField(_lastNameController, 'Last Name', Icons.person_outline),
+                          _buildTextField(_phoneController, 'Phone Number', Icons.phone), 
                         ],
-                        if (_selectedRole == 'organization') 
+
+                        if (_selectedRole == 'organization') ...[
+                          _buildTextField(_dateController, 'Date of Creation (YYYY-MM-DD)', Icons.calendar_today), 
                           _buildTextField(_organizationController, 'Organization Name', Icons.business),
+                          _buildTextField(_phoneController, 'Phone Number', Icons.phone), 
+                        ],
+
                         if (_errorMessage != null) 
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 10),

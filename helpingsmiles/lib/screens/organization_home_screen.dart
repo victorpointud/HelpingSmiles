@@ -109,7 +109,7 @@ Widget build(BuildContext context) {
   return Scaffold(
     appBar: AppBar(
       backgroundColor: Colors.white,
-      automaticallyImplyLeading: false, // ✅ Elimina el botón de regreso
+      automaticallyImplyLeading: false,
       title: Text(
         "Welcome, ${organizationName ?? 'Loading...'}!",
         style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
@@ -118,7 +118,7 @@ Widget build(BuildContext context) {
         IconButton(icon: const Icon(Icons.person, color: Colors.black), onPressed: _navigateToProfile),
         IconButton(icon: const Icon(Icons.logout, color: Colors.red), onPressed: _logout),
       ],
-      toolbarHeight: kToolbarHeight, // ✅ Ajusta la altura sin espacios extras
+      toolbarHeight: kToolbarHeight,
     ),
     body: Stack(
       children: [

@@ -11,10 +11,17 @@ class EditOrgProfileManager extends StatefulWidget {
 
 class _EditOrgProfileManagerState extends State<EditOrgProfileManager> {
   final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _dateController = TextEditingController();
   final _missionController = TextEditingController();
   final _objectivesController = TextEditingController();
   final _volunteerTypesController = TextEditingController();
   final _locationsController = TextEditingController();
+
+  String _organizationName = "Loading...";
 
   @override
   void initState() {
@@ -27,55 +34,94 @@ class _EditOrgProfileManagerState extends State<EditOrgProfileManager> {
     if (user != null) {
       final doc = await FirebaseFirestore.instance.collection('organizations').doc(user.uid).get();
       if (doc.exists) {
-        final data = doc.data() ?? {};
         setState(() {
-          _missionController.text = _convertToMultiline(data['missions']);
-          _objectivesController.text = _convertToMultiline(data['objectives']);
-          _volunteerTypesController.text = _convertToMultiline(data['volunteerTypes']);
-          _locationsController.text = _convertToMultiline(data['locations']);
+          _organizationName = doc.data()?['name'] ?? "";
+          _nameController.text = doc.data()?['name'] ?? "";
+          _emailController.text = user.email ?? "";
+          _phoneController.text = doc.data()?['phone'] ?? "";
+          _dateController.text = doc.data()?['date'] ?? "";
+          _passwordController.text = doc.data()?['password'] ?? "";
+          _missionController.text = doc.data()?['mission'] ?? "";
+          _locationsController.text = (doc.data()?['locations'] as List<dynamic>?)?.join("\n") ?? "";
+          _objectivesController.text = (doc.data()?['objectives'] as List<dynamic>?)?.join("\n") ?? "";
+          _volunteerTypesController.text = (doc.data()?['volunteerTypes'] as List<dynamic>?)?.join("\n") ?? "";
+
         });
       }
     }
   }
+Future<void> _saveProfile() async {
+  if (_formKey.currentState!.validate()) {
+    final user = FirebaseAuth.instance.currentUser;
 
-  Future<void> _saveProfile() async {
-    if (_formKey.currentState!.validate()) {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
+    if (user != null) {
+      try {
+        // ⚠️ Reautenticación si se quiere cambiar email o contraseña
+        if (_emailController.text.trim() != user.email || _passwordController.text.trim().isNotEmpty) {
+          bool reauthenticated = await _reauthenticateUser();
+          if (!reauthenticated) return; // Si la reautenticación falla, detener el proceso
+        }
+
+        // Actualizar email si cambió
+        if (_emailController.text.trim() != user.email) {
+          await user.updateEmail(_emailController.text.trim());
+        }
+
+        // Actualizar contraseña si se ingresó una nueva
+        if (_passwordController.text.trim().isNotEmpty) {
+          await user.updatePassword(_passwordController.text.trim());
+        }
+
+        // Actualizar Firestore con la nueva información
         await FirebaseFirestore.instance.collection('organizations').doc(user.uid).set({
-          'missions': _convertToList(_missionController.text),
-          'objectives': _convertToList(_objectivesController.text),
-          'volunteerTypes': _convertToList(_volunteerTypesController.text),
-          'locations': _convertToList(_locationsController.text),
+          'name': _nameController.text.trim(),
+          'phone': _phoneController.text.trim(),
+          'date': _dateController.text.trim(),
+          'email': _emailController.text.trim(),
+          'mission': _missionController.text.trim(),
+          'password': _passwordController.text.trim(), // ⚠️ Considera NO guardar la contraseña en Firestore
+          'locations': _locationsController.text.trim().split("\n").where((item) => item.isNotEmpty).toList(),
+          'objectives': _objectivesController.text.trim().split("\n").where((item) => item.isNotEmpty).toList(),
+          'volunteerTypes': _volunteerTypesController.text.trim().split("\n").where((item) => item.isNotEmpty).toList(),
         }, SetOptions(merge: true));
 
         Navigator.pop(context, true);
+      } catch (e) {
+          SnackBar(content: Text("Error updating profile: ${e.toString()}"));
       }
     }
   }
+}
+Future<bool> _reauthenticateUser() async {
+  final user = FirebaseAuth.instance.currentUser;
 
-  String _convertToMultiline(dynamic data) {
-    if (data is List) {
-      return data.join("\n"); 
-    } else if (data is String) {
-      return data;
-    } else {
-      return "";
-    }
-  }
+  if (user == null) return false;
 
-  List<String> _convertToList(String text) {
-    return text.trim().isNotEmpty ? text.trim().split("\n") : [];
+  try {
+    final credential = EmailAuthProvider.credential(
+      email: user.email!,
+      password: _passwordController.text.trim(), // ⚠️ El usuario debe ingresar la contraseña actual
+    );
+
+    await user.reauthenticateWithCredential(credential);
+    return true;
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Reauthentication failed: ${e.toString()}")),
+    );
+    return false;
   }
+}
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title: const Text(
-          "Edit Organization Profile",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
+        automaticallyImplyLeading: true,
+        title: Text(
+          _organizationName,
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
         ),
         iconTheme: const IconThemeData(color: Colors.black),
       ),
@@ -92,29 +138,42 @@ class _EditOrgProfileManagerState extends State<EditOrgProfileManager> {
           Container(color: Colors.black.withOpacity(0.3)),
           SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  _buildProfileSection(Icons.flag, "Mission", _missionController),
-                  _buildProfileSection(Icons.list, "Objectives (One per line)", _objectivesController),
-                  _buildProfileSection(Icons.people, "Volunteer Types (One per line)", _volunteerTypesController),
-                  _buildProfileSection(Icons.location_on, "Locations (One per line)", _locationsController),
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      ElevatedButton(
-                        onPressed: _saveProfile,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Card(
+                    color: Colors.white,
+                    elevation: 10,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text(
+                              "Edit Profile",
+                              style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.black),
+                            ),
+                            const SizedBox(height: 10),
+                            _buildTextField(_nameController, "Org Name", Icons.business),
+                            _buildTextField(_emailController, "Email", Icons.email),
+                            _buildTextField(_passwordController, "New Password (Leave blank if unchanged)", Icons.lock, isPassword: true),
+                            _buildTextField(_phoneController, "Phone Number", Icons.phone),
+                            _buildTextField(_dateController, "Date of Creation", Icons.calendar_today),
+                            _buildTextField(_missionController, "Mission", Icons.flag),
+                            _buildMultiLineTextField(_locationsController, "Locations", Icons.location_on),
+                            _buildMultiLineTextField(_objectivesController, "Objectives (One per line)", Icons.list),
+                            _buildMultiLineTextField(_volunteerTypesController, "Volunteer Types (One per line)", Icons.people),
+                            const SizedBox(height: 20),
+                            _buildSaveButton(),
+                          ],
                         ),
-                        child: const Text("Save Changes", style: TextStyle(fontSize: 16, color: Colors.white)),
                       ),
-                    ],
+                    ),
                   ),
-                ],
+                ),
               ),
             ),
           ),
@@ -123,37 +182,54 @@ class _EditOrgProfileManagerState extends State<EditOrgProfileManager> {
     );
   }
 
-  Widget _buildProfileSection(IconData icon, String title, TextEditingController controller) {
-    return Card(
-      elevation: 4,
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      color: Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Row(
-          children: [
-            Icon(icon, color: Colors.red),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black)),
-                  TextFormField(
-                    controller: controller,
-                    maxLines: 3,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                      filled: true,
-                      fillColor: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+  Widget _buildTextField(TextEditingController controller, String label, IconData icon, {bool isPassword = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: TextFormField(
+        controller: controller,
+        obscureText: isPassword,
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+          prefixIcon: Icon(icon, color: Colors.red),
+          filled: true,
+          fillColor: Colors.white,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         ),
+        validator: (value) => value!.isEmpty ? "Please enter $label" : null,
+      ),
+    );
+  }
+
+  Widget _buildMultiLineTextField(TextEditingController controller, String label, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: TextFormField(
+        controller: controller,
+        maxLines: 3,
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+          prefixIcon: Icon(icon, color: Colors.red),
+          filled: true,
+          fillColor: Colors.white,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSaveButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: _saveProfile,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.red,
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+        child: const Text("Save Changes", style: TextStyle(fontSize: 18, color: Colors.white)),
       ),
     );
   }

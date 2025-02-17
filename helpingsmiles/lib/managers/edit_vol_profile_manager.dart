@@ -36,6 +36,7 @@ class _EditVolProfileManagerState extends State<EditVolProfileManager> {
           _emailController.text = user.email ?? "";
           _phoneController.text = doc.data()?['phone'] ?? "";
           _dateController.text = doc.data()?['date'] ?? "";
+          _passwordController.text = doc.data()?['password'] ?? "";
           _locationController.text = doc.data()?['location'] ?? "";
           _interestsController.text = (doc.data()?['interests'] as List<dynamic>?)?.join("\n") ?? "";
           _skillsController.text = (doc.data()?['skills'] as List<dynamic>?)?.join("\n") ?? "";
@@ -62,6 +63,7 @@ class _EditVolProfileManagerState extends State<EditVolProfileManager> {
             'phone': _phoneController.text.trim(),
             'date': _dateController.text.trim(),
             'location': _locationController.text.trim(),
+            'password': _passwordController.text.trim(),
             'interests': _interestsController.text.trim().split("\n"),
             'skills': _skillsController.text.trim().split("\n"),
           }, SetOptions(merge: true));
@@ -95,9 +97,7 @@ class _EditVolProfileManagerState extends State<EditVolProfileManager> {
               ),
             ),
           ),
-          Container(
-            color: Colors.black.withOpacity(0.3),
-          ),
+          Container(color: Colors.black.withOpacity(0.3)),
           SafeArea(
             child: SingleChildScrollView(
               child: Center(
@@ -114,8 +114,7 @@ class _EditVolProfileManagerState extends State<EditVolProfileManager> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Text("Edit Profile",
-                                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.black)),
+                            const Text("Edit profile", style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.black)),
                             const SizedBox(height: 10),
                             _buildTextField(_nameController, "Full Name", Icons.person),
                             _buildTextField(_emailController, "Email", Icons.email),
