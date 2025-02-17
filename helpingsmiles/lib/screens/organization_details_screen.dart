@@ -20,7 +20,7 @@ class OrganizationDetailsScreen extends StatefulWidget {
 class _OrganizationDetailsScreenState extends State<OrganizationDetailsScreen> {
   String? phone;
   String? date;
-  List<String> missions = [];
+  String? mission;
   List<String> objectives = [];
 
   @override
@@ -35,7 +35,7 @@ class _OrganizationDetailsScreenState extends State<OrganizationDetailsScreen> {
       setState(() {
         phone = doc.data()?['phone'] ?? "Not specified";
         date = doc.data()?['date'] ?? "Not specified";
-        missions = (doc.data()?['missions'] as List<dynamic>?)?.cast<String>() ?? [];
+        mission = doc.data()?['mission'] ?? "Not specified";
         objectives = (doc.data()?['objectives'] as List<dynamic>?)?.cast<String>() ?? [];
       });
     }
@@ -73,7 +73,7 @@ class _OrganizationDetailsScreenState extends State<OrganizationDetailsScreen> {
                 children: [
                   _buildProfileSection(Icons.phone, "Phone", phone ?? "Not specified"),
                   _buildProfileSection(Icons.calendar_today, "Date Created", date ?? "Not specified"),
-                  _buildProfileList(Icons.flag, "Mission", missions),
+                  _buildProfileSection(Icons.flag, "Mission", mission ?? "Not specified"),
                   _buildProfileList(Icons.list, "Objectives", objectives),
                   const SizedBox(height: 30),
                   Center(

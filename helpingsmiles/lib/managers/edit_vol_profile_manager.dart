@@ -19,6 +19,7 @@ class _EditVolProfileManagerState extends State<EditVolProfileManager> {
   final _locationController = TextEditingController();
   final _interestsController = TextEditingController();
   final _skillsController = TextEditingController();
+  String? name;
 
   @override
   void initState() {
@@ -32,6 +33,7 @@ class _EditVolProfileManagerState extends State<EditVolProfileManager> {
       final doc = await FirebaseFirestore.instance.collection('volunteers').doc(user.uid).get();
       if (doc.exists) {
         setState(() {
+          name = doc.data()?['name'] ?? "Not specified";
           _nameController.text = doc.data()?['name'] ?? "Unknown";
           _emailController.text = user.email ?? "";
           _phoneController.text = doc.data()?['phone'] ?? "";
@@ -81,9 +83,9 @@ class _EditVolProfileManagerState extends State<EditVolProfileManager> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title: const Text(
-          "Edit Volunteer Profile",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
+        title: Text(
+          name ?? "Volunteer Profile",
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
         ),
         iconTheme: const IconThemeData(color: Colors.black),
       ),
