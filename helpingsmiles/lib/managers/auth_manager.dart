@@ -112,7 +112,7 @@ class AuthManager {
       final orgDoc = await _db.collection('organizations').doc(uid).get();
       if (orgDoc.exists) {
         final data = orgDoc.data();
-        data?['email'] = await getUserEmail(uid); // Asegurar que se obtiene el email
+
         return data;
       }
       return null;
@@ -201,31 +201,5 @@ class AuthManager {
   }
 
 
-    /// Retrieves the user's email from Firestore
-  static Future<String?> getUserEmail(String uid) async {
-    try {
-      // Primero verificar en 'volunteers'
-      final volunteerDoc = await _db.collection('volunteers').doc(uid).get();
-      if (volunteerDoc.exists && volunteerDoc.data()?['email'] != null) {
-        return volunteerDoc.get('email');
-      }
-
-      // Luego verificar en 'organizations'
-      final orgDoc = await _db.collection('organizations').doc(uid).get();
-      if (orgDoc.exists && orgDoc.data()?['email'] != null) {
-        return orgDoc.get('email');
-      }
-
-      // Finalmente verificar en 'users'
-      final userDoc = await _db.collection('users').doc(uid).get();
-      if (userDoc.exists && userDoc.data()?['email'] != null) {
-        return userDoc.get('email');
-      }
-
-      return "Not specified"; // Si no se encuentra el email
-    } catch (e) {
-      return "Not specified"; // En caso de error
-    }
-  }
 
 }

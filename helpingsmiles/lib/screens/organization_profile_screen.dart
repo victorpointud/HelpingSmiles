@@ -29,6 +29,7 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
   }
 
     Future<void> _loadOrganizationData() async {
+<<<<<<< Updated upstream
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       final doc = await FirebaseFirestore.instance.collection('organizations').doc(user.uid).get();
@@ -47,12 +48,27 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
 
       // 🚀 Cargar el email por separado
       String? userEmail = await AuthManager.getUserEmail(user.uid);
+=======
+  final user = FirebaseAuth.instance.currentUser;
+  if (user != null) {
+    final doc = await FirebaseFirestore.instance.collection('organizations').doc(user.uid).get();
+    
+    if (doc.exists && mounted) { // Verifica que el widget sigue en el árbol antes de llamar setState
+>>>>>>> Stashed changes
       setState(() {
-        email = userEmail ?? "Not specified";
+        name = doc.data()?['name'] ?? "Not specified";
+        phone = doc.data()?['phone'] ?? "Not specified";
+        email = doc.data()?['email'] ?? "Not specified";
+        date = doc.data()?['date'] ?? "Not specified";
+        password = doc.data()?['password'] ?? "Not specified";
+        missions = _convertToList(doc.data()?['missions']);
+        objectives = _convertToList(doc.data()?['objectives']);
+        volunteerTypes = _convertToList(doc.data()?['volunteerTypes']);
+        locations = _convertToList(doc.data()?['locations']);
       });
     }
   }
-
+}
 
 
   List<String> _convertToList(dynamic data) {
@@ -87,7 +103,11 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
             _buildProfileSection(Icons.email, "Email", email),
             _buildProfileSection(Icons.phone, "Phone Number", phone),
             _buildProfileSection(Icons.calendar_today, "Date of Creation", date),
+<<<<<<< Updated upstream
             _buildProfileList(Icons.lock, "Password", [password ?? "Not specified"]),
+=======
+            _buildProfileSection(Icons.lock, "Password", password ?? "Not specified"),
+>>>>>>> Stashed changes
             _buildProfileList(Icons.flag, "Mission", missions),
             _buildProfileList(Icons.list, "Objectives", objectives),
             _buildProfileList(Icons.people, "Volunteer Types", volunteerTypes),
@@ -104,28 +124,46 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
     );
   }
 
-  Widget _buildProfileSection(IconData icon, String title, String? content) {
-    return Card(
-      elevation: 4,
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Row(
-          children: [
-            Icon(icon, color: Colors.red),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                "$title:\n${content ?? 'Not specified'}",
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+ Widget _buildProfileSection(IconData icon, String title, String? content) {
+  return Card(
+    elevation: 4,
+    margin: const EdgeInsets.symmetric(vertical: 10),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+    child: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.red),
+          const SizedBox(width: 10),
+          Expanded(
+            child: RichText(
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: "$title: ",
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold, // ✅ Negrita para el título
+                      color: Colors.black, // ✅ Color negro para el texto
+                    ),
+                  ),
+                  TextSpan(
+                    text: content ?? 'Not specified',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.normal, // ✅ Normal para la info
+                      color: Colors.black, // ✅ Color negro para el texto
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildProfileList(IconData icon, String title, List<String> items) {
     return Card(
@@ -138,7 +176,7 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(children: [Icon(icon, color: Colors.red), const SizedBox(width: 10), Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold))]),
-            ...items.map((item) => Text("• $item", style: const TextStyle(fontSize: 16))),
+            ...items.map((item) => Text("• $item", style: const TextStyle(fontSize: 16, color: Colors.black))),
           ],
         ),
       ),
