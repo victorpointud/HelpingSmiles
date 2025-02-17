@@ -153,7 +153,7 @@ Widget build(BuildContext context) {
               const SizedBox(height: 5),
               Text(org["mission"], style: const TextStyle(fontSize: 14, color: Colors.black)),
               const SizedBox(height: 5),
-              const Text("Click to see more info", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.blue)),
+              const Text("Click to see more info", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 0, 0, 0))),
             ],
           ),
         ),
