@@ -34,7 +34,7 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
       if (mounted) { // ✅ Verificar si el widget sigue en pantalla antes de actualizar
         setState(() {
           name = doc.data()?['name'] ?? "Not specified"; 
-          email = user.email ?? "Not specified"; 
+          email = doc.data()?['email'] ?? "Not specified"; 
           phone = doc.data()?['phone'] ?? "Not specified"; 
           date = doc.data()?['date'] ?? "Not specified"; 
           location = doc.data()?['location'] ?? "Not specified"; 
