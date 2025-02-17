@@ -28,33 +28,12 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
     _loadOrganizationData();
   }
 
-    Future<void> _loadOrganizationData() async {
-<<<<<<< Updated upstream
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      final doc = await FirebaseFirestore.instance.collection('organizations').doc(user.uid).get();
-      if (doc.exists) {
-        setState(() {
-          name = doc['name'] ?? "Not specified";
-          phone = doc['phone'] ?? "Not specified";
-          date = doc['date'] ?? "Not specified";
-          password = doc['password']?? "Not specified"; 
-          missions = _convertToList(doc['missions']);
-          objectives = _convertToList(doc['objectives']);
-          volunteerTypes = _convertToList(doc['volunteerTypes']);
-          locations = _convertToList(doc['locations']);
-        });
-      }
-
-      // 🚀 Cargar el email por separado
-      String? userEmail = await AuthManager.getUserEmail(user.uid);
-=======
+ Future<void> _loadOrganizationData() async {
   final user = FirebaseAuth.instance.currentUser;
   if (user != null) {
     final doc = await FirebaseFirestore.instance.collection('organizations').doc(user.uid).get();
     
     if (doc.exists && mounted) { // Verifica que el widget sigue en el árbol antes de llamar setState
->>>>>>> Stashed changes
       setState(() {
         name = doc.data()?['name'] ?? "Not specified";
         phone = doc.data()?['phone'] ?? "Not specified";
@@ -69,7 +48,6 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
     }
   }
 }
-
 
   List<String> _convertToList(dynamic data) {
     if (data is List) {
@@ -103,11 +81,7 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
             _buildProfileSection(Icons.email, "Email", email),
             _buildProfileSection(Icons.phone, "Phone Number", phone),
             _buildProfileSection(Icons.calendar_today, "Date of Creation", date),
-<<<<<<< Updated upstream
-            _buildProfileList(Icons.lock, "Password", [password ?? "Not specified"]),
-=======
             _buildProfileSection(Icons.lock, "Password", password ?? "Not specified"),
->>>>>>> Stashed changes
             _buildProfileList(Icons.flag, "Mission", missions),
             _buildProfileList(Icons.list, "Objectives", objectives),
             _buildProfileList(Icons.people, "Volunteer Types", volunteerTypes),
