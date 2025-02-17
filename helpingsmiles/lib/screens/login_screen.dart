@@ -31,7 +31,6 @@ class _LoginScreenState extends State<LoginScreen> {
       if (user != null) {
         String? role = await AuthManager.getUserRole(user.uid);
 
-        // Check if widget is still mounted before using context
         if (!mounted) return;
 
         if (role == "volunteer") {

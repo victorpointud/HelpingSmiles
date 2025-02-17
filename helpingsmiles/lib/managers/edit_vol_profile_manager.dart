@@ -15,7 +15,7 @@ class _EditVolProfileManagerState extends State<EditVolProfileManager> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _phoneController = TextEditingController();
-  final _dateController = TextEditingController(); // Date of Birth
+  final _dateController = TextEditingController();
   final _locationController = TextEditingController();
   final _interestsController = TextEditingController();
   final _skillsController = TextEditingController();
@@ -49,17 +49,14 @@ class _EditVolProfileManagerState extends State<EditVolProfileManager> {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         try {
-          // ✅ Actualizar email si fue cambiado
           if (_emailController.text.trim() != user.email) {
             await user.updateEmail(_emailController.text.trim());
           }
 
-          // ✅ Actualizar contraseña si fue ingresada una nueva
           if (_passwordController.text.trim().isNotEmpty) {
             await user.updatePassword(_passwordController.text.trim());
           }
 
-          // ✅ Guardar los cambios en Firestore
           await FirebaseFirestore.instance.collection('volunteers').doc(user.uid).set({
             'name': _nameController.text.trim(),
             'phone': _phoneController.text.trim(),

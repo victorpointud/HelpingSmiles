@@ -35,7 +35,6 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
     }
 
     try {
-      // 🔹 Get user role from Firestore
       final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
       final role = userDoc.exists ? userDoc['role'] : null;
 
@@ -55,7 +54,7 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
         'volunteerType': _volunteerTypeController.text.trim(),
         'location': _locationController.text.trim(),
         'description': _descriptionController.text.trim(),
-        'createdAt': FieldValue.serverTimestamp(), // 🔹 Save creation time
+        'createdAt': FieldValue.serverTimestamp(),
       });
 
       Navigator.pop(context, true);

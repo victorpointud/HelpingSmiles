@@ -54,7 +54,6 @@ class _EditOrgProfileManagerState extends State<EditOrgProfileManager> {
     }
   }
 
-  // Convierte una lista en un string multilineal
   String _convertToMultiline(dynamic data) {
     if (data is List) {
       return data.join("\n"); 
@@ -65,7 +64,6 @@ class _EditOrgProfileManagerState extends State<EditOrgProfileManager> {
     }
   }
 
-  // Convierte el texto de los controladores en listas separadas por líneas
   List<String> _convertToList(String text) {
     return text.trim().isNotEmpty ? text.trim().split("\n") : [];
   }

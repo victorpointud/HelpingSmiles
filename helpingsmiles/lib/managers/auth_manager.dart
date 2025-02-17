@@ -5,16 +5,14 @@ class AuthManager {
   static final _auth = FirebaseAuth.instance;
   static final _db = FirebaseFirestore.instance;
 
-  /// Logs out the current user
   static Future<void> logoutUser() async => await _auth.signOut();
 
-  /// Registers a new user and stores their role, name, phone, and date of birth
   static Future<String?> registerUser({
     required String email,
     required String password,
     required String role,
     required String phone,
-    required String date, // ✅ Se almacena la fecha de nacimiento
+    required String date,
     String? name,
     String? lastName,
     String? organizationName,
@@ -27,7 +25,6 @@ class AuthManager {
 
       String fullName = role == 'volunteer' ? "$name $lastName" : organizationName ?? "No Name";
 
-      // Guardar datos generales del usuario en la colección 'users'
       await _db.collection('users').doc(userCredential.user!.uid).set({
         'email': email,
         'role': role,
@@ -55,7 +52,7 @@ class AuthManager {
           'email': email,
           'phone': phone,
           'password': password,
-          'date': date, // ⚠️ Asegúrate de que Firestore usa "date" y no "date" para organizaciones
+          'date': date,
           'missions': [],
           'objectives': [],
           'volunteerTypes': [],
@@ -63,40 +60,35 @@ class AuthManager {
         });
       }
 
-      return null; // Successful registration
+      return null;
     } catch (e) {
       return e is FirebaseAuthException ? e.message : 'Registration error.';
     }
   }
 
-  /// Retrieves the user's name from Firestore (checking both 'volunteers' and 'organizations')
   static Future<String?> getUserName(String uid) async {
     try {
-      // Buscar primero en 'volunteers'
       final volunteerDoc = await _db.collection('volunteers').doc(uid).get();
       if (volunteerDoc.exists && volunteerDoc.data()?['name'] != null) {
         return volunteerDoc.get('name');
       }
 
-      // Si no está en 'volunteers', buscar en 'organizations'
       final orgDoc = await _db.collection('organizations').doc(uid).get();
       if (orgDoc.exists && orgDoc.data()?['name'] != null) {
         return orgDoc.get('name');
       }
 
-      // Si tampoco está en 'organizations', buscar en 'users'
       final userDoc = await _db.collection('users').doc(uid).get();
       if (userDoc.exists && userDoc.data()?['name'] != null) {
         return userDoc.get('name');
       }
 
-      return "Not specified"; // Valor por defecto si no se encuentra el nombre
+      return "Not specified";
     } catch (e) {
-      return "Not specified"; // En caso de error
+      return "Not specified";
     }
   }
 
-  /// Retrieves the full profile of a volunteer
   static Future<Map<String, dynamic>?> getVolunteerProfile(String uid) async {
     try {
       final userDoc = await _db.collection('volunteers').doc(uid).get();
@@ -106,13 +98,11 @@ class AuthManager {
     }
   }
 
-    /// Retrieves the full profile of an organization
   static Future<Map<String, dynamic>?> getOrganizationProfile(String uid) async {
     try {
       final orgDoc = await _db.collection('organizations').doc(uid).get();
       if (orgDoc.exists) {
         final data = orgDoc.data();
-
         return data;
       }
       return null;
@@ -121,8 +111,6 @@ class AuthManager {
     }
   }
 
-
-  /// Logs in a user and verifies their role
   static Future<String?> loginUser(String email, String password) async {
     try {
       final userCredential = await _auth.signInWithEmailAndPassword(
@@ -137,7 +125,6 @@ class AuthManager {
     }
   }
 
-  /// Retrieves the user role from Firestore
   static Future<String?> getUserRole(String uid) async {
     try {
       final userDoc = await _db.collection('users').doc(uid).get();
@@ -147,7 +134,6 @@ class AuthManager {
     }
   }
 
-  /// Retrieves the organization name from Firestore
   static Future<String?> getOrganizationName(String uid) async {
     try {
       final doc = await _db.collection('organizations').doc(uid).get();
@@ -161,7 +147,6 @@ class AuthManager {
     }
   }
 
-  /// Updates the profile of a volunteer or organization
   static Future<void> updateProfile({
     required String uid,
     required String role,
@@ -172,7 +157,6 @@ class AuthManager {
     String? password,
   }) async {
     try {
-      // Construir los datos para actualizar
       Map<String, dynamic> updatedData = {};
       if (name != null) updatedData['name'] = name;
       if (email != null) updatedData['email'] = email;
@@ -180,16 +164,14 @@ class AuthManager {
       if (password != null) updatedData['password'] = password;
       if (date != null) {
         if (role == 'organization') {
-          updatedData['date'] = date; // ⚠️ Se usa "date" para organizaciones
+          updatedData['date'] = date;
         } else {
-          updatedData['date'] = date; // Se usa "date" para voluntarios
+          updatedData['date'] = date;
         }
       }
 
-      // Actualizar en 'users'
       await _db.collection('users').doc(uid).set(updatedData, SetOptions(merge: true));
 
-      // Actualizar en la colección correspondiente
       if (role == 'volunteer') {
         await _db.collection('volunteers').doc(uid).set(updatedData, SetOptions(merge: true));
       } else if (role == 'organization') {

@@ -43,7 +43,6 @@ class _IntroScreenState extends State<IntroScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Background Image
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
@@ -52,7 +51,6 @@ class _IntroScreenState extends State<IntroScreen> {
               ),
             ),
           ),
-          // Dark Overlay
           Container(
             color: Colors.black.withOpacity(0.6),
           ),
@@ -70,7 +68,7 @@ class _IntroScreenState extends State<IntroScreen> {
               _buildPageIndicator(),
               const SizedBox(height: 10),
               _buildNextButton(),
-              const SizedBox(height: 30), // Moved button higher
+              const SizedBox(height: 30),
             ],
           ),
         ],
@@ -80,19 +78,18 @@ class _IntroScreenState extends State<IntroScreen> {
 
   Widget _buildPageContent(Map<String, String> data) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 200), // Smaller card size
+      padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 200),
       child: Card(
         elevation: 10,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Padding(
-          padding: const EdgeInsets.all(15), // Reduced padding inside card
+          padding: const EdgeInsets.all(15),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Image with Rounded Borders & Shadows
               Container(
-                height: 180, // Smaller image size
+                height: 180,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(15),
                   border: Border.all(color: Colors.white, width: 2),
@@ -140,7 +137,7 @@ class _IntroScreenState extends State<IntroScreen> {
           duration: const Duration(milliseconds: 300),
           margin: const EdgeInsets.symmetric(horizontal: 5),
           height: 6,
-          width: _currentPage == index ? 18 : 6, // Adjusted size
+          width: _currentPage == index ? 18 : 6,
           decoration: BoxDecoration(
             color: _currentPage == index ? const Color.fromARGB(255, 0, 0, 0) : Colors.white70,
             borderRadius: BorderRadius.circular(3),
@@ -152,7 +149,7 @@ class _IntroScreenState extends State<IntroScreen> {
 
   Widget _buildNextButton() {
     return SizedBox(
-      width: 180, // Smaller button width
+      width: 180,
       child: ElevatedButton(
         onPressed: _nextPage,
         style: ElevatedButton.styleFrom(
