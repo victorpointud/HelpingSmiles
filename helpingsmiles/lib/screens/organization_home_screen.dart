@@ -104,70 +104,95 @@ class _OrganizationHomeScreenState extends State<OrganizationHomeScreen> {
       ),
     );
   }
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    appBar: AppBar(
-      backgroundColor: Colors.white,
-      automaticallyImplyLeading: false,
-      title: Text(
-        "Welcome, ${organizationName ?? 'Loading...'}!",
-        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
+
+  void _confirmLogout() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Log Out", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
+        content: const Text("Are you sure you want to log out?", style: TextStyle(fontSize: 16, color: Colors.black)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 2, 48, 255))),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _logout();
+            },
+            child: const Text("Log Out", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 255, 17, 0))),
+          ),
+        ],
       ),
-      actions: [
-        IconButton(icon: const Icon(Icons.person, color: Colors.black), onPressed: _navigateToProfile),
-        IconButton(icon: const Icon(Icons.logout, color: Colors.red), onPressed: _logout),
-      ],
-      toolbarHeight: kToolbarHeight,
-    ),
-    body: Stack(
-      children: [
-        Container(
-          decoration: const BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage('lib/assets/background.png'),
-              fit: BoxFit.cover,
+    );
+  }
+
+  void _logout() async {
+    await AuthManager.logoutUser();
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        automaticallyImplyLeading: false,
+        title: Text(
+          "Welcome, ${organizationName ?? 'Loading...'}!",
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
+        ),
+        actions: [
+          IconButton(icon: const Icon(Icons.person, color: Colors.black), onPressed: _navigateToProfile),
+          IconButton(icon: const Icon(Icons.logout, color: Colors.red), onPressed: _confirmLogout),
+        ],
+        toolbarHeight: kToolbarHeight,
+      ),
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('lib/assets/background.png'),
+                fit: BoxFit.cover,
+              ),
             ),
           ),
-        ),
-        Container(color: Colors.black.withOpacity(0.6)),
-        SafeArea(
-          child: Column(
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildSectionTitle("Upcoming Events"),
-                        _buildEventList(),
-                      ],
+          Container(color: Colors.black.withOpacity(0.6)),
+          SafeArea(
+            child: Column(
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildSectionTitle("Upcoming Events"),
+                          _buildEventList(),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      ],
-    ),
-    floatingActionButton: FloatingActionButton(
-      backgroundColor: Colors.red,
-      onPressed: () => _navigate(context, const AddOrgActivityManager()),
-      child: const Icon(Icons.add, color: Colors.white),
-    ),
-  );
-}
-  void _logout() async {
-      await AuthManager.logoutUser();
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
-    }
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.red,
+        onPressed: () => _navigate(context, const AddOrgActivityManager()),
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
+    );
+  }
 
   void _navigateToProfile() {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => const OrganizationProfileScreen()));
-    }
+    Navigator.push(context, MaterialPageRoute(builder: (_) => const OrganizationProfileScreen()));
+  }
 
   Widget _buildSectionTitle(String title) {
     return Padding(

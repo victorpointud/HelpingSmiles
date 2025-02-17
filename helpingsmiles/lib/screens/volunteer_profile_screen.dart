@@ -58,6 +58,51 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
     });
   }
 
+
+  void _confirmDeleteAccount() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Delete Account", style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.black)),
+        content: const Text("Are you sure you want to delete your account? This action cannot be undone.",  style: TextStyle(fontSize: 15, color: Colors.black)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel",  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 9, 34, 225))),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _deleteAccount();
+            },
+            child: const Text("Delete", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 255, 2, 2))),
+          ),
+        ],
+      ),
+    );
+  }
+
+   Future<void> _deleteAccount() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      try {
+        // Primero eliminamos la organización de Firestore
+        await FirebaseFirestore.instance.collection('organizations').doc(user.uid).delete();
+
+        // Luego eliminamos al usuario de Firebase Auth
+        await user.delete();
+
+        // Regresar al login después de borrar la cuenta
+        Navigator.of(context).pushReplacementNamed('/login');
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error deleting account: $e")),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -102,6 +147,12 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                   child: const Text("Edit Profile", style: TextStyle(color: Colors.white)),
                 ),
+                const SizedBox(width: 10),
+                  ElevatedButton(
+                    onPressed: _confirmDeleteAccount,
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
+                    child: const Text("Delete Account", style: TextStyle(color: Colors.white)),
+                  ),
               ],
             ),
           ),

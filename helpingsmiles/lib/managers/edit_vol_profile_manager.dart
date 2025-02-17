@@ -30,19 +30,23 @@ class _EditVolProfileManagerState extends State<EditVolProfileManager> {
   Future<void> _loadVolunteerData() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      final doc = await FirebaseFirestore.instance.collection('volunteers').doc(user.uid).get();
-      if (doc.exists) {
-        setState(() {
-          name = doc.data()?['name'] ?? "Not specified";
-          _nameController.text = doc.data()?['name'] ?? "Unknown";
-          _emailController.text = user.email ?? "";
-          _phoneController.text = doc.data()?['phone'] ?? "";
-          _dateController.text = doc.data()?['date'] ?? "";
-          _passwordController.text = doc.data()?['password'] ?? "";
-          _locationController.text = doc.data()?['location'] ?? "";
-          _interestsController.text = (doc.data()?['interests'] as List<dynamic>?)?.join("\n") ?? "";
-          _skillsController.text = (doc.data()?['skills'] as List<dynamic>?)?.join("\n") ?? "";
-        });
+      try {
+        final doc = await FirebaseFirestore.instance.collection('volunteers').doc(user.uid).get();
+        if (doc.exists) {
+          setState(() {
+            name = doc.data()?['name'] ?? "Not specified";
+            _nameController.text = doc.data()?['name'] ?? "Unknown";
+            _emailController.text = user.email ?? "";
+            _phoneController.text = doc.data()?['phone'] ?? "";
+            _dateController.text = doc.data()?['date'] ?? "";
+            _passwordController.text = ""; // No cargamos contraseñas en los campos
+            _locationController.text = doc.data()?['location'] ?? "";
+            _interestsController.text = (doc.data()?['interests'] as List<dynamic>?)?.join("\n") ?? "";
+            _skillsController.text = (doc.data()?['skills'] as List<dynamic>?)?.join("\n") ?? "";
+          });
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error loading profile: $e")));
       }
     }
   }
@@ -52,29 +56,59 @@ class _EditVolProfileManagerState extends State<EditVolProfileManager> {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         try {
+          // Reautenticación si se quiere cambiar email o contraseña
+          if (_emailController.text.trim() != user.email || _passwordController.text.trim().isNotEmpty) {
+            bool reauthenticated = await _reauthenticateUser();
+            if (!reauthenticated) return;
+          }
+
+          // Actualizar email si cambió
           if (_emailController.text.trim() != user.email) {
             await user.updateEmail(_emailController.text.trim());
           }
 
+          // Actualizar contraseña si se ingresó una nueva
           if (_passwordController.text.trim().isNotEmpty) {
             await user.updatePassword(_passwordController.text.trim());
           }
 
+          // Actualizar Firestore con la nueva información
           await FirebaseFirestore.instance.collection('volunteers').doc(user.uid).set({
             'name': _nameController.text.trim(),
             'phone': _phoneController.text.trim(),
             'date': _dateController.text.trim(),
             'location': _locationController.text.trim(),
-            'password': _passwordController.text.trim(),
-            'interests': _interestsController.text.trim().split("\n"),
-            'skills': _skillsController.text.trim().split("\n"),
+            'interests': _interestsController.text.trim().split("\n").where((item) => item.isNotEmpty).toList(),
+            'skills': _skillsController.text.trim().split("\n").where((item) => item.isNotEmpty).toList(),
           }, SetOptions(merge: true));
 
-          Navigator.pop(context, true);
+          _showSuccessDialog();
+
         } catch (e) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error updating profile: $e")));
         }
       }
+    }
+  }
+
+  Future<bool> _reauthenticateUser() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) return false;
+
+    try {
+      final credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: _passwordController.text.trim(), // ⚠️ El usuario debe ingresar la contraseña actual
+      );
+
+      await user.reauthenticateWithCredential(credential);
+      return true;
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Reauthentication failed: ${e.toString()}")),
+      );
+      return false;
     }
   }
 
@@ -116,7 +150,7 @@ class _EditVolProfileManagerState extends State<EditVolProfileManager> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Text("Edit profile", style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.black)),
+                            const Text("Edit Profile", style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.black)),
                             const SizedBox(height: 10),
                             _buildTextField(_nameController, "Full Name", Icons.person),
                             _buildTextField(_emailController, "Email", Icons.email),
@@ -161,6 +195,36 @@ class _EditVolProfileManagerState extends State<EditVolProfileManager> {
     );
   }
 
+  Widget _buildSaveButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: _saveProfile,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.red,
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+        child: const Text("Save Changes", style: TextStyle(fontSize: 18, color: Colors.white)),
+      ),
+    );
+  }
+
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Success"),
+        content: const Text("Your profile has been updated successfully."),
+      ),
+    );
+    Future.delayed(const Duration(seconds: 2), () {
+      Navigator.pop(context);
+      Navigator.pop(context, true);
+    });
+  }
+}
+
   Widget _buildMultiLineTextField(TextEditingController controller, String label, IconData icon) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
@@ -178,19 +242,3 @@ class _EditVolProfileManagerState extends State<EditVolProfileManager> {
       ),
     );
   }
-
-  Widget _buildSaveButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: _saveProfile,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.red,
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-        child: const Text("Save Changes", style: TextStyle(fontSize: 18, color: Colors.white)),
-      ),
-    );
-  }
-}

@@ -50,48 +50,59 @@ class _EditOrgProfileManagerState extends State<EditOrgProfileManager> {
       }
     }
   }
-Future<void> _saveProfile() async {
+
+  Future<void> _saveProfile() async {
+  final user = FirebaseAuth.instance.currentUser;
+
+  if (user == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("No user is signed in. Please log in again.")),
+    );
+    return;
+  }
+
   if (_formKey.currentState!.validate()) {
-    final user = FirebaseAuth.instance.currentUser;
-
-    if (user != null) {
-      try {
-        // ⚠️ Reautenticación si se quiere cambiar email o contraseña
-        if (_emailController.text.trim() != user.email || _passwordController.text.trim().isNotEmpty) {
-          bool reauthenticated = await _reauthenticateUser();
-          if (!reauthenticated) return; // Si la reautenticación falla, detener el proceso
-        }
-
-        // Actualizar email si cambió
-        if (_emailController.text.trim() != user.email) {
-          await user.updateEmail(_emailController.text.trim());
-        }
-
-        // Actualizar contraseña si se ingresó una nueva
-        if (_passwordController.text.trim().isNotEmpty) {
-          await user.updatePassword(_passwordController.text.trim());
-        }
-
-        // Actualizar Firestore con la nueva información
-        await FirebaseFirestore.instance.collection('organizations').doc(user.uid).set({
-          'name': _nameController.text.trim(),
-          'phone': _phoneController.text.trim(),
-          'date': _dateController.text.trim(),
-          'email': _emailController.text.trim(),
-          'mission': _missionController.text.trim(),
-          'password': _passwordController.text.trim(), // ⚠️ Considera NO guardar la contraseña en Firestore
-          'locations': _locationsController.text.trim().split("\n").where((item) => item.isNotEmpty).toList(),
-          'objectives': _objectivesController.text.trim().split("\n").where((item) => item.isNotEmpty).toList(),
-          'volunteerTypes': _volunteerTypesController.text.trim().split("\n").where((item) => item.isNotEmpty).toList(),
-        }, SetOptions(merge: true));
-
-        Navigator.pop(context, true);
-      } catch (e) {
-          SnackBar(content: Text("Error updating profile: ${e.toString()}"));
+    try {
+      // ⚠️ Reautenticación si se quiere cambiar email o contraseña
+      if (_emailController.text.trim() != user.email || _passwordController.text.trim().isNotEmpty) {
+        bool reauthenticated = await _reauthenticateUser();
+        if (!reauthenticated) return; // Si la reautenticación falla, detener el proceso
       }
+
+      // Actualizar email si cambió
+      if (_emailController.text.trim() != user.email) {
+        await user.updateEmail(_emailController.text.trim());
+      }
+
+      // Actualizar contraseña si se ingresó una nueva
+      if (_passwordController.text.trim().isNotEmpty) {
+        await user.updatePassword(_passwordController.text.trim());
+      }
+
+      // Actualizar Firestore con la nueva información
+      await FirebaseFirestore.instance.collection('organizations').doc(user.uid).set({
+        'name': _nameController.text.trim(),
+        'phone': _phoneController.text.trim(),
+        'date': _dateController.text.trim(),
+        'email': _emailController.text.trim(),
+        'mission': _missionController.text.trim(),
+        'password': _passwordController.text.trim(), 
+        'locations': _locationsController.text.trim().split("\n").where((item) => item.isNotEmpty).toList(),
+        'objectives': _objectivesController.text.trim().split("\n").where((item) => item.isNotEmpty).toList(),
+        'volunteerTypes': _volunteerTypesController.text.trim().split("\n").where((item) => item.isNotEmpty).toList(),
+      }, SetOptions(merge: true));
+
+      _showSuccessDialog();
+
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error updating profile: ${e.toString()}")),
+      );
     }
   }
 }
+
+
 Future<bool> _reauthenticateUser() async {
   final user = FirebaseAuth.instance.currentUser;
 
@@ -233,4 +244,36 @@ Future<bool> _reauthenticateUser() async {
       ),
     );
   }
+
+  void _showSuccessDialog() {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text("Success", style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.black)),
+          content: const Text("Your profile has been updated successfully.", style: TextStyle(fontSize: 15, color: Colors.black)),
+          actions: [
+            Center(
+              child: CircularProgressIndicator(
+                color: Colors.red,
+              ),
+            ),
+          ],
+        ),
+      );
+
+      // Cierra el diálogo después de 2 segundos
+      Future.delayed(const Duration(seconds: 2), () {
+        Navigator.pop(context); // Cierra el diálogo
+        Navigator.pop(context, true); // Regresa a la pantalla anterior
+      });
+    }
+
+
+
+
+
+
+
+
+
 }

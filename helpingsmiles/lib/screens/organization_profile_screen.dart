@@ -66,14 +66,58 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
     });
   }
 
+  Future<void> _deleteAccount() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      try {
+        // Primero eliminamos la organización de Firestore
+        await FirebaseFirestore.instance.collection('organizations').doc(user.uid).delete();
+
+        // Luego eliminamos al usuario de Firebase Auth
+        await user.delete();
+
+        // Regresar al login después de borrar la cuenta
+        Navigator.of(context).pushReplacementNamed('/login');
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error deleting account: $e")),
+        );
+      }
+    }
+  }
+
+  void _confirmDeleteAccount() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Delete Account", style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.black)),
+        content: const Text("Are you sure you want to delete your account? This action cannot be undone.",  style: TextStyle(fontSize: 15, color: Colors.black)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel",  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 9, 34, 225))),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _deleteAccount();
+            },
+            child: const Text("Delete", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 255, 2, 2))),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title: const Text(
-          "Organization Profile",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
+        title: Text(
+          name ?? "Organization Profile",
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
         ),
         iconTheme: const IconThemeData(color: Colors.black),
       ),
@@ -94,21 +138,32 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: 20),
-                  _buildProfileSection(Icons.business, "Name", name),
-                  _buildProfileSection(Icons.email, "Email", email),
-                  _buildProfileSection(Icons.phone, "Phone Number", phone),
-                  _buildProfileSection(Icons.calendar_today, "Date of Creation", date),
-                  _buildProfileSection(Icons.lock, "Password", password ?? "Not specified"),
-                  _buildProfileSection(Icons.flag, "Mission", mission),
-                  _buildProfileList(Icons.list, "Objectives", objectives),
-                  _buildProfileList(Icons.people, "Volunteer Types", volunteerTypes),
-                  _buildProfileList(Icons.location_on, "Locations", locations),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: _navigateToEditProfile,
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                    child: const Text("Edit Profile", style: TextStyle(color: Colors.white)),
-                  ),
+                _buildProfileSection(Icons.business, "Name", name),
+                _buildProfileSection(Icons.email, "Email", email),
+                _buildProfileSection(Icons.phone, "Phone Number", phone),
+                _buildProfileSection(Icons.calendar_today, "Date of Creation", date),
+                _buildProfileSection(Icons.lock, "Password", password ?? "Not specified"),
+                _buildProfileSection(Icons.flag, "Mission", mission),
+                _buildProfileList(Icons.list, "Objectives", objectives),
+                _buildProfileList(Icons.people, "Volunteer Types", volunteerTypes),
+                _buildProfileList(Icons.location_on, "Locations", locations),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton(
+                      onPressed: _navigateToEditProfile,
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                      child: const Text("Edit Profile", style: TextStyle(color: Colors.white)),
+                    ),
+                    const SizedBox(width: 10),
+                    ElevatedButton(
+                      onPressed: _confirmDeleteAccount,
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
+                      child: const Text("Delete Account", style: TextStyle(color: Colors.white)),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
