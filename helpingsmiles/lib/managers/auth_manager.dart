@@ -199,7 +199,4 @@ class AuthManager {
       print("Error updating profile: $e");
     }
   }
-
-
-
 }

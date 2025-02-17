@@ -28,26 +28,27 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
     _loadOrganizationData();
   }
 
- Future<void> _loadOrganizationData() async {
-  final user = FirebaseAuth.instance.currentUser;
-  if (user != null) {
-    final doc = await FirebaseFirestore.instance.collection('organizations').doc(user.uid).get();
-    
-    if (doc.exists && mounted) { // Verifica que el widget sigue en el árbol antes de llamar setState
-      setState(() {
-        name = doc.data()?['name'] ?? "Not specified";
-        phone = doc.data()?['phone'] ?? "Not specified";
-        email = doc.data()?['email'] ?? "Not specified";
-        date = doc.data()?['date'] ?? "Not specified";
-        password = doc.data()?['password'] ?? "Not specified";
-        missions = _convertToList(doc.data()?['missions']);
-        objectives = _convertToList(doc.data()?['objectives']);
-        volunteerTypes = _convertToList(doc.data()?['volunteerTypes']);
-        locations = _convertToList(doc.data()?['locations']);
-      });
+    Future<void> _loadOrganizationData() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final doc = await FirebaseFirestore.instance.collection('organizations').doc(user.uid).get();
+      if (doc.exists) {
+        setState(() {
+          name = doc['name'] ?? "Not specified";
+          phone = doc['phone'] ?? "Not specified";
+          date = doc['date'] ?? "Not specified";
+          email = doc['email'] ?? "Not specified";
+          password = doc['password'] ?? "Not specified";
+          missions = _convertToList(doc['missions']);
+          objectives = _convertToList(doc['objectives']);
+          volunteerTypes = _convertToList(doc['volunteerTypes']);
+          locations = _convertToList(doc['locations']);
+        });
+      }
     }
   }
-}
+
+
 
   List<String> _convertToList(dynamic data) {
     if (data is List) {
