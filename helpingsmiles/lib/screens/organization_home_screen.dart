@@ -104,54 +104,84 @@ class _OrganizationHomeScreenState extends State<OrganizationHomeScreen> {
       ),
     );
   }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Welcome, $organizationName!", style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person, color: Color.fromARGB(255, 0, 0, 0)),
-            onPressed: () => _navigate(context, const OrganizationProfileScreen()),
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout, color: Color.fromARGB(255, 255, 0, 0)),
-            onPressed: () async {
-              await AuthManager.logoutUser();
-              Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
-            },
-          ),
-        ],
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      backgroundColor: Colors.white,
+      automaticallyImplyLeading: false, // ✅ Elimina el botón de regreso
+      title: Text(
+        "Welcome, ${organizationName ?? 'Loading...'}!",
+        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [    
-            _buildSectionTitle("Upcoming Events"),
-            _buildEventList(),
-          ],
+      actions: [
+        IconButton(icon: const Icon(Icons.person, color: Colors.black), onPressed: _navigateToProfile),
+        IconButton(icon: const Icon(Icons.logout, color: Colors.red), onPressed: _logout),
+      ],
+      toolbarHeight: kToolbarHeight, // ✅ Ajusta la altura sin espacios extras
+    ),
+    body: Stack(
+      children: [
+        Container(
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage('lib/assets/background.png'),
+              fit: BoxFit.cover,
+            ),
+          ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.red,
-        onPressed: () => _navigate(context, const AddOrgActivityManager()),
-        child: const Icon(Icons.add, color: Color.fromARGB(255, 255, 255, 255)),
-      ),
-    );
-  }
+        Container(color: Colors.black.withOpacity(0.6)),
+        SafeArea(
+          child: Column(
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionTitle("Upcoming Events"),
+                        _buildEventList(),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+    floatingActionButton: FloatingActionButton(
+      backgroundColor: Colors.red,
+      onPressed: () => _navigate(context, const AddOrgActivityManager()),
+      child: const Icon(Icons.add, color: Colors.white),
+    ),
+  );
+}
+  void _logout() async {
+      await AuthManager.logoutUser();
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+    }
+
+  void _navigateToProfile() {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const OrganizationProfileScreen()));
+    }
 
   Widget _buildSectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
-      child: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+      child: Text(
+        title,
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+      ),
     );
   }
 
   Widget _buildEventList() {
     if (events.isEmpty) {
-      return const Center(child: Text("No upcoming events. Add one!"));
+      return const Center(child: Text("No upcoming events. Add one!", style: TextStyle(color: Colors.white)));
     }
     return Column(
       children: events.map((event) => _buildEventCard(event)).toList(),
@@ -166,10 +196,11 @@ class _OrganizationHomeScreenState extends State<OrganizationHomeScreen> {
         elevation: 3,
         margin: const EdgeInsets.symmetric(vertical: 8),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        color: Colors.white,
         child: ListTile(
-          title: Text(event["name"], style: const TextStyle(fontWeight: FontWeight.bold, color: Color.fromARGB(255, 255, 0, 0))),
-          subtitle: Text("${event["date"]} • ${event["location"]}"),
-          trailing: const Icon(Icons.event, color: Color.fromARGB(255, 0, 0, 0)),
+          title: Text(event["name"], style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+          subtitle: Text("${event["date"]} • ${event["location"]}", style: const TextStyle(color: Colors.black)),
+          trailing: const Icon(Icons.event, color: Colors.black),
         ),
       ),
     );

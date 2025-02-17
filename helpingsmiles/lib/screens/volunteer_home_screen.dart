@@ -75,39 +75,61 @@ class _VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Welcome, ${userName ?? 'Loading...'}!", style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-        actions: [
-          IconButton(icon: const Icon(Icons.person), onPressed: _navigateToProfile),
-          IconButton(icon: const Icon(Icons.logout, color: Colors.red), onPressed: _logout),
-        ],
+ @override
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      backgroundColor: Colors.white,
+      automaticallyImplyLeading: false, // ✅ Elimina el botón de regreso
+      title: Text(
+        "Welcome, ${userName ?? 'Loading...'}!",
+        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSectionTitle("Registered Organizations"),
-            _buildOrganizationList(),
-          ],
+      actions: [
+        IconButton(icon: const Icon(Icons.person, color: Colors.black), onPressed: _navigateToProfile),
+        IconButton(icon: const Icon(Icons.logout, color: Colors.red), onPressed: _logout),
+      ],
+      toolbarHeight: kToolbarHeight, // ✅ Ajusta la altura sin espacios extras
+    ),
+    body: Stack(
+      children: [
+        Container(
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage('lib/assets/background.png'),
+              fit: BoxFit.cover,
+            ),
+          ),
         ),
-      ),
-    );
-  }
-
+        Container(color: Colors.black.withOpacity(0.3)),
+        SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildSectionTitle("Registered Organizations"),
+                  _buildOrganizationList(),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
   Widget _buildSectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
-      child: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+      child: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
     );
   }
 
   Widget _buildOrganizationList() {
     if (organizations.isEmpty) {
-      return const Center(child: Text("No registered organizations."));
+      return const Center(child: Text("No registered organizations.", style: TextStyle(color: Colors.white)));
     }
     return Column(
       children: organizations.map((org) => _buildOrganizationCard(org)).toList(),
@@ -121,6 +143,7 @@ class _VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
         elevation: 3,
         margin: const EdgeInsets.symmetric(vertical: 8),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        color: Colors.white,
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -128,9 +151,9 @@ class _VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
             children: [
               Text(org["name"], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red)),
               const SizedBox(height: 5),
-              Text(org["mission"], style: const TextStyle(fontSize: 14, color: Color.fromARGB(255, 0, 0, 0))),
+              Text(org["mission"], style: const TextStyle(fontSize: 14, color: Colors.black)),
               const SizedBox(height: 5),
-              const Text("Click to see more info", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 0, 0, 0))),
+              const Text("Click to see more info", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.blue)),
             ],
           ),
         ),

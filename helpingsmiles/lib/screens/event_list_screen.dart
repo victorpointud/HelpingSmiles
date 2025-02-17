@@ -97,41 +97,124 @@ class _EventListScreenState extends State<EventListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Upcoming Events")),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: events.length,
-        itemBuilder: (context, index) {
-          final event = events[index];
-          return Card(
-            elevation: 4,
-            margin: const EdgeInsets.symmetric(vertical: 10),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(event['name'], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red)),
-                  const SizedBox(height: 5),
-                  Text("📅 Date: ${event['date']}"),
-                  Text("📍 Location: ${event['location']}"),
-                  const SizedBox(height: 5),
-                  Text(event['description']),
-                  const SizedBox(height: 10),
-                  Center(
-                    child: ElevatedButton(
-                      onPressed: () => _registerForEvent(event['id']),
-                      style: ElevatedButton.styleFrom(backgroundColor: const Color.fromARGB(255, 0, 0, 0), foregroundColor: Colors.white),
-                      child: const Text("Register"),
-                    ),
-                  ),
-                ],
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        title: const Text(
+          "Upcoming Events",
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
+        ),
+        iconTheme: const IconThemeData(color: Colors.black),
+      ),
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('lib/assets/background.png'),
+                fit: BoxFit.cover,
               ),
             ),
-          );
-        },
+          ),
+          Container(color: Colors.black.withOpacity(0.3)),
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: events.isEmpty
+                    ? [
+                        const Center(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(vertical: 50),
+                            child: Text(
+                              "No upcoming events. Stay tuned!",
+                              style: TextStyle(fontSize: 18, color: Colors.white),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        )
+                      ]
+                    : events.map((event) => _buildEventCard(event)).toList(),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
+
+  Widget _buildEventCard(Map<String, dynamic> event) {
+  return Card(
+    elevation: 4,
+    margin: const EdgeInsets.symmetric(vertical: 10),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+    color: Colors.white,
+    child: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            event['name'],
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              const Icon(Icons.calendar_today, color: Colors.red),
+              const SizedBox(width: 10),
+              Text(
+                "Date: ",
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
+              ),
+              Expanded(
+                child: Text(
+                  event['date'],
+                  style: const TextStyle(fontSize: 16, color: Colors.black),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 5),
+          Row(
+            children: [
+              const Icon(Icons.location_on, color: Colors.red),
+              const SizedBox(width: 10),
+              Text(
+                "Location: ",
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
+              ),
+              Expanded(
+                child: Text(
+                  event['location'],
+                  style: const TextStyle(fontSize: 16, color: Colors.black),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            "Description:",
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
+          ),
+          Text(
+            event['description'],
+            style: const TextStyle(fontSize: 14, color: Colors.black),
+          ),
+          const SizedBox(height: 15),
+          Center(
+            child: ElevatedButton(
+              onPressed: () => _registerForEvent(event['id']),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              child: const Text("Register", style: TextStyle(fontSize: 16, color: Colors.white)),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
 }

@@ -66,12 +66,13 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
           Container(
-            color: Colors.black.withOpacity(0.6),
+            color: Colors.black.withOpacity(0.3),
           ),
           Center(
             child: Padding(
               padding: const EdgeInsets.all(20),
               child: Card(
+                color: Colors.white,
                 elevation: 10,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                 child: Padding(
@@ -83,18 +84,22 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: [
                         const Text(
                           'Login',
-                          style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+                          style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.black),
                         ),
+                        const SizedBox(height: 10),
                         _buildTextField(_emailController, 'Email', Icons.email),
                         _buildTextField(_passwordController, 'Password', Icons.lock, isPassword: true),
                         if (_errorMessage != null) 
-                          Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            child: Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
+                          ),
                         const SizedBox(height: 20),
                         _buildLoginButton(),
                         const SizedBox(height: 10),
                         TextButton(
                           onPressed: _navigateToRegister,
-                          child: const Text("Don't have an account? Register"),
+                          child: const Text("Don't have an account? Register", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
                         ),
                       ],
                     ),
@@ -116,7 +121,8 @@ class _LoginScreenState extends State<LoginScreen> {
         obscureText: isPassword,
         decoration: InputDecoration(
           labelText: label,
-          prefixIcon: Icon(icon),
+          labelStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+          prefixIcon: Icon(icon, color: Colors.red),
           filled: true,
           fillColor: Colors.white,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),

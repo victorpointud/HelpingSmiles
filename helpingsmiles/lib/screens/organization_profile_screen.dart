@@ -69,29 +69,50 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Organization Profile")),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            _buildProfileSection(Icons.business, "Name", name),
-            _buildProfileSection(Icons.email, "Email", email),
-            _buildProfileSection(Icons.phone, "Phone Number", phone),
-            _buildProfileSection(Icons.calendar_today, "Date of Creation", date),
-            _buildProfileSection(Icons.lock, "Password", password ?? "Not specified"),
-            _buildProfileList(Icons.flag, "Mission", missions),
-            _buildProfileList(Icons.list, "Objectives", objectives),
-            _buildProfileList(Icons.people, "Volunteer Types", volunteerTypes),
-            _buildProfileList(Icons.location_on, "Locations", locations),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _navigateToEditProfile,
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              child: const Text("Edit Profile", style: TextStyle(color: Colors.white)),
-            ),
-          ],
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        title: const Text(
+          "Organization Profile",
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
         ),
+        iconTheme: const IconThemeData(color: Colors.black),
+      ),
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('lib/assets/background.png'),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          Container(color: Colors.black.withOpacity(0.3)),
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(height: 20),
+                  _buildProfileSection(Icons.business, "Name", name),
+                  _buildProfileSection(Icons.email, "Email", email),
+                  _buildProfileSection(Icons.phone, "Phone Number", phone),
+                  _buildProfileSection(Icons.calendar_today, "Date of Creation", date),
+                  _buildProfileSection(Icons.lock, "Password", password ?? "Not specified"),
+                  _buildProfileList(Icons.flag, "Mission", missions),
+                  _buildProfileList(Icons.list, "Objectives", objectives),
+                  _buildProfileList(Icons.people, "Volunteer Types", volunteerTypes),
+                  _buildProfileList(Icons.location_on, "Locations", locations),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: _navigateToEditProfile,
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                    child: const Text("Edit Profile", style: TextStyle(color: Colors.white)),
+                  ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -101,6 +122,7 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
       elevation: 4,
       margin: const EdgeInsets.symmetric(vertical: 10),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      color: Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Row(
@@ -113,19 +135,11 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
                   children: [
                     TextSpan(
                       text: "$title: ",
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
                     ),
                     TextSpan(
                       text: content ?? 'Not specified',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.normal,
-                        color: Colors.black,
-                      ),
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal, color: Colors.black),
                     ),
                   ],
                 ),
@@ -142,12 +156,18 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
       elevation: 4,
       margin: const EdgeInsets.symmetric(vertical: 10),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      color: Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(children: [Icon(icon, color: Colors.red), const SizedBox(width: 10), Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold))]),
+            Row(children: [
+              Icon(icon, color: Colors.red),
+              const SizedBox(width: 10),
+              Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
+            ]),
+            const SizedBox(height: 5),
             ...items.map((item) => Text("• $item", style: const TextStyle(fontSize: 16, color: Colors.black))),
           ],
         ),

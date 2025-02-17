@@ -77,42 +77,118 @@ class _EditVolProfileManagerState extends State<EditVolProfileManager> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Edit Volunteer Profile")),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              _buildTextField(_nameController, "Full Name", Icons.person),
-              _buildTextField(_emailController, "Email", Icons.email),
-              _buildTextField(_passwordController, "New Password (Leave blank if unchanged)", Icons.lock, isPassword: true),
-              _buildTextField(_phoneController, "Phone Number", Icons.phone),
-              _buildTextField(_dateController, "Date of Birth (YYYY-MM-DD)", Icons.calendar_today),
-              _buildTextField(_locationController, "Location", Icons.location_on),
-              _buildTextField(_interestsController, "Interests (One per line)", Icons.favorite, isMultiline: true),
-              _buildTextField(_skillsController, "Skills (One per line)", Icons.star, isMultiline: true),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _saveProfile,
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                child: const Text("Save Changes", style: TextStyle(color: Colors.white)),
-              ),
-            ],
-          ),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        title: const Text(
+          "Edit Volunteer Profile",
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
         ),
+        iconTheme: const IconThemeData(color: Colors.black),
+      ),
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('lib/assets/background.png'),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          Container(
+            color: Colors.black.withOpacity(0.3),
+          ),
+          SafeArea(
+            child: SingleChildScrollView(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Card(
+                    color: Colors.white,
+                    elevation: 10,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text("Edit Profile",
+                                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.black)),
+                            const SizedBox(height: 10),
+                            _buildTextField(_nameController, "Full Name", Icons.person),
+                            _buildTextField(_emailController, "Email", Icons.email),
+                            _buildTextField(_passwordController, "New Password (Leave blank if unchanged)", Icons.lock, isPassword: true),
+                            _buildTextField(_phoneController, "Phone Number", Icons.phone),
+                            _buildTextField(_dateController, "Date of Birth", Icons.calendar_today),
+                            _buildTextField(_locationController, "Location", Icons.location_on),
+                            _buildMultiLineTextField(_interestsController, "Interests (One per line)", Icons.favorite),
+                            _buildMultiLineTextField(_skillsController, "Skills (One per line)", Icons.star),
+                            const SizedBox(height: 20),
+                            _buildSaveButton(),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label, IconData icon, {bool isMultiline = false, bool isPassword = false}) {
+  Widget _buildTextField(TextEditingController controller, String label, IconData icon, {bool isPassword = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: TextFormField(
         controller: controller,
         obscureText: isPassword,
-        decoration: InputDecoration(labelText: label, prefixIcon: Icon(icon)),
-        maxLines: isMultiline ? 3 : 1,
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+          prefixIcon: Icon(icon, color: Colors.red),
+          filled: true,
+          fillColor: Colors.white,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+        validator: (value) => value!.isEmpty ? "Please enter $label" : null,
+      ),
+    );
+  }
+
+  Widget _buildMultiLineTextField(TextEditingController controller, String label, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: TextFormField(
+        controller: controller,
+        maxLines: 3,
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+          prefixIcon: Icon(icon, color: Colors.red),
+          filled: true,
+          fillColor: Colors.white,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSaveButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: _saveProfile,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.red,
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+        child: const Text("Save Changes", style: TextStyle(fontSize: 18, color: Colors.white)),
       ),
     );
   }

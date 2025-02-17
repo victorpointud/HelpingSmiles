@@ -70,35 +70,61 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Add Activity")),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              if (_errorMessage != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
-                ),
-              _buildTextField(_activityNameController, "Activity Name", Icons.event),
-              _buildTextField(_dateController, "Date (YYYY-MM-DD)", Icons.calendar_today),
-              _buildTextField(_durationController, "Duration (hours)", Icons.timelapse),
-              _buildTextField(_volunteerTypeController, "Volunteer Type", Icons.people),
-              _buildTextField(_locationController, "Location", Icons.location_on),
-              _buildTextField(_descriptionController, "Description", Icons.description, isMultiline: true),
-              const SizedBox(height: 20),
-              _isLoading
-                  ? const CircularProgressIndicator()
-                  : ElevatedButton(
-                      onPressed: _saveActivity,
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                      child: const Text("Save Activity", style: TextStyle(color: Colors.white)),
-                    ),
-            ],
-          ),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        title: const Text(
+          "Add Activity",
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
         ),
+        iconTheme: const IconThemeData(color: Colors.black),
+      ),
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('lib/assets/background.png'),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          Container(color: Colors.black.withOpacity(0.3)),
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  if (_errorMessage != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
+                    ),
+                  _buildTextField(_activityNameController, "Activity Name", Icons.event),
+                  _buildTextField(_dateController, "Date (YYYY-MM-DD)", Icons.calendar_today),
+                  _buildTextField(_durationController, "Duration (hours)", Icons.timelapse),
+                  _buildTextField(_volunteerTypeController, "Volunteer Type", Icons.people),
+                  _buildTextField(_locationController, "Location", Icons.location_on),
+                  _buildTextField(_descriptionController, "Description", Icons.description, isMultiline: true),
+                  const SizedBox(height: 20),
+                  _isLoading
+                      ? const CircularProgressIndicator()
+                      : SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: _saveActivity,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                            child: const Text("Save Activity", style: TextStyle(fontSize: 18, color: Colors.white)),
+                          ),
+                        ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -110,7 +136,10 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
         controller: controller,
         decoration: InputDecoration(
           labelText: label,
-          prefixIcon: Icon(icon),
+          labelStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+          prefixIcon: Icon(icon, color: Colors.red),
+          filled: true,
+          fillColor: Colors.white,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         ),
         maxLines: isMultiline ? 3 : 1,

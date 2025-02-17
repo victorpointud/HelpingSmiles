@@ -67,11 +67,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
               image: DecorationImage(image: AssetImage('lib/assets/background.png'), fit: BoxFit.cover),
             ),
           ),
-          Container(color: Colors.black.withOpacity(0.6)), // Dark Overlay
+          Container(color: Colors.black.withOpacity(0.3)),
           Center(
             child: Padding(
               padding: const EdgeInsets.all(20),
               child: Card(
+                color: Colors.white,
                 elevation: 10,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                 child: Padding(
@@ -81,27 +82,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text('Register', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
+                        const Text('Register', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.black)),
+                        const SizedBox(height: 10),
                         _buildTextField(_emailController, 'Email', Icons.email),
                         _buildTextField(_passwordController, 'Password', Icons.lock, isPassword: true),
                         _buildTextField(_confirmPasswordController, 'Confirm Password', Icons.lock_outline, isPassword: true),
-                        
                         _buildRoleDropdown(),
-
                         _buildTextField(_phoneController, 'Phone Number', Icons.phone), 
                         _buildTextField(_dateController, 'Date of Birth', Icons.calendar_today), 
-
                         if (_selectedRole == 'volunteer') ...[
                           _buildTextField(_nameController, 'First Name', Icons.person),
                           _buildTextField(_lastNameController, 'Last Name', Icons.person_outline),
                         ],
-
                         if (_selectedRole == 'organization') 
                           _buildTextField(_organizationController, 'Organization Name', Icons.business),
-
                         if (_errorMessage != null) 
-                          Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
-
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            child: Text(_errorMessage!, style: const TextStyle(color: Colors.red)),
+                          ),
                         const SizedBox(height: 20),
                         ElevatedButton(
                           onPressed: _register,
@@ -113,7 +112,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           child: const Text('Sign Up', style: TextStyle(fontSize: 18, color: Colors.white)),
                         ),
                         const SizedBox(height: 10),
-                        TextButton(onPressed: _navigateToLogin, child: const Text("Already have an account? Login")),
+                        TextButton(
+                          onPressed: _navigateToLogin,
+                          child: const Text("Already have an account? Login", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                        ),
                       ],
                     ),
                   ),
@@ -132,21 +134,37 @@ class _RegisterScreenState extends State<RegisterScreen> {
       child: TextFormField(
         controller: controller,
         obscureText: isPassword,
-        decoration: InputDecoration(labelText: label, prefixIcon: Icon(icon), filled: true, fillColor: Colors.white, border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+          prefixIcon: Icon(icon, color: Colors.red),
+          filled: true,
+          fillColor: Colors.white,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        ),
         validator: (value) => value!.isEmpty ? 'Please enter $label' : null,
       ),
     );
   }
 
   Widget _buildRoleDropdown() {
-    return DropdownButtonFormField<String>(
-      value: _selectedRole,
-      items: const [
-        DropdownMenuItem(value: 'volunteer', child: Text('Volunteer')),
-        DropdownMenuItem(value: 'organization', child: Text('Organization')),
-      ],
-      onChanged: (value) => setState(() => _selectedRole = value!),
-      decoration: const InputDecoration(labelText: 'Select Role'),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: DropdownButtonFormField<String>(
+        value: _selectedRole,
+        items: const [
+          DropdownMenuItem(value: 'volunteer', child: Text('Volunteer')),
+          DropdownMenuItem(value: 'organization', child: Text('Organization')),
+        ],
+        onChanged: (value) => setState(() => _selectedRole = value!),
+        decoration: InputDecoration(
+          labelText: 'Select Role',
+          labelStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+          filled: true,
+          fillColor: Colors.white,
+        ),
+      ),
     );
   }
 }

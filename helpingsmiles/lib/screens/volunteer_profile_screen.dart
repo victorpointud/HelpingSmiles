@@ -27,28 +27,27 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
   }
 
   Future<void> _loadVolunteerData() async {
-  final user = FirebaseAuth.instance.currentUser;
-  if (user != null) {
-    final doc = await FirebaseFirestore.instance.collection('volunteers').doc(user.uid).get();
-    if (doc.exists) {
-      if (mounted) { 
-        setState(() {
-          name = doc.data()?['name'] ?? "Not specified"; 
-          email = doc.data()?['email'] ?? "Not specified"; 
-          phone = doc.data()?['phone'] ?? "Not specified"; 
-          date = doc.data()?['date'] ?? "Not specified"; 
-          location = doc.data()?['location'] ?? "Not specified"; 
-          password = doc.data()?['password'] ?? "Not specified";
-          final dynamic interestsData = doc.data()?['interests'];
-          interests = (interestsData is List) ? interestsData.cast<String>() : [];
-          final dynamic skillsData = doc.data()?['skills'];
-          skills = (skillsData is List) ? skillsData.cast<String>() : [];
-        });
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final doc = await FirebaseFirestore.instance.collection('volunteers').doc(user.uid).get();
+      if (doc.exists) {
+        if (mounted) {
+          setState(() {
+            name = doc.data()?['name'] ?? "Not specified";
+            email = doc.data()?['email'] ?? "Not specified";
+            phone = doc.data()?['phone'] ?? "Not specified";
+            date = doc.data()?['date'] ?? "Not specified";
+            location = doc.data()?['location'] ?? "Not specified";
+            password = doc.data()?['password'] ?? "Not specified";
+            final dynamic interestsData = doc.data()?['interests'];
+            interests = (interestsData is List) ? interestsData.cast<String>() : [];
+            final dynamic skillsData = doc.data()?['skills'];
+            skills = (skillsData is List) ? skillsData.cast<String>() : [];
+          });
+        }
       }
     }
   }
-}
-
 
   void _navigateToEditProfile() {
     Navigator.push(
@@ -63,31 +62,50 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(name ?? "Volunteer Profile", 
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const SizedBox(height: 20),
-            _buildProfileSection(Icons.person, "Name", name ?? "Not specified"),
-            _buildProfileSection(Icons.email, "Email", email ?? "Not specified"),
-            _buildProfileSection(Icons.phone, "Phone Number", phone ?? "Not specified"),
-            _buildProfileSection(Icons.calendar_today, "Date of Birth", date ?? "Not specified"),
-            _buildProfileSection(Icons.lock, "Password", password ?? "Not specified"),
-            _buildProfileSection(Icons.location_on, "Location", location ?? "Not specified"),
-            _buildProfileList(Icons.favorite, "Interests", interests),
-            _buildProfileList(Icons.star, "Skills", skills),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _navigateToEditProfile,
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              child: const Text("Edit Profile", style: TextStyle(color: Colors.white)),
-            ),
-          ],
+        backgroundColor: Colors.white,
+        title: Text(
+          name ?? "Volunteer Profile",
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
         ),
+        iconTheme: const IconThemeData(color: Colors.black),
+      ),
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('lib/assets/background.png'),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          Container(
+            color: Colors.black.withOpacity(0.3),
+          ),
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(height: 20),
+                _buildProfileSection(Icons.person, "Name", name ?? "Not specified"),
+                _buildProfileSection(Icons.email, "Email", email ?? "Not specified"),
+                _buildProfileSection(Icons.phone, "Phone Number", phone ?? "Not specified"),
+                _buildProfileSection(Icons.calendar_today, "Date of Birth", date ?? "Not specified"),
+                _buildProfileSection(Icons.lock, "Password", password ?? "Not specified"),
+                _buildProfileSection(Icons.location_on, "Location", location ?? "Not specified"),
+                _buildProfileList(Icons.favorite, "Interests", interests),
+                _buildProfileList(Icons.star, "Skills", skills),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: _navigateToEditProfile,
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                  child: const Text("Edit Profile", style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -97,6 +115,7 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
       elevation: 4,
       margin: const EdgeInsets.symmetric(vertical: 10),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      color: Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Row(
@@ -130,6 +149,7 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
       elevation: 4,
       margin: const EdgeInsets.symmetric(vertical: 10),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      color: Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

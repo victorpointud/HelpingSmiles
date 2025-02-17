@@ -55,8 +55,8 @@ class _EditOrgActivityManagerState extends State<EditOrgActivityManager> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Delete Event"),
-        content: const Text("Are you sure you want to delete this event?"),
+        title: const Text("Delete Activity"),
+        content: const Text("Are you sure you want to delete this activity?"),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
           TextButton(
@@ -74,45 +74,131 @@ class _EditOrgActivityManagerState extends State<EditOrgActivityManager> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Edit Activity")),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              _buildTextField(_activityNameController, "Activity Name", Icons.event),
-              _buildTextField(_dateController, "Date (YYYY-MM-DD)", Icons.calendar_today),
-              _buildTextField(_durationController, "Duration (hours)", Icons.timelapse),
-              _buildTextField(_volunteerTypeController, "Volunteer Type", Icons.people),
-              _buildTextField(_locationController, "Location", Icons.location_on),
-              _buildTextField(_descriptionController, "Description", Icons.description, isMultiline: true),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        title: const Text(
+          "Edit Activity",
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
+        ),
+        iconTheme: const IconThemeData(color: Colors.black),
+      ),
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('lib/assets/background.png'),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          Container(color: Colors.black.withOpacity(0.3)),
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
                 children: [
-                  ElevatedButton(onPressed: _updateEvent, child: const Text("Save Changes")),
-                  ElevatedButton(
-                    onPressed: _confirmDelete,
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                    child: const Text("Delete Event", style: TextStyle(color: Colors.white)),
+                  _buildProfileSection(Icons.event, "Activity Name", _activityNameController),
+                  _buildProfileSection(Icons.calendar_today, "Date (YYYY-MM-DD)", _dateController),
+                  _buildProfileSection(Icons.timelapse, "Duration (hours)", _durationController),
+                  _buildProfileSection(Icons.people, "Volunteer Type", _volunteerTypeController),
+                  _buildProfileSection(Icons.location_on, "Location", _locationController),
+                  _buildProfileList(Icons.description, "Description", _descriptionController),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton(
+                        onPressed: _updateEvent,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                        child: const Text("Save Changes", style: TextStyle(fontSize: 16, color: Colors.white)),
+                      ),
+                      ElevatedButton(
+                        onPressed: _confirmDelete,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.black,
+                          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                        child: const Text("Delete Activity", style: TextStyle(fontSize: 16, color: Colors.white)),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
+            ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProfileSection(IconData icon, String title, TextEditingController controller, {bool isPassword = false}) {
+    return Card(
+      elevation: 4,
+      margin: const EdgeInsets.symmetric(vertical: 10),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          children: [
+            Icon(icon, color: Colors.red),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black)),
+                  TextFormField(
+                    controller: controller,
+                    obscureText: isPassword,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      filled: true,
+                      fillColor: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label, IconData icon, {bool isMultiline = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: TextFormField(
-        controller: controller,
-        decoration: InputDecoration(labelText: label, prefixIcon: Icon(icon)),
-        maxLines: isMultiline ? 3 : 1,
+  Widget _buildProfileList(IconData icon, String title, TextEditingController controller) {
+    return Card(
+      elevation: 4,
+      margin: const EdgeInsets.symmetric(vertical: 10),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              Icon(icon, color: Colors.red),
+              const SizedBox(width: 10),
+              Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
+            ]),
+            TextFormField(
+              controller: controller,
+              maxLines: 3,
+              decoration: InputDecoration(
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                filled: true,
+                fillColor: Colors.white,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
