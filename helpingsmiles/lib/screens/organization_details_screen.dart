@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../screens/event_list_screen.dart';
 
@@ -21,13 +22,11 @@ class _OrganizationDetailsScreenState extends State<OrganizationDetailsScreen> {
   String? date;
   List<String> missions = [];
   List<String> objectives = [];
-  List<String> upcomingEvents = [];
 
   @override
   void initState() {
     super.initState();
     _loadOrganizationData();
-    _loadUpcomingEvents();
   }
 
   Future<void> _loadOrganizationData() async {
@@ -42,28 +41,64 @@ class _OrganizationDetailsScreenState extends State<OrganizationDetailsScreen> {
     }
   }
 
-  Future<void> _loadUpcomingEvents() async {
-    final querySnapshot = await FirebaseFirestore.instance
-        .collection('events')
-        .where('organizationId', isEqualTo: widget.organizationId)
-        .get();
+  /// 🔹 **Función para inscribirse a la organización**
+  Future<void> _registerForOrganization() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        // Obtener información del voluntario desde Firestore
+        final volunteerDoc = await FirebaseFirestore.instance
+            .collection('volunteers')
+            .doc(user.uid)
+            .get();
 
-    setState(() {
-      upcomingEvents = querySnapshot.docs
-          .map((doc) => doc['name'] ?? "Unnamed Event")
-          .whereType<String>()
-          .toList();
-    });
+        if (!volunteerDoc.exists) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Volunteer profile not found!")),
+          );
+          return;
+        }
+
+        // Datos del voluntario
+        final volunteerData = volunteerDoc.data() ?? {};
+        final name = volunteerData['name'] ?? "Not specified";
+        final email = user.email ?? "Not specified";
+        final phone = volunteerData['phone'] ?? "Not specified";
+        final skills = (volunteerData['skills'] as List<dynamic>?)?.cast<String>() ?? [];
+        final interests = (volunteerData['interests'] as List<dynamic>?)?.cast<String>() ?? [];
+        final location = volunteerData['location'] ?? "Not specified";
+        final date = volunteerData['date'] ?? "Not specified";
+
+        // Guardar el registro en la subcolección 'registrations' dentro de la organización
+        await FirebaseFirestore.instance
+            .collection('organizations')
+            .doc(widget.organizationId)
+            .collection('registrations')
+            .doc(user.uid)
+            .set({
+          'userId': user.uid,
+          'name': name,
+          'email': email,
+          'phone': phone,
+          'skills': skills,
+          'interests': interests,
+          'location': location,
+          'date': date,
+          'timestamp': FieldValue.serverTimestamp(),
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Successfully registered for the organization!")),
+        );
+      } catch (e) {
+        print("Error registering for organization: $e");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Failed to register for organization.")),
+        );
+      }
+    }
   }
 
-  void _navigateToEventList() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => EventListScreen(organizationId: widget.organizationId),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,11 +116,31 @@ class _OrganizationDetailsScreenState extends State<OrganizationDetailsScreen> {
 
             // 📌 Botón para ver los eventos
             const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: _navigateToEventList,
-              icon: const Icon(Icons.event),
-              label: const Text("View Upcoming Events"),
-              style: ElevatedButton.styleFrom(backgroundColor: const Color.fromARGB(255, 221, 38, 38), foregroundColor: Colors.white),
+            Center( // 📌 Centrar los botones
+              child: ElevatedButton.icon(
+                onPressed: _navigateToEventList,
+                icon: const Icon(Icons.event),
+                label: const Text("View Upcoming Events"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+            Center( // 📌 Centrar los botones
+              child: ElevatedButton.icon(
+                onPressed: _registerForOrganization,
+                icon: const Icon(Icons.how_to_reg),
+                label: const Text("Suscribe to this Organization"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(255, 0, 0, 0),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                ),
+              ),
             ),
           ],
         ),
@@ -120,6 +175,15 @@ class _OrganizationDetailsScreenState extends State<OrganizationDetailsScreen> {
             ...items.map((item) => Text("• $item")),
           ],
         ),
+      ),
+    );
+  }
+
+  void _navigateToEventList() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => EventListScreen(organizationId: widget.organizationId),
       ),
     );
   }

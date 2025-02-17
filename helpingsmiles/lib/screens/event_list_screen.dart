@@ -40,22 +40,62 @@ class _EventListScreenState extends State<EventListScreen> {
     });
   }
 
-  Future<void> _registerForEvent(String eventId) async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
+Future<void> _registerForEvent(String eventId) async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user != null) {
+    try {
+      // Obtener la información del voluntario desde Firestore
+      final volunteerDoc = await FirebaseFirestore.instance
+          .collection('volunteers')
+          .doc(user.uid)
+          .get();
+
+      if (!volunteerDoc.exists) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Volunteer profile not found!")),
+        );
+        return;
+      }
+
+      // Obtener los datos del voluntario
+      final volunteerData = volunteerDoc.data() ?? {};
+      final name = volunteerData['name'] ?? "Not specified";
+      final email = user.email ?? "Not specified";
+      final phone = volunteerData['phone'] ?? "Not specified";
+      final skills = (volunteerData['skills'] as List<dynamic>?)?.cast<String>() ?? [];
+      final interests = (volunteerData['interests'] as List<dynamic>?)?.cast<String>() ?? [];
+      final location = volunteerData['location'] ?? "Not specified";
+      final date = volunteerData['date'] ?? "Not specified";
+
+      // Guardar el registro en la subcolección 'registrations' dentro del evento
       await FirebaseFirestore.instance
           .collection('events')
           .doc(eventId)
           .collection('registrations')
           .doc(user.uid)
-          .set({'userId': user.uid, 'timestamp': FieldValue.serverTimestamp()});
+          .set({
+        'userId': user.uid,
+        'name': name,
+        'email': email,
+        'phone': phone,
+        'skills': skills,
+        'interests': interests,
+        'location': location,
+        'date': date,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Successfully registered for event!")),
       );
+    } catch (e) {
+      print("Error registering for event: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to register for event.")),
+      );
     }
   }
-
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -81,10 +121,12 @@ class _EventListScreenState extends State<EventListScreen> {
                   const SizedBox(height: 5),
                   Text(event['description']),
                   const SizedBox(height: 10),
-                  ElevatedButton(
-                    onPressed: () => _registerForEvent(event['id']),
-                    style: ElevatedButton.styleFrom(backgroundColor: const Color.fromARGB(255, 221, 42, 42), foregroundColor: Colors.white),
-                    child: const Text("Register"),
+                  Center(
+                    child:ElevatedButton(
+                      onPressed: () => _registerForEvent(event['id']),
+                      style: ElevatedButton.styleFrom(backgroundColor: const Color.fromARGB(255, 0, 0, 0), foregroundColor: Colors.white),
+                      child: const Text("Register"),
+                    ),
                   ),
                 ],
               ),
