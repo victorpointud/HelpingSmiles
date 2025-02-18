@@ -62,9 +62,7 @@ class _OrganizationDetailsScreenState extends State<OrganizationDetailsScreen> {
               ),
             ),
           ),
-          Container(
-            color: Colors.black.withOpacity(0.3),
-          ),
+          Container(color: Colors.black.withOpacity(0.3)),
           SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
@@ -165,9 +163,7 @@ class _OrganizationDetailsScreenState extends State<OrganizationDetailsScreen> {
         final volunteerDoc = await FirebaseFirestore.instance.collection('volunteers').doc(user.uid).get();
 
         if (!volunteerDoc.exists) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Volunteer profile not found!")),
-          );
+          _showErrorDialog("Volunteer profile not found!");
           return;
         }
 
@@ -197,15 +193,46 @@ class _OrganizationDetailsScreenState extends State<OrganizationDetailsScreen> {
           'timestamp': FieldValue.serverTimestamp(),
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Successfully registered for the organization!")),
-        );
+        _showSuccessDialog();
+
       } catch (e) {
         print("Error registering for organization: $e");
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Failed to register for organization.")),
-        );
+        _showErrorDialog("Failed to register for the organization.");
       }
     }
+  }
+
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Registration Successful!", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
+        content: const Text("You have successfully registered for this organization.", style: TextStyle(fontSize: 16, color: Colors.black)),
+        actions: [
+          Center(child: CircularProgressIndicator(color: Colors.red)), // Indicador de carga antes de cerrar
+        ],
+      ),
+    );
+
+    // Cerrar el diálogo después de 2 segundos
+    Future.delayed(const Duration(seconds: 2), () {
+      Navigator.pop(context); // Cerrar diálogo
+    });
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Error", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.red)),
+        content: Text(message, style: const TextStyle(fontSize: 16, color: Colors.black)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("OK", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
   }
 }

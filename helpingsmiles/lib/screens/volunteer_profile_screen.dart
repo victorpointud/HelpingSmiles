@@ -124,13 +124,10 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
               ),
             ),
           ),
-          Container(
-            color: Colors.black.withOpacity(0.3),
-          ),
+          Container(color: Colors.black.withOpacity(0.3),),
           SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: 20),
                 _buildProfileSection(Icons.person, "Name", name ?? "Not specified"),
@@ -142,17 +139,22 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
                 _buildProfileList(Icons.favorite, "Interests", interests),
                 _buildProfileList(Icons.star, "Skills", skills),
                 const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: _navigateToEditProfile,
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                  child: const Text("Edit Profile", style: TextStyle(color: Colors.white)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton(
+                      onPressed: _navigateToEditProfile,
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                      child: const Text("Edit Profile", style: TextStyle(color: Colors.white)),
+                    ),
+                    const SizedBox(width: 10),
+                    ElevatedButton(
+                      onPressed: _confirmDeleteAccount,
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
+                      child: const Text("Delete Account", style: TextStyle(color: Colors.white)),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 10),
-                  ElevatedButton(
-                    onPressed: _confirmDeleteAccount,
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
-                    child: const Text("Delete Account", style: TextStyle(color: Colors.white)),
-                  ),
               ],
             ),
           ),

@@ -43,15 +43,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
 
     if (error == null) {
-      if (mounted) {
-        Navigator.pop(context);
-      }
+      _showSuccessDialog("Registration Successful!", "Welcome! Your account has been created successfully.");
     } else {
       if (mounted) {
         setState(() => _errorMessage = error);
       }
     }
   }
+
+  void _showSuccessDialog(String title, String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
+        content: Text(message, style: const TextStyle(fontSize: 16, color: Colors.black)),
+        actions: [
+          Center(
+            child: CircularProgressIndicator(color: Colors.red),
+          ),
+        ],
+      ),
+    );
+
+    Future.delayed(const Duration(seconds: 2), () {
+      Navigator.pop(context);
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+    });
+  }
+
 
   void _navigateToLogin() {
     Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));

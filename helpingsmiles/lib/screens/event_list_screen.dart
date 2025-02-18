@@ -50,9 +50,7 @@ class _EventListScreenState extends State<EventListScreen> {
             .get();
 
         if (!volunteerDoc.exists) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Volunteer profile not found!")),
-          );
+          _showErrorDialog("Volunteer profile not found!");
           return;
         }
 
@@ -82,16 +80,47 @@ class _EventListScreenState extends State<EventListScreen> {
           'timestamp': FieldValue.serverTimestamp(),
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Successfully registered for event!")),
-        );
+        _showSuccessDialog(); // Mostrar diálogo de éxito
+
       } catch (e) {
         print("Error registering for event: $e");
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Failed to register for event.")),
-        );
+        _showErrorDialog("Failed to register for event.");
       }
     }
+  }
+
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Registration Successful!", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
+        content: const Text("You have successfully registered for this event.", style: TextStyle(fontSize: 16, color: Colors.black)),
+        actions: [
+          Center(child: CircularProgressIndicator(color: Colors.red)), // Indicador de carga antes de cerrar
+        ],
+      ),
+    );
+
+    // Cerrar el diálogo después de 2 segundos
+    Future.delayed(const Duration(seconds: 2), () {
+      Navigator.pop(context); // Cerrar diálogo
+    });
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Error", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.red)),
+        content: Text(message, style: const TextStyle(fontSize: 16, color: Colors.black)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("OK", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -143,78 +172,56 @@ class _EventListScreenState extends State<EventListScreen> {
   }
 
   Widget _buildEventCard(Map<String, dynamic> event) {
-  return Card(
-    elevation: 4,
-    margin: const EdgeInsets.symmetric(vertical: 10),
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-    color: Colors.white,
-    child: Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            event['name'],
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              const Icon(Icons.calendar_today, color: Colors.red),
-              const SizedBox(width: 10),
-              Text(
-                "Date: ",
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
-              ),
-              Expanded(
-                child: Text(
-                  event['date'],
-                  style: const TextStyle(fontSize: 16, color: Colors.black),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 5),
-          Row(
-            children: [
-              const Icon(Icons.location_on, color: Colors.red),
-              const SizedBox(width: 10),
-              Text(
-                "Location: ",
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
-              ),
-              Expanded(
-                child: Text(
-                  event['location'],
-                  style: const TextStyle(fontSize: 16, color: Colors.black),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Text(
-            "Description:",
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
-          ),
-          Text(
-            event['description'],
-            style: const TextStyle(fontSize: 14, color: Colors.black),
-          ),
-          const SizedBox(height: 15),
-          Center(
-            child: ElevatedButton(
-              onPressed: () => _registerForEvent(event['id']),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-              child: const Text("Register", style: TextStyle(fontSize: 16, color: Colors.white)),
+    return Card(
+      elevation: 4,
+      margin: const EdgeInsets.symmetric(vertical: 10),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              event['name'],
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red),
             ),
-          ),
-        ],
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                const Icon(Icons.calendar_today, color: Colors.red),
+                const SizedBox(width: 10),
+                const Text("Date: ", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
+                Expanded(child: Text(event['date'], style: const TextStyle(fontSize: 16, color: Colors.black))),
+              ],
+            ),
+            const SizedBox(height: 5),
+            Row(
+              children: [
+                const Icon(Icons.location_on, color: Colors.red),
+                const SizedBox(width: 10),
+                const Text("Location: ", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
+                Expanded(child: Text(event['location'], style: const TextStyle(fontSize: 16, color: Colors.black))),
+              ],
+            ),
+            const SizedBox(height: 10),
+            const Text("Description:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
+            Text(event['description'], style: const TextStyle(fontSize: 14, color: Colors.black)),
+            const SizedBox(height: 15),
+            Center(
+              child: ElevatedButton(
+                onPressed: () => _registerForEvent(event['id']),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                child: const Text("Register", style: TextStyle(fontSize: 16, color: Colors.white)),
+              ),
+            ),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 }

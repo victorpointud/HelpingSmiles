@@ -19,34 +19,51 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _errorMessage;
 
   Future<void> _login() async {
-    if (!_formKey.currentState!.validate()) return;
+  if (!_formKey.currentState!.validate()) return;
 
-    final error = await AuthManager.loginUser(
-      _emailController.text.trim(),
-      _passwordController.text.trim(),
-    );
+  final error = await AuthManager.loginUser(
+    _emailController.text.trim(),
+    _passwordController.text.trim(),
+  );
 
-    if (error == null) {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        String? role = await AuthManager.getUserRole(user.uid);
+  if (error == null) {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      String? role = await AuthManager.getUserRole(user.uid);
+      if (!mounted) return;
 
-        if (!mounted) return;
-
-        if (role == "volunteer") {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const VolunteerHomeScreen()));
-        } else if (role == "organization") {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const OrganizationHomeScreen()));
-        } else {
-          setState(() => _errorMessage = "Error retrieving user role.");
-        }
-      }
-    } else {
-      if (mounted) {
-        setState(() => _errorMessage = error);
-      }
+      _showSuccessDialog("Login Successful!", "Welcome back! You are now logged in.", role);
+    }
+  } else {
+    if (mounted) {
+      setState(() => _errorMessage = error);
     }
   }
+}
+
+void _showSuccessDialog(String title, String message, String? role) {
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(title, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
+      content: Text(message, style: const TextStyle(fontSize: 16, color: Colors.black)),
+      actions: [
+        Center(
+          child: CircularProgressIndicator(color: Colors.red),
+        ),
+      ],
+    ),
+  );
+
+  Future.delayed(const Duration(seconds: 2), () {
+    Navigator.pop(context);
+    if (role == "volunteer") {
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const VolunteerHomeScreen()));
+    } else if (role == "organization") {
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const OrganizationHomeScreen()));
+    }
+  });
+}
 
   void _navigateToRegister() {
     Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterScreen()));

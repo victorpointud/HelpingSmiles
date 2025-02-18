@@ -19,7 +19,8 @@ class _EditVolProfileManagerState extends State<EditVolProfileManager> {
   final _locationController = TextEditingController();
   final _interestsController = TextEditingController();
   final _skillsController = TextEditingController();
-  String? name;
+
+  String _volunteerName = "Loading...";
 
   @override
   void initState() {
@@ -30,63 +31,65 @@ class _EditVolProfileManagerState extends State<EditVolProfileManager> {
   Future<void> _loadVolunteerData() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      try {
-        final doc = await FirebaseFirestore.instance.collection('volunteers').doc(user.uid).get();
-        if (doc.exists) {
-          setState(() {
-            name = doc.data()?['name'] ?? "Not specified";
-            _nameController.text = doc.data()?['name'] ?? "Unknown";
-            _emailController.text = user.email ?? "";
-            _phoneController.text = doc.data()?['phone'] ?? "";
-            _dateController.text = doc.data()?['date'] ?? "";
-            _passwordController.text = ""; // No cargamos contraseñas en los campos
-            _locationController.text = doc.data()?['location'] ?? "";
-            _interestsController.text = (doc.data()?['interests'] as List<dynamic>?)?.join("\n") ?? "";
-            _skillsController.text = (doc.data()?['skills'] as List<dynamic>?)?.join("\n") ?? "";
-          });
-        }
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error loading profile: $e")));
+      final doc = await FirebaseFirestore.instance.collection('volunteers').doc(user.uid).get();
+      if (doc.exists) {
+        setState(() {
+          _volunteerName = doc.data()?['name'] ?? "Unknown Volunteer";
+          _nameController.text = doc.data()?['name'] ?? "";
+          _emailController.text = user.email ?? "";
+          _phoneController.text = doc.data()?['phone'] ?? "";
+          _dateController.text = doc.data()?['date'] ?? "";
+          _passwordController.text = "";
+          _locationController.text = doc.data()?['location'] ?? "";
+          _interestsController.text = (doc.data()?['interests'] as List<dynamic>?)?.join("\n") ?? "";
+          _skillsController.text = (doc.data()?['skills'] as List<dynamic>?)?.join("\n") ?? "";
+        });
       }
     }
   }
 
   Future<void> _saveProfile() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("No user is signed in. Please log in again.")),
+      );
+      return;
+    }
+
     if (_formKey.currentState!.validate()) {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        try {
-          // Reautenticación si se quiere cambiar email o contraseña
-          if (_emailController.text.trim() != user.email || _passwordController.text.trim().isNotEmpty) {
-            bool reauthenticated = await _reauthenticateUser();
-            if (!reauthenticated) return;
-          }
-
-          // Actualizar email si cambió
-          if (_emailController.text.trim() != user.email) {
-            await user.updateEmail(_emailController.text.trim());
-          }
-
-          // Actualizar contraseña si se ingresó una nueva
-          if (_passwordController.text.trim().isNotEmpty) {
-            await user.updatePassword(_passwordController.text.trim());
-          }
-
-          // Actualizar Firestore con la nueva información
-          await FirebaseFirestore.instance.collection('volunteers').doc(user.uid).set({
-            'name': _nameController.text.trim(),
-            'phone': _phoneController.text.trim(),
-            'date': _dateController.text.trim(),
-            'location': _locationController.text.trim(),
-            'interests': _interestsController.text.trim().split("\n").where((item) => item.isNotEmpty).toList(),
-            'skills': _skillsController.text.trim().split("\n").where((item) => item.isNotEmpty).toList(),
-          }, SetOptions(merge: true));
-
-          _showSuccessDialog();
-
-        } catch (e) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error updating profile: $e")));
+      try {
+        // ⚠️ Reautenticación si se quiere cambiar email o contraseña
+        if (_emailController.text.trim() != user.email || _passwordController.text.trim().isNotEmpty) {
+          bool reauthenticated = await _reauthenticateUser();
+          if (!reauthenticated) return;
         }
+
+        // Actualizar email si cambió
+        if (_emailController.text.trim() != user.email) {
+          await user.updateEmail(_emailController.text.trim());
+        }
+
+        // Actualizar contraseña si se ingresó una nueva
+        if (_passwordController.text.trim().isNotEmpty) {
+          await user.updatePassword(_passwordController.text.trim());
+        }
+
+        // Actualizar Firestore con la nueva información
+        await FirebaseFirestore.instance.collection('volunteers').doc(user.uid).set({
+          'name': _nameController.text.trim(),
+          'phone': _phoneController.text.trim(),
+          'date': _dateController.text.trim(),
+          'location': _locationController.text.trim(),
+          'interests': _interestsController.text.trim().split("\n").where((item) => item.isNotEmpty).toList(),
+          'skills': _skillsController.text.trim().split("\n").where((item) => item.isNotEmpty).toList(),
+        }, SetOptions(merge: true));
+
+        _showSuccessDialog();
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error updating profile: ${e.toString()}")),
+        );
       }
     }
   }
@@ -99,7 +102,7 @@ class _EditVolProfileManagerState extends State<EditVolProfileManager> {
     try {
       final credential = EmailAuthProvider.credential(
         email: user.email!,
-        password: _passwordController.text.trim(), // ⚠️ El usuario debe ingresar la contraseña actual
+        password: _passwordController.text.trim(),
       );
 
       await user.reauthenticateWithCredential(credential);
@@ -118,7 +121,7 @@ class _EditVolProfileManagerState extends State<EditVolProfileManager> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         title: Text(
-          name ?? "Volunteer Profile",
+          _volunteerName,
           style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
         ),
         iconTheme: const IconThemeData(color: Colors.black),
@@ -150,7 +153,10 @@ class _EditVolProfileManagerState extends State<EditVolProfileManager> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Text("Edit Profile", style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.black)),
+                            const Text(
+                              "Edit Profile",
+                              style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.black),
+                            ),
                             const SizedBox(height: 10),
                             _buildTextField(_nameController, "Full Name", Icons.person),
                             _buildTextField(_emailController, "Email", Icons.email),
@@ -195,6 +201,24 @@ class _EditVolProfileManagerState extends State<EditVolProfileManager> {
     );
   }
 
+  Widget _buildMultiLineTextField(TextEditingController controller, String label, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: TextFormField(
+        controller: controller,
+        maxLines: 3,
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+          prefixIcon: Icon(icon, color: Colors.red),
+          filled: true,
+          fillColor: Colors.white,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      ),
+    );
+  }
+
   Widget _buildSaveButton() {
     return SizedBox(
       width: double.infinity,
@@ -224,21 +248,3 @@ class _EditVolProfileManagerState extends State<EditVolProfileManager> {
     });
   }
 }
-
-  Widget _buildMultiLineTextField(TextEditingController controller, String label, IconData icon) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: TextFormField(
-        controller: controller,
-        maxLines: 3,
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
-          prefixIcon: Icon(icon, color: Colors.red),
-          filled: true,
-          fillColor: Colors.white,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-      ),
-    );
-  }
