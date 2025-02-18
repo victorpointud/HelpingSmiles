@@ -209,14 +209,13 @@ class _RegisteredOrganizationsScreenState extends State<RegisteredOrganizationsS
         title: const Text("Registration Successful!", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
         content: const Text("You have successfully registered for this organization.", style: TextStyle(fontSize: 16, color: Colors.black)),
         actions: [
-          Center(child: CircularProgressIndicator(color: Colors.red)), // Indicador de carga antes de cerrar
+          Center(child: CircularProgressIndicator(color: Colors.red)), 
         ],
       ),
     );
 
-    // Cerrar el diálogo después de 2 segundos
     Future.delayed(const Duration(seconds: 2), () {
-      Navigator.pop(context); // Cerrar diálogo
+      Navigator.pop(context);
     });
   }
 

@@ -32,7 +32,7 @@ class _RegisteredVolunteersScreenState extends State<RegisteredVolunteersScreen>
         registeredVolunteers = querySnapshot.docs.map((doc) {
           final data = doc.data();
           return {
-            'id': doc.id, // Guardamos el ID del voluntario
+            'id': doc.id, 
             'name': data['name'] ?? "Unknown Volunteer",
             'email': data['email'] ?? "No email provided",
             'phone': data['phone'] ?? "No phone provided",
@@ -96,7 +96,7 @@ class _RegisteredVolunteersScreenState extends State<RegisteredVolunteersScreen>
 
   Widget _buildVolunteerCard(Map<String, dynamic> volunteer) {
     return GestureDetector(
-      onTap: () => _navigateToVolunteerDetails(volunteer["id"]), // Navega a la pantalla de detalles
+      onTap: () => _navigateToVolunteerDetails(volunteer["id"]), 
       child: Card(
         elevation: 3,
         margin: const EdgeInsets.symmetric(vertical: 8),

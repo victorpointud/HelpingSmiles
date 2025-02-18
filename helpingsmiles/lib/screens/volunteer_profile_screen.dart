@@ -87,13 +87,11 @@ class _VolunteerProfileScreenState extends State<VolunteerProfileScreen> {
 
     if (user != null) {
       try {
-        // Primero eliminamos la organización de Firestore
+        
         await FirebaseFirestore.instance.collection('organizations').doc(user.uid).delete();
 
-        // Luego eliminamos al usuario de Firebase Auth
         await user.delete();
 
-        // Regresar al login después de borrar la cuenta
         Navigator.of(context).pushReplacementNamed('/login');
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(

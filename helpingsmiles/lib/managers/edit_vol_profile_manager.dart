@@ -59,23 +59,20 @@ class _EditVolProfileManagerState extends State<EditVolProfileManager> {
 
     if (_formKey.currentState!.validate()) {
       try {
-        // ⚠️ Reautenticación si se quiere cambiar email o contraseña
+
         if (_emailController.text.trim() != user.email || _passwordController.text.trim().isNotEmpty) {
           bool reauthenticated = await _reauthenticateUser();
           if (!reauthenticated) return;
         }
 
-        // Actualizar email si cambió
         if (_emailController.text.trim() != user.email) {
           await user.updateEmail(_emailController.text.trim());
         }
 
-        // Actualizar contraseña si se ingresó una nueva
         if (_passwordController.text.trim().isNotEmpty) {
           await user.updatePassword(_passwordController.text.trim());
         }
 
-        // Actualizar Firestore con la nueva información
         await FirebaseFirestore.instance.collection('volunteers').doc(user.uid).set({
           'name': _nameController.text.trim(),
           'phone': _phoneController.text.trim(),

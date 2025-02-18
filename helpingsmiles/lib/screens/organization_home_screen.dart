@@ -62,7 +62,7 @@ class _OrganizationHomeScreenState extends State<OrganizationHomeScreen> {
 
       setState(() {
         otherOrganizations = querySnapshot.docs
-            .where((doc) => doc.id != user.uid) // Excluir la organización actual
+            .where((doc) => doc.id != user.uid)
             .map((doc) {
           final data = doc.data();
           return {
@@ -161,12 +161,12 @@ class _OrganizationHomeScreenState extends State<OrganizationHomeScreen> {
                   _buildSectionTitle("Volunteers Enrolled"),
                   Center(
                     child: SizedBox(
-                      width: double.infinity, // ✅ Mismo ancho que los otros botones
+                      width: double.infinity,
                       child: ElevatedButton(
                         onPressed: _navigateToVolunteers,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromARGB(255, 255, 255, 255), // ✅ Mismo color que el de eventos
-                          padding: const EdgeInsets.symmetric(vertical: 16), // ✅ Mismo alto
+                          backgroundColor: const Color.fromARGB(255, 255, 255, 255), 
+                          padding: const EdgeInsets.symmetric(vertical: 16), 
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         ),
                         child: const Text("View Volunteers", style: TextStyle(fontSize: 18, color: Color.fromARGB(255, 247, 16, 16))),

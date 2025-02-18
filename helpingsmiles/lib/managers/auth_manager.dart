@@ -157,7 +157,7 @@ class AuthManager {
     List<String>? interests,
     List<String>? objectives,
     List<String>? volunteerTypes,
-    List<String>? locations,  // Ya no hay conflicto con 'location'
+    List<String>? locations,  
   }) async {
     try {
       Map<String, dynamic> updatedData = {};
@@ -167,17 +167,15 @@ class AuthManager {
       if (phone != null) updatedData['phone'] = phone;
       if (date != null) updatedData['date'] = date;
       if (location != null) updatedData['location'] = location;
-      if (skills != null) updatedData['skills'] = skills;  // Se asegura que sea lista
-      if (interests != null) updatedData['interests'] = interests; // Se asegura que sea lista
-      if (mission != null) updatedData['mission'] = mission; // Se asegura que sea lista
-      if (objectives != null) updatedData['objectives'] = objectives; // Se asegura que sea lista
-      if (volunteerTypes != null) updatedData['volunteerTypes'] = volunteerTypes; // Se asegura que sea lista
-      if (locations != null) updatedData['locations'] = locations; // Se asegura que sea lista
+      if (skills != null) updatedData['skills'] = skills;  
+      if (interests != null) updatedData['interests'] = interests; 
+      if (mission != null) updatedData['mission'] = mission; 
+      if (objectives != null) updatedData['objectives'] = objectives; 
+      if (volunteerTypes != null) updatedData['volunteerTypes'] = volunteerTypes;
+      if (locations != null) updatedData['locations'] = locations; 
 
-      // Actualizar Firestore en 'users'
       await _db.collection('users').doc(uid).set(updatedData, SetOptions(merge: true));
 
-      // Actualizar Firestore en 'volunteers' o 'organizations' según el rol
       if (role == 'volunteer') {
         await _db.collection('volunteers').doc(uid).set(updatedData, SetOptions(merge: true));
       } else if (role == 'organization') {
