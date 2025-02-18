@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../managers/auth_manager.dart';
 import 'volunteer_profile_screen.dart';
 import 'login_screen.dart';
-import 'organization_details_screen.dart';
+import 'registered_organizations_screen.dart';
 import 'event_details_screen.dart';
 
 class VolunteerHomeScreen extends StatefulWidget {
@@ -147,7 +147,7 @@ Future<void> _loadRegisteredOrganizations() async {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => OrganizationDetailsScreen(
+        builder: (_) => RegisteredOrganizationsScreen(
           organizationId: orgId,
           organizationName: orgName,
         ),

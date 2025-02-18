@@ -6,6 +6,8 @@ import 'organization_profile_screen.dart';
 import 'login_screen.dart';
 import '../managers/add_org_activity_manager.dart';
 import '../managers/edit_org_activity_manager.dart';
+import 'registered_volunteers.dart';
+import 'organization_details_screen.dart';
 
 class OrganizationHomeScreen extends StatefulWidget {
   const OrganizationHomeScreen({super.key});
@@ -17,11 +19,13 @@ class OrganizationHomeScreen extends StatefulWidget {
 class _OrganizationHomeScreenState extends State<OrganizationHomeScreen> {
   String? organizationName;
   List<Map<String, dynamic>> events = [];
+  List<Map<String, dynamic>> otherOrganizations = [];
 
   @override
   void initState() {
     super.initState();
     _loadOrganizationData();
+    _loadOtherOrganizations();
   }
 
   Future<void> _loadOrganizationData() async {
@@ -45,6 +49,31 @@ class _OrganizationHomeScreenState extends State<OrganizationHomeScreen> {
           organizationName = "Error retrieving organization";
         });
       }
+    }
+  }
+
+  Future<void> _loadOtherOrganizations() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    try {
+      final querySnapshot = await FirebaseFirestore.instance.collection('organizations').get();
+      if (!mounted) return;
+
+      setState(() {
+        otherOrganizations = querySnapshot.docs
+            .where((doc) => doc.id != user.uid) // Excluir la organización actual
+            .map((doc) {
+          final data = doc.data();
+          return {
+            'id': doc.id,
+            'name': data['name'] ?? "Unknown Organization",
+            'mission': data['mission'] ?? "No mission provided",
+          };
+        }).toList();
+      });
+    } catch (e) {
+      print("Error loading other organizations: $e");
     }
   }
 
@@ -80,52 +109,8 @@ class _OrganizationHomeScreenState extends State<OrganizationHomeScreen> {
     });
   }
 
-  Future<void> _deleteEvent(String eventId) async {
-    await FirebaseFirestore.instance.collection('events').doc(eventId).delete();
-    _loadOrganizationData();
-  }
-
-  void _confirmDelete(String eventId) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Delete Event"),
-        content: const Text("Are you sure you want to delete this event?"),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
-          TextButton(
-            onPressed: () {
-              _deleteEvent(eventId);
-              Navigator.pop(context);
-            },
-            child: const Text("Delete", style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _confirmLogout() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Log Out", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
-        content: const Text("Are you sure you want to log out?", style: TextStyle(fontSize: 16, color: Colors.black)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 2, 48, 255))),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _logout();
-            },
-            child: const Text("Log Out", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 255, 17, 0))),
-          ),
-        ],
-      ),
-    );
+  void _navigateToVolunteers() {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisteredVolunteersScreen()));
   }
 
   void _logout() async {
@@ -145,9 +130,8 @@ class _OrganizationHomeScreenState extends State<OrganizationHomeScreen> {
         ),
         actions: [
           IconButton(icon: const Icon(Icons.person, color: Colors.black), onPressed: _navigateToProfile),
-          IconButton(icon: const Icon(Icons.logout, color: Colors.red), onPressed: _confirmLogout),
+          IconButton(icon: const Icon(Icons.logout, color: Colors.red), onPressed: _logout),
         ],
-        toolbarHeight: kToolbarHeight,
       ),
       body: Stack(
         children: [
@@ -159,25 +143,38 @@ class _OrganizationHomeScreenState extends State<OrganizationHomeScreen> {
               ),
             ),
           ),
-          Container(color: Colors.black.withOpacity(0.6)),
+          Container(color: Colors.black.withOpacity(0.3)),
           SafeArea(
-            child: Column(
-              children: [
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildSectionTitle("Upcoming Events"),
-                          _buildEventList(),
-                        ],
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildSectionTitle("Upcoming Events"),
+                  _buildEventList(),
+
+                  const SizedBox(height: 20),
+                  _buildSectionTitle("Other Registered Organizations"),
+                  _buildOtherOrganizationsList(),
+
+                  const SizedBox(height: 20),
+                  _buildSectionTitle("Volunteers Enrolled"),
+                  Center(
+                    child: SizedBox(
+                      width: double.infinity, // ✅ Mismo ancho que los otros botones
+                      child: ElevatedButton(
+                        onPressed: _navigateToVolunteers,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color.fromARGB(255, 255, 255, 255), // ✅ Mismo color que el de eventos
+                          padding: const EdgeInsets.symmetric(vertical: 16), // ✅ Mismo alto
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                        child: const Text("View Volunteers", style: TextStyle(fontSize: 18, color: Color.fromARGB(255, 247, 16, 16))),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],
@@ -190,10 +187,23 @@ class _OrganizationHomeScreenState extends State<OrganizationHomeScreen> {
     );
   }
 
+
   void _navigateToProfile() {
     Navigator.push(context, MaterialPageRoute(builder: (_) => const OrganizationProfileScreen()));
   }
 
+  void _navigateToOrganizationDetails(String orgId, String orgName) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => OrganizationDetailsScreen(
+          organizationId: orgId,
+          organizationName: orgName,
+        ),
+      ),
+    );
+  }
+  
   Widget _buildSectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
@@ -216,16 +226,55 @@ class _OrganizationHomeScreenState extends State<OrganizationHomeScreen> {
   Widget _buildEventCard(Map<String, dynamic> event) {
     return GestureDetector(
       onTap: () => _navigate(context, EditOrgActivityManager(eventId: event["id"], eventData: event)),
-      onLongPress: () => _confirmDelete(event["id"]),
       child: Card(
         elevation: 3,
         margin: const EdgeInsets.symmetric(vertical: 8),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         color: Colors.white,
-        child: ListTile(
-          title: Text(event["name"], style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
-          subtitle: Text("${event["date"]} • ${event["location"]}", style: const TextStyle(color: Colors.black)),
-          trailing: const Icon(Icons.event, color: Colors.black),
+         child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(event["name"], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red)),
+              Text("${event["date"]} • ${event["location"]}", style: const TextStyle(fontSize: 14, color: Colors.black)),
+              const SizedBox(height: 5),
+              const Text("Click to see more info", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOtherOrganizationsList() {
+    if (otherOrganizations.isEmpty) {
+      return const Center(child: Text("No other organizations found.", style: TextStyle(color: Colors.white)));
+    }
+    return Column(
+      children: otherOrganizations.map((org) => _buildOrganizationCard(org)).toList(),
+    );
+  }
+
+ Widget _buildOrganizationCard(Map<String, dynamic> org) {
+    return GestureDetector(
+      onTap: () => _navigateToOrganizationDetails(org["id"], org["name"]),
+      child: Card(
+        elevation: 3,
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        color: Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(org["name"], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red)),
+              Text(org["mission"], style: const TextStyle(fontSize: 14, color: Colors.black)),
+              const SizedBox(height: 5),
+              const Text("Click to see more info", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
+            ],
+          ),
         ),
       ),
     );
