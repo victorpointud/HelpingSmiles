@@ -264,12 +264,4 @@ Future<bool> _reauthenticateUser() async {
       });
     }
 
-
-
-
-
-
-
-
-
 }
