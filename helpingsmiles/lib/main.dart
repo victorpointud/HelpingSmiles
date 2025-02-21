@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'managers/auth_manager.dart';
-import 'screens/volunteer_home_screen.dart';
-import 'screens/organization_home_screen.dart';
+import 'screens/vol_home_screen.dart';
+import 'screens/org_home_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/splash_screen.dart';
 
@@ -39,11 +39,11 @@ class _MyAppState extends State<MyApp> {
 
       if (role == "volunteer") {
         setState(() {
-          _initialScreen = const VolunteerHomeScreen();
+          _initialScreen = const VolHomeScreen();
         });
       } else if (role == "organization") {
         setState(() {
-          _initialScreen = const OrganizationHomeScreen();
+          _initialScreen = const OrgHomeScreen();
         });
       } else {
         setState(() {

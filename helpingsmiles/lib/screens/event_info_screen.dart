@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class EventDetailsScreen extends StatefulWidget {
+class EventInfoScreen extends StatefulWidget {
   final String eventId;
 
-  const EventDetailsScreen({super.key, required this.eventId});
+  const EventInfoScreen({super.key, required this.eventId});
 
   @override
-  _EventDetailsScreenState createState() => _EventDetailsScreenState();
+  _EventInfoScreenState createState() => _EventInfoScreenState();
 }
 
-class _EventDetailsScreenState extends State<EventDetailsScreen> {
+class _EventInfoScreenState extends State<EventInfoScreen> {
   Map<String, dynamic>? eventData;
   bool isLoading = true;
 
@@ -43,7 +43,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     }
   }
 
-   @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -123,7 +123,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     );
   }
 
-   Future<void> _registerForEvent(String eventId) async {
+  Future<void> _registerForEvent(String eventId) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       try {
@@ -207,7 +207,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   }
 
 
- Widget _buildDetailRow(IconData icon, String title, String value) {
+  Widget _buildDetailRow(IconData icon, String title, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(

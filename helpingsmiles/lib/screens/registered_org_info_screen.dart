@@ -2,21 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 
-class RegisteredOrganizationsScreen extends StatefulWidget {
+class RegisteredOrgInfoScreen extends StatefulWidget {
   final String organizationId;
   final String organizationName;
 
-  const RegisteredOrganizationsScreen({
+  const RegisteredOrgInfoScreen({
     super.key,
     required this.organizationId,
     required this.organizationName,
   });
 
   @override
-  _RegisteredOrganizationsScreenState createState() => _RegisteredOrganizationsScreenState();
+  _RegisteredOrgInfoScreenState createState() => _RegisteredOrgInfoScreenState();
 }
 
-class _RegisteredOrganizationsScreenState extends State<RegisteredOrganizationsScreen> {
+class _RegisteredOrgInfoScreenState extends State<RegisteredOrgInfoScreen> {
   String? phone;
   String? date;
   String? mission;

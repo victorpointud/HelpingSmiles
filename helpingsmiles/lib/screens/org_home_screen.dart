@@ -2,21 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../managers/auth_manager.dart';
-import 'organization_profile_screen.dart';
+import 'org_profile_screen.dart';
 import 'login_screen.dart';
 import '../managers/add_org_activity_manager.dart';
 import '../managers/edit_org_activity_manager.dart';
-import 'registered_volunteers.dart';
-import 'organization_details_screen.dart';
+import 'registered_vol_info_screen.dart';
+import 'org_info_screen.dart';
 
-class OrganizationHomeScreen extends StatefulWidget {
-  const OrganizationHomeScreen({super.key});
+class OrgHomeScreen extends StatefulWidget {
+  const OrgHomeScreen({super.key});
 
   @override
-  _OrganizationHomeScreenState createState() => _OrganizationHomeScreenState();
+  _OrgHomeScreenState createState() => _OrgHomeScreenState();
 }
 
-class _OrganizationHomeScreenState extends State<OrganizationHomeScreen> {
+class _OrgHomeScreenState extends State<OrgHomeScreen> {
   String? organizationName;
   List<Map<String, dynamic>> events = [];
   List<Map<String, dynamic>> otherOrganizations = [];
@@ -110,7 +110,7 @@ class _OrganizationHomeScreenState extends State<OrganizationHomeScreen> {
   }
 
   void _navigateToVolunteers() {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisteredVolunteersScreen()));
+    Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisteredVolInfoScreen()));
   }
 
   void _logout() async {
@@ -189,14 +189,14 @@ class _OrganizationHomeScreenState extends State<OrganizationHomeScreen> {
 
 
   void _navigateToProfile() {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => const OrganizationProfileScreen()));
+    Navigator.push(context, MaterialPageRoute(builder: (_) => const OrgProfileScreen()));
   }
 
-  void _navigateToOrganizationDetails(String orgId, String orgName) {
+  void _navigateToOrgInfo(String orgId, String orgName) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => OrganizationDetailsScreen(
+        builder: (_) => OrgInfoScreen(
           organizationId: orgId,
           organizationName: orgName,
         ),
@@ -231,7 +231,7 @@ class _OrganizationHomeScreenState extends State<OrganizationHomeScreen> {
         margin: const EdgeInsets.symmetric(vertical: 8),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         color: Colors.white,
-         child: Padding(
+        child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -256,9 +256,9 @@ class _OrganizationHomeScreenState extends State<OrganizationHomeScreen> {
     );
   }
 
- Widget _buildOrganizationCard(Map<String, dynamic> org) {
+  Widget _buildOrganizationCard(Map<String, dynamic> org) {
     return GestureDetector(
-      onTap: () => _navigateToOrganizationDetails(org["id"], org["name"]),
+      onTap: () => _navigateToOrgInfo(org["id"], org["name"]),
       child: Card(
         elevation: 3,
         margin: const EdgeInsets.symmetric(vertical: 8),

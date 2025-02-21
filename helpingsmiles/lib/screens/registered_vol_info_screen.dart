@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'volunteer_details_screen.dart';
+import 'vol_info_screen.dart';
 
-class RegisteredVolunteersScreen extends StatefulWidget {
-  const RegisteredVolunteersScreen({super.key});
+class RegisteredVolInfoScreen extends StatefulWidget {
+  const RegisteredVolInfoScreen({super.key});
 
   @override
-  _RegisteredVolunteersScreenState createState() => _RegisteredVolunteersScreenState();
+  _RegisteredVolInfoScreenState createState() => _RegisteredVolInfoScreenState();
 }
 
-class _RegisteredVolunteersScreenState extends State<RegisteredVolunteersScreen> {
+class _RegisteredVolInfoScreenState extends State<RegisteredVolInfoScreen> {
   List<Map<String, dynamic>> registeredVolunteers = [];
 
   @override
@@ -48,7 +48,7 @@ class _RegisteredVolunteersScreenState extends State<RegisteredVolunteersScreen>
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => VolunteersDetailsScreen(volunteerId: volunteerId),
+        builder: (context) => VolInfoScreen(volunteerId: volunteerId),
       ),
     );
   }

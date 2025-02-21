@@ -1,89 +1,63 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../../managers/edit_org_profile_manager.dart';
+import '../../../managers/edit_vol_profile_manager.dart';
 
-class OrganizationProfileScreen extends StatefulWidget {
-  const OrganizationProfileScreen({super.key});
+class VolProfileScreen extends StatefulWidget {
+  const VolProfileScreen({super.key});
 
   @override
-  _OrganizationProfileScreenState createState() => _OrganizationProfileScreenState();
+  _VolProfileScreenState createState() => _VolProfileScreenState();
 }
 
-class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
+class _VolProfileScreenState extends State<VolProfileScreen> {
   String? name;
   String? email;
   String? phone;
   String? date;
   String? password;
-  String? mission;
-  List<String> objectives = [];
-  List<String> volunteerTypes = [];
-  List<String> locations = [];
+  String? location;
+  List<String> interests = [];
+  List<String> skills = [];
 
   @override
   void initState() {
     super.initState();
-    _loadOrganizationData();
+    _loadVolunteerData();
   }
 
-  Future<void> _loadOrganizationData() async {
+  Future<void> _loadVolunteerData() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      final doc = await FirebaseFirestore.instance.collection('organizations').doc(user.uid).get();
+      final doc = await FirebaseFirestore.instance.collection('volunteers').doc(user.uid).get();
       if (doc.exists) {
-        setState(() {
-          name = doc['name'] ?? "Not specified";
-          phone = doc['phone'] ?? "Not specified";
-          date = doc['date'] ?? "Not specified";
-          email = doc['email'] ?? "Not specified";
-          password = doc['password'] ?? "Not specified";
-          mission = doc['mission'] ?? "Not specified";
-          objectives = _convertToList(doc['objectives']);
-          volunteerTypes = _convertToList(doc['volunteerTypes']);
-          locations = _convertToList(doc['locations']);
-        });
+        if (mounted) {
+          setState(() {
+            name = doc.data()?['name'] ?? "Not specified";
+            email = doc.data()?['email'] ?? "Not specified";
+            phone = doc.data()?['phone'] ?? "Not specified";
+            date = doc.data()?['date'] ?? "Not specified";
+            location = doc.data()?['location'] ?? "Not specified";
+            password = doc.data()?['password'] ?? "Not specified";
+            final dynamic interestsData = doc.data()?['interests'];
+            interests = (interestsData is List) ? interestsData.cast<String>() : [];
+            final dynamic skillsData = doc.data()?['skills'];
+            skills = (skillsData is List) ? skillsData.cast<String>() : [];
+          });
+        }
       }
-    }
-  }
-
-  List<String> _convertToList(dynamic data) {
-    if (data is List) {
-      return data.whereType<String>().toList();
-    } else if (data is String) {
-      return [data];
-    } else {
-      return [];
     }
   }
 
   void _navigateToEditProfile() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const EditOrgProfileManager()),
+      MaterialPageRoute(builder: (_) => const EditVolProfileManager()),
     ).then((result) {
-      if (result == true) _loadOrganizationData();
+      if (result == true) _loadVolunteerData();
     });
   }
 
-  Future<void> _deleteAccount() async {
-    final user = FirebaseAuth.instance.currentUser;
-
-    if (user != null) {
-      try {
-      
-        await FirebaseFirestore.instance.collection('organizations').doc(user.uid).delete();
-
-        await user.delete();
-
-        Navigator.of(context).pushReplacementNamed('/login');
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error deleting account: $e")),
-        );
-      }
-    }
-  }
 
   void _confirmDeleteAccount() {
     showDialog(
@@ -108,13 +82,32 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
     );
   }
 
+   Future<void> _deleteAccount() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      try {
+        
+        await FirebaseFirestore.instance.collection('organizations').doc(user.uid).delete();
+
+        await user.delete();
+
+        Navigator.of(context).pushReplacementNamed('/login');
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error deleting account: $e")),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
         title: Text(
-          name ?? "Organization Profile",
+          name ?? "Volunteer Profile",
           style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
         ),
         iconTheme: const IconThemeData(color: Colors.black),
@@ -129,22 +122,20 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
               ),
             ),
           ),
-          Container(color: Colors.black.withOpacity(0.3)),
+          Container(color: Colors.black.withOpacity(0.3),),
           SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: 20),
-                _buildProfileSection(Icons.business, "Name", name),
-                _buildProfileSection(Icons.email, "Email", email),
-                _buildProfileSection(Icons.phone, "Phone Number", phone),
-                _buildProfileSection(Icons.calendar_today, "Date of Creation", date),
+                _buildProfileSection(Icons.person, "Name", name ?? "Not specified"),
+                _buildProfileSection(Icons.email, "Email", email ?? "Not specified"),
+                _buildProfileSection(Icons.phone, "Phone Number", phone ?? "Not specified"),
+                _buildProfileSection(Icons.calendar_today, "Date of Birth", date ?? "Not specified"),
                 _buildProfileSection(Icons.lock, "Password", password ?? "Not specified"),
-                _buildProfileSection(Icons.flag, "Mission", mission),
-                _buildProfileList(Icons.list, "Objectives", objectives),
-                _buildProfileList(Icons.people, "Volunteer Types", volunteerTypes),
-                _buildProfileList(Icons.location_on, "Locations", locations),
+                _buildProfileSection(Icons.location_on, "Location", location ?? "Not specified"),
+                _buildProfileList(Icons.favorite, "Interests", interests),
+                _buildProfileList(Icons.star, "Skills", skills),
                 const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -170,7 +161,7 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
     );
   }
 
-  Widget _buildProfileSection(IconData icon, String title, String? content) {
+  Widget _buildProfileSection(IconData icon, String title, String content) {
     return Card(
       elevation: 4,
       margin: const EdgeInsets.symmetric(vertical: 10),
@@ -183,16 +174,16 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
             Icon(icon, color: Colors.red),
             const SizedBox(width: 10),
             Expanded(
-              child: RichText(
-                text: TextSpan(
+              child: Text.rich(
+                TextSpan(
                   children: [
                     TextSpan(
                       text: "$title: ",
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
+                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
                     ),
                     TextSpan(
-                      text: content ?? 'Not specified',
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal, color: Colors.black),
+                      text: content,
+                      style: const TextStyle(fontWeight: FontWeight.normal, color: Colors.black),
                     ),
                   ],
                 ),
@@ -218,9 +209,8 @@ class _OrganizationProfileScreenState extends State<OrganizationProfileScreen> {
             Row(children: [
               Icon(icon, color: Colors.red),
               const SizedBox(width: 10),
-              Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
+              Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black))
             ]),
-            const SizedBox(height: 5),
             ...items.map((item) => Text("• $item", style: const TextStyle(fontSize: 16, color: Colors.black))),
           ],
         ),

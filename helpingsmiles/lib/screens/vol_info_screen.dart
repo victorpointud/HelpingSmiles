@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class VolunteersDetailsScreen extends StatefulWidget {
+class VolInfoScreen extends StatefulWidget {
   final String volunteerId; // Se recibe el ID del voluntario
 
-  const VolunteersDetailsScreen({super.key, required this.volunteerId});
+  const VolInfoScreen({super.key, required this.volunteerId});
 
   @override
-  _VolunteersDetailsScreenState createState() => _VolunteersDetailsScreenState();
+  _VolInfoScreenState createState() => _VolInfoScreenState();
 }
 
-class _VolunteersDetailsScreenState extends State<VolunteersDetailsScreen> {
+class _VolInfoScreenState extends State<VolInfoScreen> {
   String? name;
   String? email;
   String? phone;

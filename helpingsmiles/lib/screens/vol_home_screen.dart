@@ -2,26 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../managers/auth_manager.dart';
-import 'volunteer_profile_screen.dart';
+import 'vol_profile_screen.dart';
 import 'login_screen.dart';
-import 'registered_organizations_screen.dart';
-import 'event_details_screen.dart';
-import 'organization_details_screen.dart';
-import 'registered_events_screen.dart';
+import 'registered_org_info_screen.dart';
+import 'event_info_screen.dart';
+import 'org_info_screen.dart';
+import 'registered_event_info_screen.dart';
 
-class VolunteerHomeScreen extends StatefulWidget {
-  const VolunteerHomeScreen({super.key});
+class VolHomeScreen extends StatefulWidget {
+  const VolHomeScreen({super.key});
 
   @override
-  _VolunteerHomeScreenState createState() => _VolunteerHomeScreenState();
+  _VolHomeScreenState createState() => _VolHomeScreenState();
 }
 
-class _VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
+class _VolHomeScreenState extends State<VolHomeScreen> {
   String? userName;
   List<Map<String, dynamic>> organizations = [];
   List<Map<String, dynamic>> registeredOrganizations = [];
   List<Map<String, dynamic>> availableEvents = [];
-  List<Map<String, dynamic>> registeredEvents = [];
+  List<Map<String, dynamic>> registeredEventInfo = [];
 
   @override
   void initState() {
@@ -30,7 +30,7 @@ class _VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
     _loadOrganizations();
     _loadAvailableEvents();
     _loadRegisteredOrganizations();
-    _loadRegisteredEvents();
+    _loadregisteredEventInfo();
   }
 
   Future<void> _loadAvailableEvents() async {
@@ -114,7 +114,7 @@ class _VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
       }
     }
 
-  Future<void> _loadRegisteredEvents() async {
+  Future<void> _loadregisteredEventInfo() async {
   final user = FirebaseAuth.instance.currentUser;
   if (user == null) return;
 
@@ -141,10 +141,10 @@ class _VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
 
     if (!mounted) return;
     setState(() {
-      registeredEvents = tempEvents;
+      registeredEventInfo = tempEvents;
     });
 
-    print("🔹 Registered Events Loaded: $registeredEvents");
+    print("🔹 Registered Events Loaded: $registeredEventInfo");
 
   } catch (e) {
     print(" Error loading registered events: $e");
@@ -157,23 +157,23 @@ class _VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
   }
 
   void _navigateToProfile() {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => const VolunteerProfileScreen()));
+    Navigator.push(context, MaterialPageRoute(builder: (_) => const VolProfileScreen()));
   }
 
-  void _navigateToEventDetails(String eventId) {
+  void _navigateToEventInfo(String eventId) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => EventDetailsScreen(eventId: eventId),
+        builder: (_) => EventInfoScreen(eventId: eventId),
       ),
     );
   }
 
-  void _navigateToRegisteredOrganizationDetails(String orgId, String orgName) {
+  void _navigateToRegisteredOrgInfo(String orgId, String orgName) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => RegisteredOrganizationsScreen(
+        builder: (_) => RegisteredOrgInfoScreen(
           organizationId: orgId,
           organizationName: orgName,
         ),
@@ -181,20 +181,20 @@ class _VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
     );
   }
 
-   void _navigateToRegisteredEventsDetails(String eventId) {
+  void _navigateToRegisteredEventInfoDetails(String eventId) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => RegisteredEventsScreen(eventId: eventId),
+        builder: (_) => RegisteredEventInfoScreen(eventId: eventId),
       ),
     );
   }
   
-  void _navigateToOrganizationDetails(String orgId, String orgName) {
+  void _navigateToOrgInfo(String orgId, String orgName) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => OrganizationDetailsScreen(
+        builder: (_) => OrgInfoScreen(
           organizationId: orgId,
           organizationName: orgName,
         ),
@@ -286,7 +286,7 @@ class _VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
 
   Widget _buildOrganizationCard(Map<String, dynamic> org) {
     return GestureDetector(
-      onTap: () => _navigateToOrganizationDetails(org["id"], org["name"]),
+      onTap: () => _navigateToOrgInfo(org["id"], org["name"]),
       child: Card(
         elevation: 3,
         margin: const EdgeInsets.symmetric(vertical: 8),
@@ -309,9 +309,9 @@ class _VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
     );
   }
 
-   Widget _buildRegisteredOrganizationCard(Map<String, dynamic> org) {
+  Widget _buildRegisteredOrganizationCard(Map<String, dynamic> org) {
     return GestureDetector(
-      onTap: () => _navigateToRegisteredOrganizationDetails(org["id"], org["name"]),
+      onTap: () => _navigateToRegisteredOrgInfo(org["id"], org["name"]),
       child: Card(
         elevation: 3,
         margin: const EdgeInsets.symmetric(vertical: 8),
@@ -344,17 +344,17 @@ class _VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
   }
 
   Widget _buildRegisteredEventList() {
-    if (registeredEvents.isEmpty) {
+    if (registeredEventInfo.isEmpty) {
       return const Center(child: Text("You are not registered in any events.", style: TextStyle(color: Colors.white)));
     }
     return Column(
-      children: registeredEvents.map((event) => _buildRegisteredEventCard(event)).toList(),
+      children: registeredEventInfo.map((event) => _buildRegisteredEventCard(event)).toList(),
     );
   }
 
   Widget _buildEventCard(Map<String, dynamic> event) {
     return GestureDetector(
-      onTap: () => _navigateToEventDetails(event["id"]),
+      onTap: () => _navigateToEventInfo(event["id"]),
       child: Card(
         elevation: 3,
         margin: const EdgeInsets.symmetric(vertical: 8),
@@ -379,7 +379,7 @@ class _VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
 
   Widget _buildRegisteredEventCard(Map<String, dynamic> event) {
     return GestureDetector(
-      onTap: () => _navigateToRegisteredEventsDetails(event["id"]),
+      onTap: () => _navigateToRegisteredEventInfoDetails(event["id"]),
       child: Card(
         elevation: 3,
         margin: const EdgeInsets.symmetric(vertical: 8),

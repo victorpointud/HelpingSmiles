@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../managers/auth_manager.dart';
-import 'volunteer_home_screen.dart';
-import 'organization_home_screen.dart';
+import 'vol_home_screen.dart';
+import 'org_home_screen.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -58,9 +58,9 @@ void _showSuccessDialog(String title, String message, String? role) {
   Future.delayed(const Duration(seconds: 2), () {
     Navigator.pop(context);
     if (role == "volunteer") {
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const VolunteerHomeScreen()));
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const VolHomeScreen()));
     } else if (role == "organization") {
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const OrganizationHomeScreen()));
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const OrgHomeScreen()));
     }
   });
 }

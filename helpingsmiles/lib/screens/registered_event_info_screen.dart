@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class RegisteredEventsScreen extends StatefulWidget {
+class RegisteredEventInfoScreen extends StatefulWidget {
   final String eventId;
 
-  const RegisteredEventsScreen({super.key, required this.eventId});
+  const RegisteredEventInfoScreen({super.key, required this.eventId});
 
   @override
-  _RegisteredEventsScreenState createState() => _RegisteredEventsScreenState();
+  _RegisteredEventInfoScreenState createState() => _RegisteredEventInfoScreenState();
 }
 
-class _RegisteredEventsScreenState extends State<RegisteredEventsScreen> {
+class _RegisteredEventInfoScreenState extends State<RegisteredEventInfoScreen> {
   Map<String, dynamic>? eventData;
   bool isLoading = true;
 

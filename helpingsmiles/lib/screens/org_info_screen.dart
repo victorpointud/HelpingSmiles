@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../screens/event_list_screen.dart';
+import 'events_list_screen.dart';
 
-class OrganizationDetailsScreen extends StatefulWidget {
+class OrgInfoScreen extends StatefulWidget {
   final String organizationId;
   final String organizationName;
 
-  const OrganizationDetailsScreen({
+  const OrgInfoScreen({
     super.key,
     required this.organizationId,
     required this.organizationName,
   });
 
   @override
-  _OrganizationDetailsScreenState createState() => _OrganizationDetailsScreenState();
+  _OrgInfoScreenState createState() => _OrgInfoScreenState();
 }
 
-class _OrganizationDetailsScreenState extends State<OrganizationDetailsScreen> {
+class _OrgInfoScreenState extends State<OrgInfoScreen> {
   String? phone;
   String? date;
   String? mission;
@@ -78,7 +78,7 @@ class _OrganizationDetailsScreenState extends State<OrganizationDetailsScreen> {
                     child: Column(
                       children: [
                         ElevatedButton.icon(
-                          onPressed: _navigateToEventList,
+                          onPressed: _navigateToEventsList,
                           icon: const Icon(Icons.event),
                           label: const Text("View Upcoming Events"),
                           style: ElevatedButton.styleFrom(
@@ -147,11 +147,11 @@ class _OrganizationDetailsScreenState extends State<OrganizationDetailsScreen> {
     );
   }
 
-  void _navigateToEventList() {
+  void _navigateToEventsList() {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => EventListScreen(organizationId: widget.organizationId),
+        builder: (_) => EventsListScreen(organizationId: widget.organizationId),
       ),
     );
   }
