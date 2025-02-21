@@ -43,7 +43,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
     }
   }
 
-  @override
+   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -207,7 +207,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
   }
 
 
-  Widget _buildDetailRow(IconData icon, String title, String value) {
+ Widget _buildDetailRow(IconData icon, String title, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -215,9 +215,19 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
           Icon(icon, color: Colors.red),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(
-              "$title: $value",
-              style: const TextStyle(fontSize: 16, color: Colors.black),
+            child: RichText(
+              text: TextSpan(
+                style: const TextStyle(fontSize: 16, color: Colors.black),
+                children: [
+                  TextSpan(
+                    text: "$title: ",
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  TextSpan(
+                    text: value,
+                  ),
+                ],
+              ),
             ),
           ),
         ],

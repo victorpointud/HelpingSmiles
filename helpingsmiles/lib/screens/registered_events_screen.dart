@@ -119,9 +119,19 @@ class _RegisteredEventsScreenState extends State<RegisteredEventsScreen> {
           Icon(icon, color: Colors.red),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(
-              "$title: $value",
-              style: const TextStyle(fontSize: 16, color: Colors.black),
+            child: RichText(
+              text: TextSpan(
+                style: const TextStyle(fontSize: 16, color: Colors.black),
+                children: [
+                  TextSpan(
+                    text: "$title: ",
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  TextSpan(
+                    text: value,
+                  ),
+                ],
+              ),
             ),
           ),
         ],
