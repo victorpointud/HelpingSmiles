@@ -207,7 +207,7 @@ class _EventListScreenState extends State<EventListScreen> {
             const SizedBox(height: 10),
             const Text("Description:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
             Text(event['description'], style: const TextStyle(fontSize: 14, color: Colors.black)),
-            const SizedBox(height: 15),
+            const SizedBox(height: 10),
             Center(
               child: ElevatedButton(
                 onPressed: () => _registerForEvent(event['id']),

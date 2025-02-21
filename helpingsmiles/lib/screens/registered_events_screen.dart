@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
-class EventDetailsScreen extends StatefulWidget {
+class RegisteredEventsScreen extends StatefulWidget {
   final String eventId;
 
-  const EventDetailsScreen({super.key, required this.eventId});
+  const RegisteredEventsScreen({super.key, required this.eventId});
 
   @override
-  _EventDetailsScreenState createState() => _EventDetailsScreenState();
+  _RegisteredEventsScreenState createState() => _RegisteredEventsScreenState();
 }
 
-class _EventDetailsScreenState extends State<EventDetailsScreen> {
+class _RegisteredEventsScreenState extends State<RegisteredEventsScreen> {
   Map<String, dynamic>? eventData;
   bool isLoading = true;
 
@@ -101,17 +100,6 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
                                   style: const TextStyle(fontSize: 16, color: Colors.black),
                                 ),
                                 const SizedBox(height: 10),
-                                Center(
-                                  child: ElevatedButton(
-                                    onPressed: () => _registerForEvent('id'),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.red,
-                                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                    ),
-                                    child: const Text("Register", style: TextStyle(fontSize: 16, color: Colors.white)),
-                                  ),
-                                ),
                               ],
                             ),
                           ),
@@ -122,90 +110,6 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
       ),
     );
   }
-
-   Future<void> _registerForEvent(String eventId) async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      try {
-        final volunteerDoc = await FirebaseFirestore.instance
-            .collection('volunteers')
-            .doc(user.uid)
-            .get();
-
-        if (!volunteerDoc.exists) {
-          _showErrorDialog("Volunteer profile not found!");
-          return;
-        }
-
-        final volunteerData = volunteerDoc.data() ?? {};
-        final name = volunteerData['name'] ?? "Not specified";
-        final email = user.email ?? "Not specified";
-        final phone = volunteerData['phone'] ?? "Not specified";
-        final skills = (volunteerData['skills'] as List<dynamic>?)?.cast<String>() ?? [];
-        final interests = (volunteerData['interests'] as List<dynamic>?)?.cast<String>() ?? [];
-        final location = volunteerData['location'] ?? "Not specified";
-        final date = volunteerData['date'] ?? "Not specified";
-
-        await FirebaseFirestore.instance
-            .collection('events')
-            .doc(eventId)
-            .collection('registrations')
-            .doc(user.uid)
-            .set({
-          'userId': user.uid,
-          'name': name,
-          'email': email,
-          'phone': phone,
-          'skills': skills,
-          'interests': interests,
-          'location': location,
-          'date': date,
-          'timestamp': FieldValue.serverTimestamp(),
-        });
-
-        _showSuccessDialog(); 
-
-      } catch (e) {
-        print("Error registering for event: $e");
-        _showErrorDialog("Failed to register for event.");
-      }
-    }
-  }
-
-  void _showSuccessDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Registration Successful!", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
-        content: const Text("You have successfully registered for this event.", style: TextStyle(fontSize: 16, color: Colors.black)),
-        actions: [
-          Center(child: CircularProgressIndicator(color: Colors.red)), 
-        ],
-      ),
-    );
-
-    
-    Future.delayed(const Duration(seconds: 2), () {
-      Navigator.pop(context); 
-    });
-  }
-
-  void _showErrorDialog(String message) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Error", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.red)),
-        content: Text(message, style: const TextStyle(fontSize: 16, color: Colors.black)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("OK", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
-  }
-
 
   Widget _buildDetailRow(IconData icon, String title, String value) {
     return Padding(

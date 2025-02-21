@@ -7,6 +7,7 @@ import 'login_screen.dart';
 import 'registered_organizations_screen.dart';
 import 'event_details_screen.dart';
 import 'organization_details_screen.dart';
+import 'registered_events_screen.dart';
 
 class VolunteerHomeScreen extends StatefulWidget {
   const VolunteerHomeScreen({super.key});
@@ -180,7 +181,15 @@ class _VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
     );
   }
 
-
+   void _navigateToRegisteredEventsDetails(String eventId) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => RegisteredEventsScreen(eventId: eventId),
+      ),
+    );
+  }
+  
   void _navigateToOrganizationDetails(String orgId, String orgName) {
     Navigator.push(
       context,
@@ -370,7 +379,7 @@ class _VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
 
   Widget _buildRegisteredEventCard(Map<String, dynamic> event) {
     return GestureDetector(
-      onTap: () => _navigateToEventDetails(event["id"]),
+      onTap: () => _navigateToRegisteredEventsDetails(event["id"]),
       child: Card(
         elevation: 3,
         margin: const EdgeInsets.symmetric(vertical: 8),
