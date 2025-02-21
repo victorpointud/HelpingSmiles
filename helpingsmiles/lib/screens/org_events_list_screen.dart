@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class EventsListScreen extends StatefulWidget {
+class OrgEventsListScreen extends StatefulWidget {
   final String organizationId;
 
-  const EventsListScreen({super.key, required this.organizationId});
+  const OrgEventsListScreen({super.key, required this.organizationId});
 
   @override
-  _EventsListScreenState createState() => _EventsListScreenState();
+  _OrgEventsListScreenState createState() => _OrgEventsListScreenState();
 }
 
-class _EventsListScreenState extends State<EventsListScreen> {
+class _OrgEventsListScreenState extends State<OrgEventsListScreen> {
   List<Map<String, dynamic>> events = [];
 
   @override

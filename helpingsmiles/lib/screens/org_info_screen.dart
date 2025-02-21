@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'events_list_screen.dart';
+import 'org_events_list_screen.dart';
 
 class OrgInfoScreen extends StatefulWidget {
   final String organizationId;
@@ -151,7 +151,7 @@ class _OrgInfoScreenState extends State<OrgInfoScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => EventsListScreen(organizationId: widget.organizationId),
+        builder: (_) => OrgEventsListScreen(organizationId: widget.organizationId),
       ),
     );
   }
