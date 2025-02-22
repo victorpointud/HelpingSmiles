@@ -8,6 +8,10 @@ import 'registered_org_info_screen.dart';
 import 'event_info_screen.dart';
 import 'org_info_screen.dart';
 import 'registered_event_info_screen.dart';
+import 'all_events_screen.dart';
+import 'all_orgs_screen.dart';
+import 'all_registered_events_screen.dart';
+import 'all_registered_orgs_screen.dart';
 
 class VolHomeScreen extends StatefulWidget {
   const VolHomeScreen({super.key});
@@ -32,6 +36,127 @@ class _VolHomeScreenState extends State<VolHomeScreen> {
     _loadRegisteredOrganizations();
     _loadregisteredEventInfo();
   }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        automaticallyImplyLeading: false,
+        title: Text(
+          "Welcome, ${userName ?? 'Loading...'}!",
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
+        ),
+        actions: [
+          IconButton(icon: const Icon(Icons.person, color: Colors.black), onPressed: _navigateToProfile),
+          IconButton(icon: const Icon(Icons.logout, color: Colors.red), onPressed: _logout),
+        ],
+      ),
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('lib/assets/background.png'),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          Container(color: Colors.black.withOpacity(0.3)),
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildSectionTitle("Available Activities"),
+                    _buildEventList(availableEvents),
+                    Center(
+                      child: TextButton(
+                        onPressed: _navigateToMoreEvents,
+                        child: const Text("View More Events", 
+                        style: TextStyle(color: Colors.red, fontSize: 16, fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+                    _buildSectionTitle("All Organizations"),
+                    _buildOrganizationList(),
+                    Center(
+                      child: TextButton(
+                        onPressed: _navigateToMoreOrgs,
+                        child: const Text("View More Events", 
+                        style: TextStyle(color: Colors.red, fontSize: 16, fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+                    _buildSectionTitle("My Registered Organizations"),
+                    _buildRegisteredOrganizationList(),
+                    Center(
+                      child: TextButton(
+                        onPressed: _navigateToMoreRegisteredOrgs,
+                        child: const Text("View More Events", 
+                        style: TextStyle(color: Colors.red, fontSize: 16, fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+                    _buildSectionTitle("My Registered Events"),
+                    _buildRegisteredEventList(),
+                    Center(
+                      child: TextButton(
+                        onPressed: _navigateToMoreRegisteredEvents,
+                        child: const Text("View More Events", 
+                        style: TextStyle(color: Colors.red, fontSize: 16, fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _navigateToProfile() {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => const VolProfileScreen()));
+  }
+
+  void _navigateToEventInfo(String eventId) {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => EventInfoScreen(eventId: eventId),),);
+  }
+
+  void _navigateToRegisteredOrgInfo(String orgId, String orgName) {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => RegisteredOrgInfoScreen(organizationId: orgId,organizationName: orgName,),),);
+  }
+
+  void _navigateToRegisteredEventInfoDetails(String eventId) {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => RegisteredEventInfoScreen(eventId: eventId),),);
+  }
+  
+  void _navigateToOrgInfo(String orgId, String orgName) {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => OrgInfoScreen(organizationId: orgId, organizationName: orgName,),),);
+  }
+
+ void _navigateToMoreEvents() {
+  Navigator.push(context, MaterialPageRoute(builder: (_) => const AllEventsScreen()),);
+}
+
+void _navigateToMoreOrgs() {
+  Navigator.push(context, MaterialPageRoute(builder: (_) => const AllOrgsScreen()),);
+}
+
+void _navigateToMoreRegisteredEvents() {
+  Navigator.push(context, MaterialPageRoute(builder: (_) => const AllRegisteredEventsScreen()),);
+}
+
+void _navigateToMoreRegisteredOrgs() {
+  Navigator.push(context, MaterialPageRoute(builder: (_) => const AllRegisteredOrgsScreen()),);
+}
 
   Future<void> _loadAvailableEvents() async {
       try {
@@ -154,109 +279,6 @@ class _VolHomeScreenState extends State<VolHomeScreen> {
   void _logout() async {
     await AuthManager.logoutUser();
     Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
-  }
-
-  void _navigateToProfile() {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => const VolProfileScreen()));
-  }
-
-  void _navigateToEventInfo(String eventId) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => EventInfoScreen(eventId: eventId),
-      ),
-    );
-  }
-
-  void _navigateToRegisteredOrgInfo(String orgId, String orgName) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => RegisteredOrgInfoScreen(
-          organizationId: orgId,
-          organizationName: orgName,
-        ),
-      ),
-    );
-  }
-
-  void _navigateToRegisteredEventInfoDetails(String eventId) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => RegisteredEventInfoScreen(eventId: eventId),
-      ),
-    );
-  }
-  
-  void _navigateToOrgInfo(String orgId, String orgName) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => OrgInfoScreen(
-          organizationId: orgId,
-          organizationName: orgName,
-        ),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        automaticallyImplyLeading: false,
-        title: Text(
-          "Welcome, ${userName ?? 'Loading...'}!",
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
-        ),
-        actions: [
-          IconButton(icon: const Icon(Icons.person, color: Colors.black), onPressed: _navigateToProfile),
-          IconButton(icon: const Icon(Icons.logout, color: Colors.red), onPressed: _logout),
-        ],
-      ),
-      body: Stack(
-        children: [
-          Container(
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('lib/assets/background.png'),
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-          Container(color: Colors.black.withOpacity(0.3)),
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildSectionTitle("Available Activities"),
-                    _buildEventList(availableEvents),
-
-                    const SizedBox(height: 20),
-                    _buildSectionTitle("All Organizations"),
-                    _buildOrganizationList(),
-
-                    const SizedBox(height: 20),
-                    _buildSectionTitle("My Registered Organizations"),
-                    _buildRegisteredOrganizationList(),
-
-                    const SizedBox(height: 20),
-                    _buildSectionTitle("My Registered Events"),
-                    _buildRegisteredEventList(),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _buildSectionTitle(String title) {
