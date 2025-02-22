@@ -93,7 +93,7 @@ class _VolHomeScreenState extends State<VolHomeScreen> {
                     ),
 
                     const SizedBox(height: 20),
-                    _buildSectionTitle("All Organizations"),
+                    _buildSectionTitle("Available Organizations"),
                     _buildOrganizationList(),
                     const SizedBox(height: 10),
                     Center(
