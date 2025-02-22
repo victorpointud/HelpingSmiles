@@ -69,47 +69,92 @@ class _VolHomeScreenState extends State<VolHomeScreen> {
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+
                   children: [
                     _buildSectionTitle("Available Activities"),
                     _buildEventList(availableEvents),
+                    const SizedBox(height: 10),
                     Center(
-                      child: TextButton(
-                        onPressed: _navigateToMoreEvents,
-                        child: const Text("View More Events", 
-                        style: TextStyle(color: Colors.red, fontSize: 16, fontWeight: FontWeight.bold)),
+                      child: Column(
+                        children: [
+                          ElevatedButton.icon(
+                            onPressed: _navigateToMoreEvents,
+                            icon: const Icon(Icons.event),
+                            label: const Text("More Events"),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color.fromRGBO(230, 74, 63, 1),
+                              foregroundColor: Colors.white,
+                              iconColor: Colors.black,
+                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
 
                     const SizedBox(height: 20),
                     _buildSectionTitle("All Organizations"),
                     _buildOrganizationList(),
+                    const SizedBox(height: 10),
                     Center(
-                      child: TextButton(
-                        onPressed: _navigateToMoreOrgs,
-                        child: const Text("View More Events", 
-                        style: TextStyle(color: Colors.red, fontSize: 16, fontWeight: FontWeight.bold)),
+                      child: Column(
+                        children: [
+                          ElevatedButton.icon(
+                            onPressed: _navigateToMoreOrgs,
+                            icon: const Icon(Icons.event),
+                            label: const Text("More Organizations"),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color.fromRGBO(230, 74, 63, 1),
+                              foregroundColor: Colors.white,
+                              iconColor: Colors.black,
+                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
 
                     const SizedBox(height: 20),
                     _buildSectionTitle("My Registered Organizations"),
                     _buildRegisteredOrganizationList(),
+                    const SizedBox(height: 10),
                     Center(
-                      child: TextButton(
-                        onPressed: _navigateToMoreRegisteredOrgs,
-                        child: const Text("View More Events", 
-                        style: TextStyle(color: Colors.red, fontSize: 16, fontWeight: FontWeight.bold)),
+                      child: Column(
+                        children: [
+                          ElevatedButton.icon(
+                            onPressed: _navigateToMoreRegisteredOrgs,
+                            icon: const Icon(Icons.event),
+                            label: const Text("More Registered Organizations"),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color.fromRGBO(230, 74, 63, 1),
+                              foregroundColor: Colors.white,
+                              iconColor: Colors.black,
+                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-
+                  
                     const SizedBox(height: 20),
                     _buildSectionTitle("My Registered Events"),
                     _buildRegisteredEventList(),
+                    const SizedBox(height: 10),
                     Center(
-                      child: TextButton(
-                        onPressed: _navigateToMoreRegisteredEvents,
-                        child: const Text("View More Events", 
-                        style: TextStyle(color: Colors.red, fontSize: 16, fontWeight: FontWeight.bold)),
+                      child: Column(
+                        children: [
+                          ElevatedButton.icon(
+                            onPressed: _navigateToMoreRegisteredEvents,
+                            icon: const Icon(Icons.event),
+                            label: const Text("More Registered Events"),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color.fromRGBO(230, 74, 63, 1),
+                              foregroundColor: Colors.white,
+                              iconColor: Colors.black,
+                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -117,7 +162,7 @@ class _VolHomeScreenState extends State<VolHomeScreen> {
               ),
             ),
           ),
-        ],
+        ],               
       ),
     );
   }
