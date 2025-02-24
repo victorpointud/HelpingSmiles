@@ -64,7 +64,7 @@ class _VolHomeScreenState extends State<VolHomeScreen> {
           ),
           Container(color: Colors.black.withOpacity(0.3)),
           SafeArea(
-            child: Padding(
+            child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
               child: SingleChildScrollView(
                 child: Column(
@@ -91,6 +91,7 @@ class _VolHomeScreenState extends State<VolHomeScreen> {
                         ],
                       ),
                     ),
+                    
 
                     const SizedBox(height: 20),
                     _buildSectionTitle("Available Organizations"),

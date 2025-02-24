@@ -7,7 +7,9 @@ import 'login_screen.dart';
 import '../managers/add_org_activity_manager.dart';
 import '../managers/edit_org_activity_manager.dart';
 import 'registered_vol_info_screen.dart';
-import 'org_info_screen.dart';
+import 'registered_org_info_screen.dart';
+import 'all_org_events_screen.dart';
+import 'all_extra_orgs_screen.dart';
 
 class OrgHomeScreen extends StatefulWidget {
   const OrgHomeScreen({super.key});
@@ -18,6 +20,7 @@ class OrgHomeScreen extends StatefulWidget {
 
 class _OrgHomeScreenState extends State<OrgHomeScreen> {
   String? organizationName;
+  String? organizationId;
   List<Map<String, dynamic>> events = [];
   List<Map<String, dynamic>> otherOrganizations = [];
 
@@ -29,28 +32,28 @@ class _OrgHomeScreenState extends State<OrgHomeScreen> {
   }
 
   Future<void> _loadOrganizationData() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      try {
-        String? orgName = await AuthManager.getOrganizationName(user.uid);
-        if (orgName == null || orgName.isEmpty) {
-          orgName = "Unknown Organization";
-        }
-
-        if (!mounted) return;
-        setState(() {
-          organizationName = orgName;
-        });
-
-        _loadEvents(user.uid);
-      } catch (e) {
-        if (!mounted) return;
-        setState(() {
-          organizationName = "Error retrieving organization";
-        });
+  final user = FirebaseAuth.instance.currentUser;
+  if (user != null) {
+    try {
+      String? orgName = await AuthManager.getOrganizationName(user.uid);
+      if (orgName == null || orgName.isEmpty) {
+        orgName = "Unknown Organization";
       }
+
+      if (!mounted) return;
+      setState(() {
+        organizationName = orgName;
+        organizationId = user.uid; 
+      });
+
+      print("Organization ID Loaded: $organizationId"); 
+
+      _loadEvents(user.uid);
+    } catch (e) {
+      print(" Error retrieving organization: $e");
     }
   }
+}
 
   Future<void> _loadOtherOrganizations() async {
     final user = FirebaseAuth.instance.currentUser;
@@ -118,6 +121,28 @@ class _OrgHomeScreenState extends State<OrgHomeScreen> {
     Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
   }
 
+ void _navigateToAllOrgEvents() {
+  if (organizationId != null) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => AllOrgEventsScreen(organizationId: organizationId!)),
+    );
+  } else {
+    print("Error: organizationId is null");
+  }
+}
+
+void _navigateToAllExtraOrgs() {
+  if (organizationId != null) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => AllExtraOrgsScreen(currentOrganizationId: organizationId!)),
+    );
+  } else {
+    print("Error: organizationId is null");
+  }
+}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -152,13 +177,42 @@ class _OrgHomeScreenState extends State<OrgHomeScreen> {
                 children: [
                   _buildSectionTitle("Upcoming Events"),
                   _buildEventList(),
+                  const SizedBox(height: 10),
+                  Center(
+                    child: ElevatedButton.icon(
+                      onPressed: organizationId != null ? _navigateToAllOrgEvents : null,
+                      icon: const Icon(Icons.event),
+                      label: const Text("More Events"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromRGBO(230, 74, 63, 1),
+                        foregroundColor: Colors.white,
+                        iconColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                      ),
+                    ),
+                  ),
 
                   const SizedBox(height: 20),
-                  _buildSectionTitle("Other Registered Organizations"),
+                  _buildSectionTitle("Other Organizations"),
                   _buildOtherOrganizationsList(),
+                  const SizedBox(height: 10),
+                  Center(
+                    child: ElevatedButton.icon(
+                      onPressed: organizationId != null ? _navigateToAllExtraOrgs : null,
+                      icon: const Icon(Icons.event),
+                      label: const Text("More Organizations"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromRGBO(230, 74, 63, 1),
+                        foregroundColor: Colors.white,
+                        iconColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                      ),
+                    ),
+                  ),
 
                   const SizedBox(height: 20),
                   _buildSectionTitle("Volunteers Enrolled"),
+                  const SizedBox(height: 10),
                   Center(
                     child: SizedBox(
                       width: double.infinity,
@@ -192,18 +246,18 @@ class _OrgHomeScreenState extends State<OrgHomeScreen> {
     Navigator.push(context, MaterialPageRoute(builder: (_) => const OrgProfileScreen()));
   }
 
-  void _navigateToOrgInfo(String orgId, String orgName) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => OrgInfoScreen(
-          organizationId: orgId,
-          organizationName: orgName,
-        ),
+  void _navigateToRegisteredOrgInfo(String orgId, String orgName) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => RegisteredOrgInfoScreen(
+        organizationId: orgId,
+        organizationName: orgName,
       ),
-    );
-  }
-  
+    ),
+  );
+}
+
   Widget _buildSectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
@@ -234,7 +288,7 @@ class _OrgHomeScreenState extends State<OrgHomeScreen> {
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(event["name"], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red)),
               Text("${event["date"]} • ${event["location"]}", style: const TextStyle(fontSize: 14, color: Colors.black)),
@@ -258,7 +312,7 @@ class _OrgHomeScreenState extends State<OrgHomeScreen> {
 
   Widget _buildOrganizationCard(Map<String, dynamic> org) {
     return GestureDetector(
-      onTap: () => _navigateToOrgInfo(org["id"], org["name"]),
+      onTap: () => _navigateToRegisteredOrgInfo(org["id"], org["name"]),
       child: Card(
         elevation: 3,
         margin: const EdgeInsets.symmetric(vertical: 8),
@@ -267,7 +321,7 @@ class _OrgHomeScreenState extends State<OrgHomeScreen> {
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(org["name"], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red)),
               Text(org["mission"], style: const TextStyle(fontSize: 14, color: Colors.black)),
