@@ -12,6 +12,8 @@ import 'all_events_screen.dart';
 import 'all_orgs_screen.dart';
 import 'all_registered_events_screen.dart';
 import 'all_registered_orgs_screen.dart';
+import 'package:geolocator/geolocator.dart';
+
 
 class VolHomeScreen extends StatefulWidget {
   const VolHomeScreen({super.key});
@@ -26,6 +28,23 @@ class _VolHomeScreenState extends State<VolHomeScreen> {
   List<Map<String, dynamic>> registeredOrganizations = [];
   List<Map<String, dynamic>> availableEvents = [];
   List<Map<String, dynamic>> registeredEventInfo = [];
+  Future<Position> determinePosition() async{
+    LocationPermission permission;
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        Future.error("error");
+      }
+    }
+    return await Geolocator.getCurrentPosition();
+  }
+
+  void getCurrentLocation() async {
+    Position position = await determinePosition();
+    print(position.latitude);
+    print(position.longitude);
+  }
 
   @override
   void initState() {
@@ -71,6 +90,21 @@ class _VolHomeScreenState extends State<VolHomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
 
                   children: [
+                    Center(
+                      child: ElevatedButton.icon(
+                        onPressed: () {getCurrentLocation();},
+                        icon: const Icon(Icons.place),
+                        label: const Text("Take location"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color.fromRGBO(230, 74, 63, 1),
+                          foregroundColor: Colors.white,
+                          iconColor: Colors.black,
+                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                        ),
+                      ),
+                    ),
+                  
+const SizedBox(height: 20), // Espacio entre el botón y la sección "Available Activities"
                     _buildSectionTitle("Available Activities"),
                     _buildEventList(availableEvents),
                     const SizedBox(height: 10),
