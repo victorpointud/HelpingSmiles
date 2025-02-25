@@ -19,8 +19,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _organizationController = TextEditingController();
   final _phoneController = TextEditingController();
   final _dateController = TextEditingController();
-
-  // New fields for Organization Representative (Encargado)
+ 
   final _repNameController = TextEditingController();
   final _repLastNameController = TextEditingController();
   final _repPhoneController = TextEditingController();

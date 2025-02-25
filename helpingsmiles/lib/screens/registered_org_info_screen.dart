@@ -20,12 +20,19 @@ class _RegisteredOrgInfoScreenState extends State<RegisteredOrgInfoScreen> {
   String? phone;
   String? date;
   String? mission;
+  String? repName;
+  String? repLastName;
+  String? repPhone;
+  String? repEmail;
+
   List<String> objectives = [];
 
   @override
   void initState() {
     super.initState();
     _loadOrganizationData();
+    _loadRepresentativeData();
+
   }
 
   Future<void> _loadOrganizationData() async {
@@ -39,6 +46,25 @@ class _RegisteredOrgInfoScreenState extends State<RegisteredOrgInfoScreen> {
       });
     }
   }
+
+  Future<void> _loadRepresentativeData() async {
+    final repDoc = await FirebaseFirestore.instance
+        .collection('organizations')
+        .doc(widget.organizationId)
+        .collection('representatives')
+        .doc('info')
+        .get();
+
+    if (repDoc.exists && repDoc.data() != null) {
+      setState(() {
+        repName = repDoc.data()?['repName'] ?? "Not specified";
+        repLastName = repDoc.data()?['repLastName'] ?? "Not specified";
+        repPhone = repDoc.data()?['repPhone'] ?? "Not specified";
+        repEmail = repDoc.data()?['repEmail'] ?? "Not specified";
+      });
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -72,6 +98,8 @@ class _RegisteredOrgInfoScreenState extends State<RegisteredOrgInfoScreen> {
                   _buildProfileSection(Icons.calendar_today, "Date Created", date ?? "Not specified"),
                   _buildProfileSection(Icons.flag, "Mission", mission ?? "Not specified"),
                   _buildProfileList(Icons.list, "Objectives", objectives),
+                  _buildProfileSection(Icons.person,  "Representative", "${repName ?? "Not specified"} ${repLastName ?? "Not specified"} - ${repPhone ?? "Not specified"} - ${repEmail ?? "Not specified"}"),
+
                 ],
               ),
             ),
@@ -90,7 +118,7 @@ class _RegisteredOrgInfoScreenState extends State<RegisteredOrgInfoScreen> {
       child: ListTile(
         leading: Icon(icon, color: Colors.red),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
-        subtitle: Text(content, style: const TextStyle(color: Colors.black)),
+        subtitle: Text(content, style: const TextStyle(color: Colors.black, fontSize: 16)),
       ),
     );
   }

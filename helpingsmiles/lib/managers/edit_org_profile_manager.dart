@@ -21,7 +21,14 @@ class _EditOrgProfileManagerState extends State<EditOrgProfileManager> {
   final _volunteerTypesController = TextEditingController();
   final _locationsController = TextEditingController();
 
+
+  final _repNameController = TextEditingController();
+  final _repLastNameController = TextEditingController();
+  final _repPhoneController = TextEditingController();
+  final _repEmailController = TextEditingController();
+
   String _organizationName = "Loading...";
+  String? _organizationId;
 
   @override
   void initState() {
@@ -32,7 +39,9 @@ class _EditOrgProfileManagerState extends State<EditOrgProfileManager> {
   Future<void> _loadOrganizationData() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
+      _organizationId = user.uid;
       final doc = await FirebaseFirestore.instance.collection('organizations').doc(user.uid).get();
+      
       if (doc.exists) {
         setState(() {
           _organizationName = doc.data()?['name'] ?? "";
@@ -45,59 +54,90 @@ class _EditOrgProfileManagerState extends State<EditOrgProfileManager> {
           _locationsController.text = (doc.data()?['locations'] as List<dynamic>?)?.join("\n") ?? "";
           _objectivesController.text = (doc.data()?['objectives'] as List<dynamic>?)?.join("\n") ?? "";
           _volunteerTypesController.text = (doc.data()?['volunteerTypes'] as List<dynamic>?)?.join("\n") ?? "";
-
         });
+
+        _loadRepresentativeData(user.uid);
       }
+    }
+  }
+
+  Future<void> _loadRepresentativeData(String organizationId) async {
+    final repDoc = await FirebaseFirestore.instance
+        .collection('organizations')
+        .doc(organizationId)
+        .collection('representatives')
+        .doc('info')
+        .get();
+
+    if (repDoc.exists) {
+      setState(() {
+        _repNameController.text = repDoc.data()?['repName'] ?? "";
+        _repLastNameController.text = repDoc.data()?['repLastName'] ?? "";
+        _repPhoneController.text = repDoc.data()?['repPhone'] ?? "";
+        _repEmailController.text = repDoc.data()?['repEmail'] ?? "";
+      });
     }
   }
 
   Future<void> _saveProfile() async {
-  final user = FirebaseAuth.instance.currentUser;
-
-  if (user == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("No user is signed in. Please log in again.")),
-    );
-    return;
-  }
-
-  if (_formKey.currentState!.validate()) {
-    try {
-      
-      if (_emailController.text.trim() != user.email || _passwordController.text.trim().isNotEmpty) {
-        bool reauthenticated = await _reauthenticateUser();
-        if (!reauthenticated) return;
-      }
-
-      if (_emailController.text.trim() != user.email) {
-        await user.updateEmail(_emailController.text.trim());
-      }
-
-      if (_passwordController.text.trim().isNotEmpty) {
-        await user.updatePassword(_passwordController.text.trim());
-      }
-
-      await FirebaseFirestore.instance.collection('organizations').doc(user.uid).set({
-        'name': _nameController.text.trim(),
-        'phone': _phoneController.text.trim(),
-        'date': _dateController.text.trim(),
-        'email': _emailController.text.trim(),
-        'mission': _missionController.text.trim(),
-        'password': _passwordController.text.trim(), 
-        'locations': _locationsController.text.trim().split("\n").where((item) => item.isNotEmpty).toList(),
-        'objectives': _objectivesController.text.trim().split("\n").where((item) => item.isNotEmpty).toList(),
-        'volunteerTypes': _volunteerTypesController.text.trim().split("\n").where((item) => item.isNotEmpty).toList(),
-      }, SetOptions(merge: true));
-
-      _showSuccessDialog();
-
-    } catch (e) {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error updating profile: ${e.toString()}")),
+        const SnackBar(content: Text("No user is signed in. Please log in again.")),
       );
+      return;
+    }
+
+    if (_formKey.currentState!.validate()) {
+      try {
+      
+        if (_emailController.text.trim() != user.email || _passwordController.text.trim().isNotEmpty) {
+          bool reauthenticated = await _reauthenticateUser();
+          if (!reauthenticated) return;
+        }
+
+        if (_emailController.text.trim() != user.email) {
+          await user.updateEmail(_emailController.text.trim());
+        }
+
+        if (_passwordController.text.trim().isNotEmpty) {
+          await user.updatePassword(_passwordController.text.trim());
+        }
+
+        await FirebaseFirestore.instance.collection('organizations').doc(user.uid).set({
+          'name': _nameController.text.trim(),
+          'phone': _phoneController.text.trim(),
+          'date': _dateController.text.trim(),
+          'email': _emailController.text.trim(),
+          'mission': _missionController.text.trim(),
+          'password': _passwordController.text.trim(),
+          'locations': _locationsController.text.trim().split("\n").where((item) => item.isNotEmpty).toList(),
+          'objectives': _objectivesController.text.trim().split("\n").where((item) => item.isNotEmpty).toList(),
+          'volunteerTypes': _volunteerTypesController.text.trim().split("\n").where((item) => item.isNotEmpty).toList(),
+        }, SetOptions(merge: true));
+
+     
+        await FirebaseFirestore.instance
+            .collection('organizations')
+            .doc(user.uid)
+            .collection('representatives')
+            .doc('info')
+            .set({
+          'repName': _repNameController.text.trim(),
+          'repLastName': _repLastNameController.text.trim(),
+          'repPhone': _repPhoneController.text.trim(),
+          'repEmail': _repEmailController.text.trim(),
+        }, SetOptions(merge: true));
+
+        _showSuccessDialog();
+
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error updating profile: ${e.toString()}")),
+        );
+      }
     }
   }
-}
 
 
 Future<bool> _reauthenticateUser() async {
@@ -174,8 +214,16 @@ Future<bool> _reauthenticateUser() async {
                             _buildMultiLineTextField(_locationsController, "Locations", Icons.location_on),
                             _buildMultiLineTextField(_objectivesController, "Objectives (One per line)", Icons.list),
                             _buildMultiLineTextField(_volunteerTypesController, "Volunteer Types (One per line)", Icons.people),
+                            
                             const SizedBox(height: 20),
-                            _buildSaveButton(),
+                            const Text("Representative Information", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
+                            _buildTextField(_repNameController, "Representative First Name", Icons.person),
+                            _buildTextField(_repLastNameController, "Representative Last Name", Icons.person_outline),
+                            _buildTextField(_repPhoneController, "Representative Phone", Icons.phone),
+                            _buildTextField(_repEmailController, "Representative Email", Icons.email),
+
+                            const SizedBox(height: 20),
+                              _buildSaveButton(),
                           ],
                         ),
                       ),
@@ -198,13 +246,9 @@ Future<bool> _reauthenticateUser() async {
         obscureText: isPassword,
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
           prefixIcon: Icon(icon, color: Colors.red),
-          filled: true,
-          fillColor: Colors.white,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         ),
-        validator: (value) => value!.isEmpty ? "Please enter $label" : null,
       ),
     );
   }

@@ -241,7 +241,6 @@ void _navigateToAllExtraOrgs() {
     );
   }
 
-
   void _navigateToProfile() {
     Navigator.push(context, MaterialPageRoute(builder: (_) => const OrgProfileScreen()));
   }
@@ -293,7 +292,7 @@ void _navigateToAllExtraOrgs() {
               Text(event["name"], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red)),
               Text("${event["date"]} • ${event["location"]}", style: const TextStyle(fontSize: 14, color: Colors.black)),
               const SizedBox(height: 5),
-              const Text("Click to see more info", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
+              const Text("Click to edit", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
             ],
           ),
         ),

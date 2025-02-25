@@ -66,8 +66,7 @@ class AuthManager {
           'locations': [],
         });
 
-        // Add organization representative details
-        await orgRef.collection('representative').doc('info').set({
+        await orgRef.collection('representatives').doc('info').set({
           'name': repName ?? "Not specified",
           'lastName': repLastName ?? "Not specified",
           'phone': repPhone ?? "Not specified",
@@ -80,7 +79,6 @@ class AuthManager {
       return e is FirebaseAuthException ? e.message : 'Registration error.';
     }
   }
-
 
   static Future<String?> getUserName(String uid) async {
     try {

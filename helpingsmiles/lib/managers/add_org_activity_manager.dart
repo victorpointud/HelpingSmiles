@@ -18,6 +18,11 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
   final _locationController = TextEditingController();
   final _descriptionController = TextEditingController();
 
+  final _repNameController = TextEditingController();
+  final _repLastNameController = TextEditingController();
+  final _repPhoneController = TextEditingController();
+  final _repEmailController = TextEditingController();
+
   String _organizationName = "Loading...";
   bool _isLoading = false;
 
@@ -40,37 +45,47 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
   }
 
   Future<void> _saveActivity() async {
-    if (!_formKey.currentState!.validate()) return;
+  if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true);
+  setState(() => _isLoading = true);
 
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("User not authenticated.")));
-      setState(() => _isLoading = false);
-      return;
-    }
-
-    try {
-      await FirebaseFirestore.instance.collection('events').add({
-        'organizationId': user.uid,
-        'organizationName': _organizationName,
-        'name': _activityNameController.text.trim(),
-        'date': _dateController.text.trim(),
-        'duration': _durationController.text.trim(),
-        'volunteerType': _volunteerTypeController.text.trim(),
-        'location': _locationController.text.trim(),
-        'description': _descriptionController.text.trim(),
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-
-      _showSuccessDialog();
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error saving activity: $e")));
-    } finally {
-      setState(() => _isLoading = false);
-    }
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) {
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("User not authenticated.")));
+    setState(() => _isLoading = false);
+    return;
   }
+
+  try {
+    // ✅ Guardar actividad en Firestore
+    DocumentReference eventRef = await FirebaseFirestore.instance.collection('events').add({
+      'organizationId': user.uid,
+      'organizationName': _organizationName,
+      'name': _activityNameController.text.trim(),
+      'date': _dateController.text.trim(),
+      'duration': _durationController.text.trim(),
+      'volunteerType': _volunteerTypeController.text.trim(),
+      'location': _locationController.text.trim(),
+      'description': _descriptionController.text.trim(),
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+
+    // ✅ Guardar responsable en la subcolección "representatives/info" dentro del evento
+    await FirebaseFirestore.instance.collection('events').doc(eventRef.id).collection('representatives').doc('info').set({
+      'repName': _repNameController.text.trim(),
+      'repLastName': _repLastNameController.text.trim(),
+      'repPhone': _repPhoneController.text.trim(),
+      'repEmail': _repEmailController.text.trim(),
+    });
+
+    _showSuccessDialog();
+  } catch (e) {
+    print("❌ Error al guardar actividad y representante: $e");
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error saving activity: $e")));
+  } finally {
+    setState(() => _isLoading = false);
+  }
+}
 
   void _showSuccessDialog() {
     showDialog(
@@ -139,7 +154,22 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
                             _buildTextField(_volunteerTypeController, "Volunteer Type", Icons.people),
                             _buildTextField(_locationController, "Location", Icons.location_on),
                             _buildTextField(_descriptionController, "Description", Icons.description, isMultiline: true),
+
                             const SizedBox(height: 20),
+
+                            // ✅ Sección para añadir responsable
+                            const Text(
+                              "Activity Representative",
+                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
+                            ),
+                            const SizedBox(height: 10),
+                            _buildTextField(_repNameController, "First Name", Icons.person),
+                            _buildTextField(_repLastNameController, "Last Name", Icons.person_outline),
+                            _buildTextField(_repPhoneController, "Phone", Icons.phone),
+                            _buildTextField(_repEmailController, "Email", Icons.email),
+
+                            const SizedBox(height: 20),
+
                             _isLoading
                                 ? const CircularProgressIndicator(color: Colors.red)
                                 : _buildSaveButton(),
