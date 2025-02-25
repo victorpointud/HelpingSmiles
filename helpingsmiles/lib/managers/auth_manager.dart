@@ -17,6 +17,10 @@ class AuthManager {
     String? name,
     String? lastName,
     String? organizationName,
+    String? repName, 
+    String? repLastName, 
+    String? repPhone, 
+    String? repEmail, 
   }) async {
     try {
       final userCredential = await _auth.createUserWithEmailAndPassword(
@@ -48,7 +52,9 @@ class AuthManager {
           'skills': [],
         });
       } else if (role == 'organization') {
-        await _db.collection('organizations').doc(userCredential.user!.uid).set({
+        final orgRef = _db.collection('organizations').doc(userCredential.user!.uid);
+
+        await orgRef.set({
           'name': fullName,
           'email': email,
           'phone': phone,
@@ -59,6 +65,14 @@ class AuthManager {
           'volunteerTypes': [],
           'locations': [],
         });
+
+        // Add organization representative details
+        await orgRef.collection('representative').doc('info').set({
+          'name': repName ?? "Not specified",
+          'lastName': repLastName ?? "Not specified",
+          'phone': repPhone ?? "Not specified",
+          'email': repEmail ?? "Not specified",
+        });
       }
 
       return null;
@@ -66,6 +80,7 @@ class AuthManager {
       return e is FirebaseAuthException ? e.message : 'Registration error.';
     }
   }
+
 
   static Future<String?> getUserName(String uid) async {
     try {

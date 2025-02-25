@@ -21,6 +21,12 @@ class _OrgProfileScreenState extends State<OrgProfileScreen> {
   List<String> volunteerTypes = [];
   List<String> locations = [];
 
+  // Representative fields
+  String? repName;
+  String? repLastName;
+  String? repPhone;
+  String? repEmail;
+
   @override
   void initState() {
     super.initState();
@@ -43,7 +49,28 @@ class _OrgProfileScreenState extends State<OrgProfileScreen> {
           volunteerTypes = _convertToList(doc['volunteerTypes']);
           locations = _convertToList(doc['locations']);
         });
+
+        // Load Representative Information
+        _loadRepresentativeData(user.uid);
       }
+    }
+  }
+
+  Future<void> _loadRepresentativeData(String organizationId) async {
+    final repDoc = await FirebaseFirestore.instance
+        .collection('organizations')
+        .doc(organizationId)
+        .collection('representatives')
+        .doc('info') 
+        .get();
+
+    if (repDoc.exists) {
+      setState(() {
+        repName = repDoc.data()?['repName'] ?? "Not specified";
+        repLastName = repDoc.data()?['repLastName'] ?? "Not specified";
+        repPhone = repDoc.data()?['repPhone'] ?? "Not specified";
+        repEmail = repDoc.data()?['repEmail'] ?? "Not specified";
+      });
     }
   }
 
@@ -71,11 +98,8 @@ class _OrgProfileScreenState extends State<OrgProfileScreen> {
 
     if (user != null) {
       try {
-      
         await FirebaseFirestore.instance.collection('organizations').doc(user.uid).delete();
-
         await user.delete();
-
         Navigator.of(context).pushReplacementNamed('/login');
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -136,15 +160,22 @@ class _OrgProfileScreenState extends State<OrgProfileScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: 20),
-                _buildProfileSection(Icons.business, "Name", name),
+                _buildProfileSection(Icons.business, "Organization Name", name),
                 _buildProfileSection(Icons.email, "Email", email),
                 _buildProfileSection(Icons.phone, "Phone Number", phone),
                 _buildProfileSection(Icons.calendar_today, "Date of Creation", date),
-                _buildProfileSection(Icons.lock, "Password", password ?? "Not specified"),
                 _buildProfileSection(Icons.flag, "Mission", mission),
                 _buildProfileList(Icons.list, "Objectives", objectives),
                 _buildProfileList(Icons.people, "Volunteer Types", volunteerTypes),
                 _buildProfileList(Icons.location_on, "Locations", locations),
+
+                const SizedBox(height: 20),
+                const Text("Representative Information", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 255, 255, 255))),
+                _buildProfileSection(Icons.person, "First Name", repName),
+                _buildProfileSection(Icons.person_outline, "Last Name", repLastName),
+                _buildProfileSection(Icons.phone, "Phone", repPhone),
+                _buildProfileSection(Icons.email, "Email", repEmail),
+
                 const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -176,30 +207,10 @@ class _OrgProfileScreenState extends State<OrgProfileScreen> {
       margin: const EdgeInsets.symmetric(vertical: 10),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       color: Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Row(
-          children: [
-            Icon(icon, color: Colors.red),
-            const SizedBox(width: 10),
-            Expanded(
-              child: RichText(
-                text: TextSpan(
-                  children: [
-                    TextSpan(
-                      text: "$title: ",
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
-                    ),
-                    TextSpan(
-                      text: content ?? 'Not specified',
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal, color: Colors.black),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+      child: ListTile(
+        leading: Icon(icon, color: Colors.red),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+        subtitle: Text(content ?? 'Not specified', style: const TextStyle(color: Colors.black, fontSize: 16)),
       ),
     );
   }
@@ -218,9 +229,8 @@ class _OrgProfileScreenState extends State<OrgProfileScreen> {
             Row(children: [
               Icon(icon, color: Colors.red),
               const SizedBox(width: 10),
-              Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
+              Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black))
             ]),
-            const SizedBox(height: 5),
             ...items.map((item) => Text("• $item", style: const TextStyle(fontSize: 16, color: Colors.black))),
           ],
         ),
