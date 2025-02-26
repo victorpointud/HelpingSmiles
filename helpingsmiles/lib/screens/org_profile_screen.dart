@@ -168,13 +168,7 @@ class _OrgProfileScreenState extends State<OrgProfileScreen> {
                 _buildProfileList(Icons.list, "Objectives", objectives),
                 _buildProfileList(Icons.people, "Volunteer Types", volunteerTypes),
                 _buildProfileList(Icons.location_on, "Locations", locations),
-
-                const SizedBox(height: 20),
-                const Text("Representative Information", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 255, 255, 255))),
-                _buildProfileSection(Icons.person, "First Name", repName),
-                _buildProfileSection(Icons.person_outline, "Last Name", repLastName),
-                _buildProfileSection(Icons.phone, "Phone", repPhone),
-                _buildProfileSection(Icons.email, "Email", repEmail),
+                _buildProfileSection(Icons.person,  "Representative", "${repName ?? "Not specified"} ${repLastName ?? "Not specified"} - ${repPhone ?? "Not specified"} - ${repEmail ?? "Not specified"}"),   
 
                 const SizedBox(height: 20),
                 Row(

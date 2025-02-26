@@ -11,13 +11,16 @@ class AddOrgActivityManager extends StatefulWidget {
 
 class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
   final _formKey = GlobalKey<FormState>();
+
+  // Campos de la actividad
   final _activityNameController = TextEditingController();
   final _dateController = TextEditingController();
   final _durationController = TextEditingController();
-  final _volunteerTypeController = TextEditingController();
+  final _organizationTypeController = TextEditingController();
   final _locationController = TextEditingController();
   final _descriptionController = TextEditingController();
 
+  // Campos del representante
   final _repNameController = TextEditingController();
   final _repLastNameController = TextEditingController();
   final _repPhoneController = TextEditingController();
@@ -45,47 +48,51 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
   }
 
   Future<void> _saveActivity() async {
-  if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) return;
 
-  setState(() => _isLoading = true);
+    setState(() => _isLoading = true);
 
-  final user = FirebaseAuth.instance.currentUser;
-  if (user == null) {
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("User not authenticated.")));
-    setState(() => _isLoading = false);
-    return;
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("User not authenticated."))
+      );
+      setState(() => _isLoading = false);
+      return;
+    }
+
+    try {
+      // ✅ Guardar la actividad en Firestore
+      DocumentReference eventRef = await FirebaseFirestore.instance.collection('events').add({
+        'organizationId': user.uid,
+        'organizationName': _organizationName,
+        'name': _activityNameController.text.trim(),
+        'date': _dateController.text.trim(),
+        'duration': _durationController.text.trim(),
+        'organizationType': _organizationTypeController.text.trim(),
+        'location': _locationController.text.trim(),
+        'description': _descriptionController.text.trim(),
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      // ✅ Guardar responsable en la subcolección "representatives/info" dentro del evento
+      await eventRef.collection('representatives').doc('info').set({
+        'repName': _repNameController.text.trim(),
+        'repLastName': _repLastNameController.text.trim(),
+        'repPhone': _repPhoneController.text.trim(),
+        'repEmail': _repEmailController.text.trim(),
+      });
+
+      _showSuccessDialog();
+    } catch (e) {
+      print("❌ Error al guardar actividad y representante: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error saving activity: $e"))
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
   }
-
-  try {
-    // ✅ Guardar actividad en Firestore
-    DocumentReference eventRef = await FirebaseFirestore.instance.collection('events').add({
-      'organizationId': user.uid,
-      'organizationName': _organizationName,
-      'name': _activityNameController.text.trim(),
-      'date': _dateController.text.trim(),
-      'duration': _durationController.text.trim(),
-      'volunteerType': _volunteerTypeController.text.trim(),
-      'location': _locationController.text.trim(),
-      'description': _descriptionController.text.trim(),
-      'createdAt': FieldValue.serverTimestamp(),
-    });
-
-    // ✅ Guardar responsable en la subcolección "representatives/info" dentro del evento
-    await FirebaseFirestore.instance.collection('events').doc(eventRef.id).collection('representatives').doc('info').set({
-      'repName': _repNameController.text.trim(),
-      'repLastName': _repLastNameController.text.trim(),
-      'repPhone': _repPhoneController.text.trim(),
-      'repEmail': _repEmailController.text.trim(),
-    });
-
-    _showSuccessDialog();
-  } catch (e) {
-    print("❌ Error al guardar actividad y representante: $e");
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error saving activity: $e")));
-  } finally {
-    setState(() => _isLoading = false);
-  }
-}
 
   void _showSuccessDialog() {
     showDialog(
@@ -151,7 +158,7 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
                             _buildTextField(_activityNameController, "Activity Name", Icons.event),
                             _buildTextField(_dateController, "Date (YYYY-MM-DD)", Icons.calendar_today),
                             _buildTextField(_durationController, "Duration (hours)", Icons.timelapse),
-                            _buildTextField(_volunteerTypeController, "Volunteer Type", Icons.people),
+                            _buildTextField(_organizationTypeController, "Organization Type", Icons.people),
                             _buildTextField(_locationController, "Location", Icons.location_on),
                             _buildTextField(_descriptionController, "Description", Icons.description, isMultiline: true),
 

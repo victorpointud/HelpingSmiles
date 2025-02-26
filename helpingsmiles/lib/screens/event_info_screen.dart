@@ -127,10 +127,7 @@ class _EventInfoScreenState extends State<EventInfoScreen> {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       try {
-        final volunteerDoc = await FirebaseFirestore.instance
-            .collection('volunteers')
-            .doc(user.uid)
-            .get();
+        final volunteerDoc = await FirebaseFirestore.instance.collection('volunteers').doc(user.uid).get();
 
         if (!volunteerDoc.exists) {
           _showErrorDialog("Volunteer profile not found!");
@@ -146,12 +143,7 @@ class _EventInfoScreenState extends State<EventInfoScreen> {
         final location = volunteerData['location'] ?? "Not specified";
         final date = volunteerData['date'] ?? "Not specified";
 
-        await FirebaseFirestore.instance
-            .collection('events')
-            .doc(eventId)
-            .collection('registrations')
-            .doc(user.uid)
-            .set({
+        await FirebaseFirestore.instance.collection('events').doc(eventId).collection('registrations').doc(user.uid).set({
           'userId': user.uid,
           'name': name,
           'email': email,
@@ -166,7 +158,6 @@ class _EventInfoScreenState extends State<EventInfoScreen> {
         _showSuccessDialog(); 
 
       } catch (e) {
-        print("Error registering for event: $e");
         _showErrorDialog("Failed to register for event.");
       }
     }
@@ -205,7 +196,6 @@ class _EventInfoScreenState extends State<EventInfoScreen> {
       ),
     );
   }
-
 
   Widget _buildDetailRow(IconData icon, String title, String value) {
     return Padding(
