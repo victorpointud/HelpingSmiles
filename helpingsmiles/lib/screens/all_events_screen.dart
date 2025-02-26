@@ -13,6 +13,8 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
   List<Map<String, dynamic>> events = [];
   List<Map<String, dynamic>> filteredEvents = [];
   TextEditingController searchController = TextEditingController();
+  String? selectedDuration; // Para almacenar la duración seleccionada
+  List<String> durations = []; // Lista de duraciones únicas
 
   @override
   void initState() {
@@ -30,9 +32,14 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
           'name': data['name'] ?? "Unnamed Event",
           'date': data['date'] ?? "No date provided",
           'location': data['location'] ?? "No location provided",
+          'duration': data['duration'] ?? "No duration provided", // Cargar la duración
         };
       }).toList();
-      filteredEvents = List.from(events); // Inicialmente, los eventos filtrados son todos los eventos
+      filteredEvents = List.from(events);
+
+      // Obtener las duraciones únicas de los eventos
+      durations = events.map((event) => event['duration'].toString()).toSet().toList();
+      durations.insert(0, "All"); // Agregar la opción "All" para mostrar todos los eventos
     });
   }
 
@@ -42,6 +49,19 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
         final name = event['name'].toString().toLowerCase();
         return name.contains(query.toLowerCase()); // Solo busca en el nombre del evento
       }).toList();
+    });
+  }
+
+  void _filterByDuration(String? duration) {
+    setState(() {
+      selectedDuration = duration;
+      if (duration == "All" || duration == null) {
+        filteredEvents = List.from(events); // Mostrar todos los eventos
+      } else {
+        filteredEvents = events.where((event) {
+          return event['duration'] == duration; // Filtrar por duración seleccionada
+        }).toList();
+      }
     });
   }
 
@@ -56,23 +76,49 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
         ),
         iconTheme: const IconThemeData(color: Colors.black),
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(60),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: TextField(
-              controller: searchController,
-              decoration: InputDecoration(
-                hintText: 'Search events...',
-                prefixIcon: const Icon(Icons.search, color: Colors.black),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide.none,
+          preferredSize: const Size.fromHeight(120), // Aumentamos la altura para el dropdown
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: TextField(
+                  controller: searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Search events...',
+                    prefixIcon: const Icon(Icons.search, color: Colors.black),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide.none,
+                    ),
+                    filled: true,
+                    fillColor: Colors.grey[200],
+                  ),
+                  onChanged: _filterEvents,
                 ),
-                filled: true,
-                fillColor: Colors.grey[200],
               ),
-              onChanged: _filterEvents,
-            ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: DropdownButtonFormField<String>(
+                  value: selectedDuration,
+                  decoration: InputDecoration(
+                    hintText: 'Filter by duration',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide.none,
+                    ),
+                    filled: true,
+                    fillColor: Colors.grey[200],
+                  ),
+                  items: durations.map((duration) {
+                    return DropdownMenuItem(
+                      value: duration,
+                      child: Text(duration),
+                    );
+                  }).toList(),
+                  onChanged: _filterByDuration,
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -123,6 +169,8 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
               const SizedBox(height: 5),
               Text("${event["date"]} • ${event["location"]}", style: const TextStyle(color: Colors.black)),
               const SizedBox(height: 5),
+              Text("Duration: ${event["duration"]}", style: const TextStyle(color: Colors.black)), // Mostrar la duración
+              const SizedBox(height: 5),
               const Text("Click to see more info", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
             ],
           ),
@@ -132,6 +180,6 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
   }
 
   void _navigateToEventInfo(String eventId) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => EventInfoScreen(eventId: eventId),),);
+    Navigator.push(context, MaterialPageRoute(builder: (_) => EventInfoScreen(eventId: eventId),));
   }
 }
