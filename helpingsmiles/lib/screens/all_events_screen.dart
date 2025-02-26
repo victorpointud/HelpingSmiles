@@ -11,6 +11,8 @@ class AllEventsScreen extends StatefulWidget {
 
 class _AllEventsScreenState extends State<AllEventsScreen> {
   List<Map<String, dynamic>> events = [];
+  List<Map<String, dynamic>> filteredEvents = [];
+  TextEditingController searchController = TextEditingController();
 
   @override
   void initState() {
@@ -30,6 +32,16 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
           'location': data['location'] ?? "No location provided",
         };
       }).toList();
+      filteredEvents = List.from(events); // Inicialmente, los eventos filtrados son todos los eventos
+    });
+  }
+
+  void _filterEvents(String query) {
+    setState(() {
+      filteredEvents = events.where((event) {
+        final name = event['name'].toString().toLowerCase();
+        return name.contains(query.toLowerCase()); // Solo busca en el nombre del evento
+      }).toList();
     });
   }
 
@@ -43,6 +55,26 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
         ),
         iconTheme: const IconThemeData(color: Colors.black),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(60),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: TextField(
+              controller: searchController,
+              decoration: InputDecoration(
+                hintText: 'Search events...',
+                prefixIcon: const Icon(Icons.search, color: Colors.black),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide.none,
+                ),
+                filled: true,
+                fillColor: Colors.grey[200],
+              ),
+              onChanged: _filterEvents,
+            ),
+          ),
+        ),
       ),
       body: Stack(
         children: [
@@ -58,12 +90,12 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(20),
-              child: events.isEmpty
-                  ? const Center(child: Text("No events available.", style: TextStyle(color: Colors.white)))
+              child: filteredEvents.isEmpty
+                  ? const Center(child: Text("No events found.", style: TextStyle(color: Colors.white)))
                   : ListView.builder(
-                      itemCount: events.length,
+                      itemCount: filteredEvents.length,
                       itemBuilder: (context, index) {
-                        final event = events[index];
+                        final event = filteredEvents[index];
                         return _buildEventCard(event);
                       },
                     ),
@@ -99,10 +131,7 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
     );
   }
 
-
   void _navigateToEventInfo(String eventId) {
     Navigator.push(context, MaterialPageRoute(builder: (_) => EventInfoScreen(eventId: eventId),),);
   }
-
-
 }
