@@ -12,6 +12,7 @@ import 'all_events_screen.dart';
 import 'all_orgs_screen.dart';
 import 'all_registered_events_screen.dart';
 import 'all_registered_orgs_screen.dart';
+import '../screens/calendar_screen.dart';
 
 class VolHomeScreen extends StatefulWidget {
   const VolHomeScreen({super.key});
@@ -48,8 +49,10 @@ class _VolHomeScreenState extends State<VolHomeScreen> {
           style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
         ),
         actions: [
+              IconButton(icon: const Icon(Icons.calendar_today, color: Colors.black),onPressed: _navigateToCalendar,),
           IconButton(icon: const Icon(Icons.person, color: Colors.black), onPressed: _navigateToProfile),
           IconButton(icon: const Icon(Icons.logout, color: Colors.red), onPressed: _logout),
+          
         ],
       ),
       body: Stack(
@@ -202,6 +205,14 @@ void _navigateToMoreRegisteredEvents() {
 
 void _navigateToMoreRegisteredOrgs() {
   Navigator.push(context, MaterialPageRoute(builder: (_) => const AllRegisteredOrgsScreen()),);
+}
+
+void _navigateToCalendar() {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    builder: (context) => CalendarScreen(events: availableEvents),
+  );
 }
 
   Future<void> _loadAvailableEvents() async {
