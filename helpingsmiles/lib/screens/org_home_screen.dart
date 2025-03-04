@@ -10,6 +10,7 @@ import 'registered_vol_info_screen.dart';
 import 'registered_org_info_screen.dart';
 import 'all_org_events_screen.dart';
 import 'all_extra_orgs_screen.dart';
+import '../screens/calendar_screen.dart';
 
 class OrgHomeScreen extends StatefulWidget {
   const OrgHomeScreen({super.key});
@@ -143,6 +144,15 @@ void _navigateToAllExtraOrgs() {
   }
 }
 
+void _navigateToCalendar() {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    builder: (context) => CalendarScreen(events: events),
+  );
+}
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -154,6 +164,10 @@ void _navigateToAllExtraOrgs() {
           style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.calendar_today, color: Colors.black), // 📅 Icono del calendario
+            onPressed: _navigateToCalendar, // Llama a la función para abrir el calendario
+          ),
           IconButton(icon: const Icon(Icons.person, color: Colors.black), onPressed: _navigateToProfile),
           IconButton(icon: const Icon(Icons.logout, color: Colors.red), onPressed: _logout),
         ],
