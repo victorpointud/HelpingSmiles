@@ -13,10 +13,25 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
   List<Map<String, dynamic>> events = [];
   List<Map<String, dynamic>> filteredEvents = [];
   TextEditingController searchController = TextEditingController();
-  String? selectedDuration; // Para almacenar la duración seleccionada
-  String? selectedInterest; // Para almacenar el interés seleccionado
-  List<String> durations = []; // Lista de duraciones únicas
-  List<String> interests = []; // Lista de intereses únicos
+  String? selectedDuration;
+  String? selectedInterest;
+  String? selectedSkill;
+  List<String> durations = [];
+  List<String> interests = [];
+  List<String> skills = [
+    "All",
+    "Communication",
+    "Organization and logistics",
+    "Teaching and mentoring",
+    "Technical skills",
+    "Manual skills",
+    "Medical and care skills",
+    "Artistic and cultural skills",
+    "Sports and recreational skills",
+    "Research and analytical skills",
+    "Leadership and management skills",
+    "other"
+  ];
 
   @override
   void initState() {
@@ -34,19 +49,18 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
           'name': data['name'] ?? "Unnamed Event",
           'date': data['date'] ?? "No date provided",
           'location': data['location'] ?? "No location provided",
-          'duration': data['duration'] ?? "No duration provided", // Manejar null
-          'interest': data['interest'] ?? "No interest provided", // Manejar null
+          'duration': data['duration'] ?? "No duration provided",
+          'interest': data['interest'] ?? "No interest provided",
+          'skills': data['skills'] ?? [], // Asegúrate de que 'skills' es un array en Firestore
         };
       }).toList();
       filteredEvents = List.from(events);
 
-      // Obtener las duraciones únicas de los eventos
       durations = events.map((event) => event['duration'].toString()).toSet().toList();
-      durations.insert(0, "All"); // Agregar la opción "All" para mostrar todos los eventos
+      durations.insert(0, "All");
 
-      // Obtener los intereses únicos de los eventos
       interests = events.map((event) => event['interest'].toString()).toSet().toList();
-      interests.insert(0, "All"); // Agregar la opción "All" para mostrar todos los eventos
+      interests.insert(0, "All");
     });
   }
 
@@ -54,7 +68,7 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
     setState(() {
       filteredEvents = events.where((event) {
         final name = event['name'].toString().toLowerCase();
-        return name.contains(query.toLowerCase()); // Solo busca en el nombre del evento
+        return name.contains(query.toLowerCase());
       }).toList();
     });
   }
@@ -73,12 +87,20 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
     });
   }
 
+  void _filterBySkill(String? skill) {
+    setState(() {
+      selectedSkill = skill;
+      _applyFilters();
+    });
+  }
+
   void _applyFilters() {
     setState(() {
       filteredEvents = events.where((event) {
         final matchesDuration = selectedDuration == "All" || selectedDuration == null || event['duration'] == selectedDuration;
         final matchesInterest = selectedInterest == "All" || selectedInterest == null || event['interest'] == selectedInterest;
-        return matchesDuration && matchesInterest; // Aplicar ambos filtros
+        final matchesSkill = selectedSkill == "All" || selectedSkill == null || (event['skills'] as List).contains(selectedSkill);
+        return matchesDuration && matchesInterest && matchesSkill;
       }).toList();
     });
   }
@@ -94,7 +116,7 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
         ),
         iconTheme: const IconThemeData(color: Colors.black),
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(180), // Aumentamos la altura para los dropdowns
+          preferredSize: const Size.fromHeight(280), // Aumentamos la altura para los dropdowns
           child: Column(
             children: [
               Padding(
@@ -158,6 +180,29 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
                   onChanged: _filterByInterest,
                 ),
               ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: DropdownButtonFormField<String>(
+                  value: selectedSkill,
+                  decoration: InputDecoration(
+                    hintText: 'Filter by skill',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide.none,
+                    ),
+                    filled: true,
+                    fillColor: Colors.grey[200],
+                  ),
+                  items: skills.map((skill) {
+                    return DropdownMenuItem(
+                      value: skill,
+                      child: Text(skill),
+                    );
+                  }).toList(),
+                  onChanged: _filterBySkill,
+                ),
+              ),
+              const SizedBox(height: 16), // Espacio invisible más pequeño que el botón
             ],
           ),
         ),
@@ -209,9 +254,11 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
               const SizedBox(height: 5),
               Text("${event["date"]} • ${event["location"]}", style: const TextStyle(color: Colors.black)),
               const SizedBox(height: 5),
-              Text("Duration: ${event["duration"]}", style: const TextStyle(color: Colors.black)), // Mostrar la duración
+              Text("Duration: ${event["duration"]}", style: const TextStyle(color: Colors.black)),
               const SizedBox(height: 5),
-              Text("Interest: ${event["interest"]}", style: const TextStyle(color: Colors.black)), // Mostrar el interés
+              Text("Interest: ${event["interest"]}", style: const TextStyle(color: Colors.black)),
+              const SizedBox(height: 5),
+              //Text("Skills: ${event["skills"].join(", ")}", style: const TextStyle(color: Colors.black)),
               const SizedBox(height: 5),
               const Text("Click to see more info", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
             ],

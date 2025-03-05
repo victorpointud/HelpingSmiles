@@ -31,32 +31,33 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
 
   // Lista de intereses
   final List<String> _interests = [
-    "Medio Ambiente",
-    "Educación",
-    "Salud y Bienestar",
-    "Comunidad y Desarrollo Social",
-    "Arte y Cultura",
-    "Deportes y Recreación",
-    "Derechos Humanos y Justicia Social",
-    "Tecnología e Innovación",
-    "Animales",
-    "Emergencias y Ayuda Humanitaria",
-    "otro"
+    "Environment",
+    "Education",
+    "Health and Wellness",
+    "Community and Social Development",
+    "Art and Culture",
+    "Sports and Recreation",
+    "Human Rights and Social Justice",
+    "Technology and Innovation",
+    "Animals",
+    "Emergency and Humanitarian Aid",
+    "other"
   ];
 
   // Lista de habilidades
   final List<String> _skills = [
-    "Comunicación",
-    "Organización y logística",
-    "Enseñanza y mentoría",
-    "Habilidades técnicas",
-    "Habilidades manuales",
-    "Habilidades médicas y de cuidado",
-    "Habilidades artísticas y culturales",
-    "Habilidades deportivas y recreativas",
-    "Habilidades de investigación y análisis",
-    "Habilidades de liderazgo y gestión",
-    "otro"
+    "All",
+    "Communication",
+    "Organization and logistics",
+    "Teaching and mentoring",
+    "Technical skills",
+    "Manual skills",
+    "Medical and care skills",
+    "Artistic and cultural skills",
+    "Sports and recreational skills",
+    "Research and analytical skills",
+    "Leadership and management skills",
+    "other"
   ];
 
   // Variable para almacenar el interés seleccionado
@@ -238,7 +239,7 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
                               decoration: InputDecoration(
                                 labelText: "Interest",
                                 labelStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
-                                prefixIcon: Icon(Icons.interests, color: Colors.red),
+                                //prefixIcon: Icon(Icons.interests, color: Colors.red),
                                 filled: true,
                                 fillColor: Colors.white,
                                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
