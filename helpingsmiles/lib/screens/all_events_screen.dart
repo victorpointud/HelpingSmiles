@@ -14,7 +14,9 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
   List<Map<String, dynamic>> filteredEvents = [];
   TextEditingController searchController = TextEditingController();
   String? selectedDuration; // Para almacenar la duración seleccionada
+  String? selectedInterest; // Para almacenar el interés seleccionado
   List<String> durations = []; // Lista de duraciones únicas
+  List<String> interests = []; // Lista de intereses únicos
 
   @override
   void initState() {
@@ -32,7 +34,8 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
           'name': data['name'] ?? "Unnamed Event",
           'date': data['date'] ?? "No date provided",
           'location': data['location'] ?? "No location provided",
-          'duration': data['duration'] ?? "No duration provided", // Cargar la duración
+          'duration': data['duration'] ?? "No duration provided", // Manejar null
+          'interest': data['interest'] ?? "No interest provided", // Manejar null
         };
       }).toList();
       filteredEvents = List.from(events);
@@ -40,6 +43,10 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
       // Obtener las duraciones únicas de los eventos
       durations = events.map((event) => event['duration'].toString()).toSet().toList();
       durations.insert(0, "All"); // Agregar la opción "All" para mostrar todos los eventos
+
+      // Obtener los intereses únicos de los eventos
+      interests = events.map((event) => event['interest'].toString()).toSet().toList();
+      interests.insert(0, "All"); // Agregar la opción "All" para mostrar todos los eventos
     });
   }
 
@@ -55,13 +62,24 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
   void _filterByDuration(String? duration) {
     setState(() {
       selectedDuration = duration;
-      if (duration == "All" || duration == null) {
-        filteredEvents = List.from(events); // Mostrar todos los eventos
-      } else {
-        filteredEvents = events.where((event) {
-          return event['duration'] == duration; // Filtrar por duración seleccionada
-        }).toList();
-      }
+      _applyFilters();
+    });
+  }
+
+  void _filterByInterest(String? interest) {
+    setState(() {
+      selectedInterest = interest;
+      _applyFilters();
+    });
+  }
+
+  void _applyFilters() {
+    setState(() {
+      filteredEvents = events.where((event) {
+        final matchesDuration = selectedDuration == "All" || selectedDuration == null || event['duration'] == selectedDuration;
+        final matchesInterest = selectedInterest == "All" || selectedInterest == null || event['interest'] == selectedInterest;
+        return matchesDuration && matchesInterest; // Aplicar ambos filtros
+      }).toList();
     });
   }
 
@@ -76,7 +94,7 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
         ),
         iconTheme: const IconThemeData(color: Colors.black),
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(120), // Aumentamos la altura para el dropdown
+          preferredSize: const Size.fromHeight(180), // Aumentamos la altura para los dropdowns
           child: Column(
             children: [
               Padding(
@@ -116,6 +134,28 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
                     );
                   }).toList(),
                   onChanged: _filterByDuration,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: DropdownButtonFormField<String>(
+                  value: selectedInterest,
+                  decoration: InputDecoration(
+                    hintText: 'Filter by interest',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide.none,
+                    ),
+                    filled: true,
+                    fillColor: Colors.grey[200],
+                  ),
+                  items: interests.map((interest) {
+                    return DropdownMenuItem(
+                      value: interest,
+                      child: Text(interest),
+                    );
+                  }).toList(),
+                  onChanged: _filterByInterest,
                 ),
               ),
             ],
@@ -171,6 +211,8 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
               const SizedBox(height: 5),
               Text("Duration: ${event["duration"]}", style: const TextStyle(color: Colors.black)), // Mostrar la duración
               const SizedBox(height: 5),
+              Text("Interest: ${event["interest"]}", style: const TextStyle(color: Colors.black)), // Mostrar el interés
+              const SizedBox(height: 5),
               const Text("Click to see more info", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
             ],
           ),
@@ -180,6 +222,11 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
   }
 
   void _navigateToEventInfo(String eventId) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => EventInfoScreen(eventId: eventId),));
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => EventInfoScreen(eventId: eventId),
+      ),
+    );
   }
 }
