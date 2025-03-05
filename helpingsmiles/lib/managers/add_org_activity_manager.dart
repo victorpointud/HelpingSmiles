@@ -29,6 +29,42 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
   String _organizationName = "Loading...";
   bool _isLoading = false;
 
+  // Lista de intereses
+  final List<String> _interests = [
+    "Medio Ambiente",
+    "Educación",
+    "Salud y Bienestar",
+    "Comunidad y Desarrollo Social",
+    "Arte y Cultura",
+    "Deportes y Recreación",
+    "Derechos Humanos y Justicia Social",
+    "Tecnología e Innovación",
+    "Animales",
+    "Emergencias y Ayuda Humanitaria",
+    "otro"
+  ];
+
+  // Lista de habilidades
+  final List<String> _skills = [
+    "Comunicación",
+    "Organización y logística",
+    "Enseñanza y mentoría",
+    "Habilidades técnicas",
+    "Habilidades manuales",
+    "Habilidades médicas y de cuidado",
+    "Habilidades artísticas y culturales",
+    "Habilidades deportivas y recreativas",
+    "Habilidades de investigación y análisis",
+    "Habilidades de liderazgo y gestión",
+    "otro"
+  ];
+
+  // Variable para almacenar el interés seleccionado
+  String? _selectedInterest;
+
+  // Lista de habilidades seleccionadas
+  List<String> _selectedSkills = [];
+
   @override
   void initState() {
     super.initState();
@@ -72,6 +108,8 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
         'organizationType': _organizationTypeController.text.trim(),
         'location': _locationController.text.trim(),
         'description': _descriptionController.text.trim(),
+        'interest': _selectedInterest, // Guardar el interés seleccionado
+        'skills': _selectedSkills, // Guardar las habilidades seleccionadas
         'createdAt': FieldValue.serverTimestamp(),
       });
 
@@ -110,6 +148,25 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
       Navigator.pop(context);
       Navigator.pop(context, true);
     });
+  }
+
+  // Método para mostrar el diálogo de selección múltiple de habilidades
+  Future<void> _showMultiSelectSkills() async {
+    final List<String>? results = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return MultiSelectDialog(
+          items: _skills,
+          selectedItems: _selectedSkills,
+        );
+      },
+    );
+
+    if (results != null) {
+      setState(() {
+        _selectedSkills = results;
+      });
+    }
   }
 
   @override
@@ -161,6 +218,64 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
                             _buildTextField(_organizationTypeController, "Organization Type", Icons.people),
                             _buildTextField(_locationController, "Location", Icons.location_on),
                             _buildTextField(_descriptionController, "Description", Icons.description, isMultiline: true),
+
+                            const SizedBox(height: 20),
+
+                            // Selector de intereses
+                            DropdownButtonFormField<String>(
+                              value: _selectedInterest,
+                              onChanged: (String? newValue) {
+                                setState(() {
+                                  _selectedInterest = newValue;
+                                });
+                              },
+                              items: _interests.map<DropdownMenuItem<String>>((String value) {
+                                return DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Text(value),
+                                );
+                              }).toList(),
+                              decoration: InputDecoration(
+                                labelText: "Interest",
+                                labelStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+                                prefixIcon: Icon(Icons.interests, color: Colors.red),
+                                filled: true,
+                                fillColor: Colors.white,
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                              ),
+                              validator: (value) => value == null ? "Please select an interest" : null,
+                            ),
+
+                            const SizedBox(height: 20),
+
+                            // Selector de habilidades (múltiple)
+                            InkWell(
+                              onTap: _showMultiSelectSkills,
+                              child: InputDecorator(
+                                decoration: InputDecoration(
+                                  labelText: "Skills",
+                                  labelStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+                                  prefixIcon: Icon(Icons.work, color: Colors.red),
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                                ),
+                                child: Wrap(
+                                  spacing: 6.0,
+                                  runSpacing: 6.0,
+                                  children: _selectedSkills.map((skill) {
+                                    return Chip(
+                                      label: Text(skill),
+                                      onDeleted: () {
+                                        setState(() {
+                                          _selectedSkills.remove(skill);
+                                        });
+                                      },
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+                            ),
 
                             const SizedBox(height: 20),
 
@@ -225,6 +340,67 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
         ),
         child: const Text("Save Activity", style: TextStyle(fontSize: 18, color: Colors.white)),
       ),
+    );
+  }
+}
+
+// Diálogo para selección múltiple
+class MultiSelectDialog extends StatefulWidget {
+  final List<String> items;
+  final List<String> selectedItems;
+
+  const MultiSelectDialog({required this.items, required this.selectedItems});
+
+  @override
+  _MultiSelectDialogState createState() => _MultiSelectDialogState();
+}
+
+class _MultiSelectDialogState extends State<MultiSelectDialog> {
+  List<String> _tempSelectedItems = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _tempSelectedItems = List.from(widget.selectedItems);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text("Select Skills"),
+      content: SingleChildScrollView(
+        child: Column(
+          children: widget.items.map((item) {
+            return CheckboxListTile(
+              title: Text(item),
+              value: _tempSelectedItems.contains(item),
+              onChanged: (bool? value) {
+                setState(() {
+                  if (value == true) {
+                    _tempSelectedItems.add(item);
+                  } else {
+                    _tempSelectedItems.remove(item);
+                  }
+                });
+              },
+            );
+          }).toList(),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: const Text("Cancel"),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.pop(context, _tempSelectedItems);
+          },
+          child: const Text("OK"),
+        ),
+      ],
     );
   }
 }
