@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'feedback_screen.dart';
+
 
 class EventInfoScreen extends StatefulWidget {
   final String eventId;
@@ -110,6 +112,24 @@ class _EventInfoScreenState extends State<EventInfoScreen> {
                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                     ),
                                     child: const Text("Register", style: TextStyle(fontSize: 16, color: Colors.white)),
+                                  ),
+                                ),
+                                  Center(
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => FeedbackScreen(activityId: widget.eventId, volunteerId: FirebaseAuth.instance.currentUser!.uid),
+                                        ),
+                                      );
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.red,
+                                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                    ),
+                                    child: const Text("Dejar Comentario", style: TextStyle(fontSize: 16, color: Colors.white)),
                                   ),
                                 ),
                               ],

@@ -12,6 +12,7 @@ import 'all_org_events_screen.dart';
 import 'all_extra_orgs_screen.dart';
 import '../screens/calendar_screen.dart';
 
+
 class OrgHomeScreen extends StatefulWidget {
   const OrgHomeScreen({super.key});
 
@@ -247,6 +248,7 @@ void _navigateToCalendar() {
           ),
         ],
       ),
+
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.red,
         onPressed: () => _navigate(context, const AddOrgActivityManager()),
