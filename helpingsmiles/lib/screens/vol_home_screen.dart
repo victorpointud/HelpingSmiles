@@ -12,15 +12,17 @@ import 'all_events_screen.dart';
 import 'all_orgs_screen.dart';
 import 'all_registered_events_screen.dart';
 import 'all_registered_orgs_screen.dart';
+import 'calendar_screen.dart';
+
 
 class VolHomeScreen extends StatefulWidget {
   const VolHomeScreen({super.key});
 
   @override
-  _VolHomeScreenState createState() => _VolHomeScreenState();
+  VolHomeScreenState createState() => VolHomeScreenState();
 }
 
-class _VolHomeScreenState extends State<VolHomeScreen> {
+class VolHomeScreenState extends State<VolHomeScreen> {
   String? userName;
   List<Map<String, dynamic>> organizations = [];
   List<Map<String, dynamic>> registeredOrganizations = [];
@@ -48,6 +50,15 @@ class _VolHomeScreenState extends State<VolHomeScreen> {
           style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.calendar_today, color: Colors.black),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => CalendarScreen()),
+              );
+            },
+          ),
           IconButton(icon: const Icon(Icons.person, color: Colors.black), onPressed: _navigateToProfile),
           IconButton(icon: const Icon(Icons.logout, color: Colors.red), onPressed: _logout),
         ],
@@ -62,7 +73,7 @@ class _VolHomeScreenState extends State<VolHomeScreen> {
               ),
             ),
           ),
-          Container(color: Colors.black.withOpacity(0.3)),
+          Container(color: Colors.black.withAlpha(77)), // 0.3 * 255 = 77,
           SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
@@ -220,7 +231,7 @@ void _navigateToMoreRegisteredOrgs() {
           }).toList();
         });
       } catch (e) {
-        print("Error loading available events: $e");
+      debugPrint("Error loading available events: $e");
       }
     }
   
@@ -251,7 +262,7 @@ void _navigateToMoreRegisteredOrgs() {
         }).toList();
       });
     } catch (e) {
-      print("Error loading organizations: $e");
+      debugPrint("Error loading organizationss: $e");
     }
   }
 
@@ -281,7 +292,8 @@ void _navigateToMoreRegisteredOrgs() {
           registeredOrganizations = tempOrganizations;
         });
       } catch (e) {
-        print("Error loading registered organizations: $e");
+        debugPrint("Error loading registered organizations: $e");
+
       }
     }
 
@@ -314,17 +326,22 @@ void _navigateToMoreRegisteredOrgs() {
     setState(() {
       registeredEventInfo = tempEvents;
     });
-
-    print("🔹 Registered Events Loaded: $registeredEventInfo");
+        debugPrint("Registered Events Loaded: $registeredEventInfo");
 
   } catch (e) {
-    print(" Error loading registered events: $e");
+    debugPrint(" Error loading registered events: $e");
   }
 }
 
   void _logout() async {
     await AuthManager.logoutUser();
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+
+    if (!mounted) return; // Verifica si el widget sigue en pantalla antes de navegar
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+    );
   }
 
   Widget _buildSectionTitle(String title) {

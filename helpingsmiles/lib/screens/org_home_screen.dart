@@ -10,15 +10,16 @@ import 'registered_vol_info_screen.dart';
 import 'registered_org_info_screen.dart';
 import 'all_org_events_screen.dart';
 import 'all_extra_orgs_screen.dart';
+import 'calendar_screen.dart';
 
 class OrgHomeScreen extends StatefulWidget {
   const OrgHomeScreen({super.key});
 
   @override
-  _OrgHomeScreenState createState() => _OrgHomeScreenState();
+  OrgHomeScreenState createState() => OrgHomeScreenState();
 }
 
-class _OrgHomeScreenState extends State<OrgHomeScreen> {
+class OrgHomeScreenState extends State<OrgHomeScreen> {
   String? organizationName;
   String? organizationId;
   List<Map<String, dynamic>> events = [];
@@ -45,12 +46,11 @@ class _OrgHomeScreenState extends State<OrgHomeScreen> {
         organizationName = orgName;
         organizationId = user.uid; 
       });
-
-      print("Organization ID Loaded: $organizationId"); 
+      debugPrint("Organization ID Loaded: $organizationId");
 
       _loadEvents(user.uid);
     } catch (e) {
-      print(" Error retrieving organization: $e");
+      debugPrint(" Error retrieving organization: $e");
     }
   }
 }
@@ -76,7 +76,7 @@ class _OrgHomeScreenState extends State<OrgHomeScreen> {
         }).toList();
       });
     } catch (e) {
-      print("Error loading other organizations: $e");
+      debugPrint("Error loading other organizations: $e");
     }
   }
 
@@ -102,15 +102,18 @@ class _OrgHomeScreenState extends State<OrgHomeScreen> {
         }).toList();
       });
     } catch (e) {
-      print("Error loading events: $e");
+      debugPrint("Error loading events: $e");
     }
   }
 
   void _navigate(BuildContext context, Widget screen) {
+    if (!mounted) return; // Evita usar `context` si el widget ya no está en pantalla
+
     Navigator.push(context, MaterialPageRoute(builder: (_) => screen)).then((result) {
-      if (result == true) _loadOrganizationData();
+      if (mounted && result == true) _loadOrganizationData();
     });
   }
+
 
   void _navigateToVolunteers() {
     Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisteredVolInfoScreen()));
@@ -118,7 +121,13 @@ class _OrgHomeScreenState extends State<OrgHomeScreen> {
 
   void _logout() async {
     await AuthManager.logoutUser();
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+
+    if (!mounted) return; // Verifica si el widget sigue en pantalla antes de navegar
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+    );
   }
 
  void _navigateToAllOrgEvents() {
@@ -128,7 +137,8 @@ class _OrgHomeScreenState extends State<OrgHomeScreen> {
       MaterialPageRoute(builder: (_) => AllOrgEventsScreen(organizationId: organizationId!)),
     );
   } else {
-    print("Error: organizationId is null");
+    debugPrint("Error: organizationId is null");
+
   }
 }
 
@@ -139,7 +149,7 @@ void _navigateToAllExtraOrgs() {
       MaterialPageRoute(builder: (_) => AllExtraOrgsScreen(currentOrganizationId: organizationId!)),
     );
   } else {
-    print("Error: organizationId is null");
+    debugPrint("Error: organizationId is null");
   }
 }
 
@@ -154,6 +164,15 @@ void _navigateToAllExtraOrgs() {
           style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.calendar_today, color: Colors.black),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => CalendarScreen()),
+              );
+            },
+          ),
           IconButton(icon: const Icon(Icons.person, color: Colors.black), onPressed: _navigateToProfile),
           IconButton(icon: const Icon(Icons.logout, color: Colors.red), onPressed: _logout),
         ],
@@ -168,7 +187,7 @@ void _navigateToAllExtraOrgs() {
               ),
             ),
           ),
-          Container(color: Colors.black.withOpacity(0.3)),
+        Container(color: Colors.black.withAlpha(77)), // 0.3 * 255 = 77
           SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
