@@ -62,7 +62,7 @@ class CalendarScreenState extends State<CalendarScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-       title: const Text(
+        title: const Text(
           "Events Calendar",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
         ),
@@ -82,6 +82,9 @@ class CalendarScreenState extends State<CalendarScreen> {
           ),
           Column(
             children: [
+              Padding(
+                padding: const EdgeInsets.all(35),
+              ),
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -159,7 +162,7 @@ class CalendarScreenState extends State<CalendarScreen> {
                               const SizedBox(height: 5),
                               Text(
                                 "📍 ${event['location']}",
-                               style: const TextStyle(color: Colors.black),
+                                style: const TextStyle(color: Colors.black),
                               ),
                               const SizedBox(height: 10),
                               Text(
