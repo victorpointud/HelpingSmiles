@@ -8,17 +8,19 @@ class EventInfoScreen extends StatefulWidget {
   const EventInfoScreen({super.key, required this.eventId});
 
   @override
-  _EventInfoScreenState createState() => _EventInfoScreenState();
+  EventInfoScreenState createState() => EventInfoScreenState();
 }
 
-class _EventInfoScreenState extends State<EventInfoScreen> {
+class EventInfoScreenState extends State<EventInfoScreen> {
   Map<String, dynamic>? eventData;
   bool isLoading = true;
+  List<Map<String, dynamic>> feedbackList = []; 
 
   @override
   void initState() {
     super.initState();
     _loadEventData();
+    _loadFeedback(); 
   }
 
   Future<void> _loadEventData() async {
@@ -36,12 +38,39 @@ class _EventInfoScreenState extends State<EventInfoScreen> {
         });
       }
     } catch (e) {
-      print("Error loading event data: $e");
+      debugPrint("Error loading event data: $e");
       setState(() {
         isLoading = false;
       });
     }
   }
+
+Future<void> _loadFeedback() async {
+  try {
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('activity_feedback')
+        .where('eventId', isEqualTo: widget.eventId) // Filtra por el ID del evento
+        .orderBy('timestamp', descending: true)
+        .get();
+
+    if (!mounted) return;
+
+    setState(() {
+      feedbackList = querySnapshot.docs.map((doc) {
+        return {
+          'feedback': doc['feedback'],
+          'timestamp': doc['timestamp'] != null 
+              ? (doc['timestamp'] as Timestamp).toDate().toString()
+              : "Unknown date", // 👈 Maneja errores de timestamp
+        };
+      }).toList();
+    });
+
+    debugPrint("Feedback cargado: $feedbackList"); // 👈 Verifica si se están cargando datos
+  } catch (e) {
+    debugPrint("Error cargando feedback: $e");
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -100,6 +129,41 @@ class _EventInfoScreenState extends State<EventInfoScreen> {
                                   eventData!["description"] ?? "No description available",
                                   style: const TextStyle(fontSize: 16, color: Colors.black),
                                 ),
+                                const SizedBox(height: 20),
+                                const Text(
+                                  "Volunteer Feedback:",
+                                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
+                                ),
+                                const SizedBox(height: 10),
+                                feedbackList.isEmpty
+                                    ? Column(
+                                        children: [
+                                          const Icon(Icons.sentiment_dissatisfied, color: Colors.grey, size: 50),
+                                          const SizedBox(height: 10),
+                                          const Text("No feedback yet.", style: TextStyle(color: Colors.grey, fontSize: 16)),
+                                        ],
+                                      )
+                                    : Column(
+                                        children: feedbackList.map((feedback) {
+                                          return Card(
+                                            color: Colors.white,
+                                            elevation: 3,
+                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                                            margin: const EdgeInsets.symmetric(vertical: 5),
+                                            child: ListTile(
+                                              leading: const Icon(Icons.comment, color: Colors.red, size: 28),
+                                              title: Text(
+                                                feedback['feedback'],
+                                                style: const TextStyle(fontSize: 16, color: Colors.black),
+                                              ),
+                                              subtitle: Text(
+                                                "Submitted on: ${feedback['timestamp']}",
+                                                style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                              ),
+                                            ),
+                                          );
+                                        }).toList(),
+                                      ),
                                 const SizedBox(height: 10),
                                 Center(
                                   child: ElevatedButton(
@@ -176,9 +240,11 @@ class _EventInfoScreenState extends State<EventInfoScreen> {
     );
 
     
-    Future.delayed(const Duration(seconds: 2), () {
-      Navigator.pop(context); 
-    });
+Future.delayed(const Duration(seconds: 2), () {
+  if (mounted) {  // Verifica si el widget aún está en pantalla
+    Navigator.pop(context);
+  }
+});
   }
 
   void _showErrorDialog(String message) {
