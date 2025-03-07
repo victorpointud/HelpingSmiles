@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'registered_event_info_screen.dart'; // Asegúrate de tener esta pantalla para ver detalles del evento
+import 'registered_event_info_screen.dart'; 
 
 class AllRegisteredEventsScreen extends StatefulWidget {
   const AllRegisteredEventsScreen({super.key});
@@ -26,13 +26,11 @@ class _AllRegisteredEventsScreenState extends State<AllRegisteredEventsScreen> {
     try {
       List<Map<String, dynamic>> tempEvents = [];
 
-      // Obtener todos los eventos
       final eventsSnapshot = await FirebaseFirestore.instance.collection('events').get();
 
       for (var eventDoc in eventsSnapshot.docs) {
         final eventId = eventDoc.id;
 
-        // Revisar si el usuario está registrado en el evento
         final registrationRef = eventDoc.reference.collection('registrations').doc(user.uid);
         final registrationDoc = await registrationRef.get();
 

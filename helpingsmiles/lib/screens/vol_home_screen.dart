@@ -13,6 +13,7 @@ import 'all_orgs_screen.dart';
 import 'all_registered_events_screen.dart';
 import 'all_registered_orgs_screen.dart';
 import 'calendar_screen.dart';
+import 'dart:math';
 
 
 class VolHomeScreen extends StatefulWidget {
@@ -37,6 +38,13 @@ class VolHomeScreenState extends State<VolHomeScreen> {
     _loadAvailableEvents();
     _loadRegisteredOrganizations();
     _loadregisteredEventInfo();
+  }
+
+  List<Map<String, dynamic>> _getRandomElements(List<Map<String, dynamic>> list) {
+    if (list.length <= 2) return list; 
+    final random = Random();
+    list.shuffle(random); 
+    return list.take(2).toList();
   }
 
   @override
@@ -83,7 +91,7 @@ class VolHomeScreenState extends State<VolHomeScreen> {
 
                   children: [
                     _buildSectionTitle("Available Activities"),
-                    _buildEventList(availableEvents),
+                    _buildEventList(_getRandomElements(availableEvents)),
                     const SizedBox(height: 10),
                     Center(
                       child: Column(
@@ -106,7 +114,7 @@ class VolHomeScreenState extends State<VolHomeScreen> {
 
                     const SizedBox(height: 20),
                     _buildSectionTitle("Available Organizations"),
-                    _buildOrganizationList(),
+                    _buildOrganizationList(_getRandomElements(organizations)),
                     const SizedBox(height: 10),
                     Center(
                       child: Column(
@@ -128,7 +136,7 @@ class VolHomeScreenState extends State<VolHomeScreen> {
 
                     const SizedBox(height: 20),
                     _buildSectionTitle("My Registered Organizations"),
-                    _buildRegisteredOrganizationList(),
+                    _buildRegisteredOrganizationList(_getRandomElements(registeredOrganizations)),
                     const SizedBox(height: 10),
                     Center(
                       child: Column(
@@ -150,7 +158,7 @@ class VolHomeScreenState extends State<VolHomeScreen> {
                   
                     const SizedBox(height: 20),
                     _buildSectionTitle("My Registered Events"),
-                    _buildRegisteredEventList(),
+                    _buildRegisteredEventList(_getRandomElements(registeredEventInfo)),
                     const SizedBox(height: 10),
                     Center(
                       child: Column(
@@ -353,19 +361,19 @@ void _navigateToMoreRegisteredOrgs() {
 
   Widget _buildEventList(List<Map<String, dynamic>> events) {
     if (events.isEmpty) {
-      return const Center(child: Text("No activities available.", style: TextStyle(color: Colors.white)));
+      return const Center(child: Text("No events available.", style: TextStyle(color: Colors.white)));
     }
     return Column(
       children: events.map((event) => _buildEventCard(event)).toList(),
     );
   }
 
-  Widget _buildOrganizationList() {
-    if (organizations.isEmpty) {
+  Widget _buildOrganizationList(List<Map<String, dynamic>> orgs) {
+    if (orgs.isEmpty) {
       return const Center(child: Text("No organizations available.", style: TextStyle(color: Colors.white)));
     }
     return Column(
-      children: organizations.map((org) => _buildOrganizationCard(org)).toList(),
+      children: orgs.map((org) => _buildOrganizationCard(org)).toList(),
     );
   }
 
@@ -419,21 +427,21 @@ void _navigateToMoreRegisteredOrgs() {
     );
   }
 
-  Widget _buildRegisteredOrganizationList() {
-    if (registeredOrganizations.isEmpty) {
+  Widget _buildRegisteredOrganizationList(List<Map<String, dynamic>> registorgs) {
+    if (registorgs.isEmpty) {
       return const Center(child: Text("You are not registered in any organization.", style: TextStyle(color: Colors.white)));
     }
     return Column(
-      children: registeredOrganizations.map((org) => _buildRegisteredOrganizationCard(org)).toList(),
+      children: registorgs.map((org) => _buildRegisteredOrganizationCard(org)).toList(),
     );
   }
 
-  Widget _buildRegisteredEventList() {
-    if (registeredEventInfo.isEmpty) {
+  Widget _buildRegisteredEventList(List<Map<String, dynamic>> registevent) {
+    if (registevent.isEmpty) {
       return const Center(child: Text("You are not registered in any events.", style: TextStyle(color: Colors.white)));
     }
     return Column(
-      children: registeredEventInfo.map((event) => _buildRegisteredEventCard(event)).toList(),
+      children: registevent.map((event) => _buildRegisteredEventCard(event)).toList(),
     );
   }
 

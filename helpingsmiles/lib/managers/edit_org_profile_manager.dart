@@ -28,7 +28,6 @@ class _EditOrgProfileManagerState extends State<EditOrgProfileManager> {
   final _repEmailController = TextEditingController();
 
   String _organizationName = "Loading...";
-  String? _organizationId;
 
   @override
   void initState() {
@@ -39,7 +38,6 @@ class _EditOrgProfileManagerState extends State<EditOrgProfileManager> {
   Future<void> _loadOrganizationData() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      _organizationId = user.uid;
       final doc = await FirebaseFirestore.instance.collection('organizations').doc(user.uid).get();
       
       if (doc.exists) {
