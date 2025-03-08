@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'registered_org_info_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AllRegisteredOrgsScreen extends StatefulWidget {
   const AllRegisteredOrgsScreen({super.key});
@@ -11,93 +11,84 @@ class AllRegisteredOrgsScreen extends StatefulWidget {
 }
 
 class _AllRegisteredOrgsScreenState extends State<AllRegisteredOrgsScreen> {
-  List<Map<String, dynamic>> organizations = [];
-  List<Map<String, dynamic>> filteredOrganizations = [];
   List<Map<String, dynamic>> registeredOrganizations = [];
   List<Map<String, dynamic>> filteredRegisteredOrganizations = [];
   String? selectedVolunteerType;
   String? selectedLocation;
   List<String> volunteerTypes = [];
   List<String> locations = [];
+  
 
   @override
   void initState() {
     super.initState();
     _loadRegisteredOrganizations();
-    _loadOrganizations(); 
   }
 
-  Future<void> _loadRegisteredOrganizations() async {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) return;
+ Future<void> _loadRegisteredOrganizations() async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return;
 
-      try {
-        final orgsSnapshot = await FirebaseFirestore.instance.collection('organizations').get();
-        List<Map<String, dynamic>> tempOrganizations = [];
+  try {
+    List<Map<String, dynamic>> tempOrganizations = [];
+    final orgsSnapshot = await FirebaseFirestore.instance.collection('organizations').get();
 
-        for (var orgDoc in orgsSnapshot.docs) {
-          final regRef = orgDoc.reference.collection('registrations').doc(user.uid);
-          final regDoc = await regRef.get();
+    for (var orgDoc in orgsSnapshot.docs) {
+      final orgId = orgDoc.id;
+      final registrationRef = orgDoc.reference.collection('registrations').doc(user.uid);
+      final registrationDoc = await registrationRef.get();
 
-          if (regDoc.exists) {
-            tempOrganizations.add({
-              'id': orgDoc.id,
-              'name': orgDoc['name'] ?? "Unknown Organization",
-              'date': orgDoc['date'] ?? "No date provided",
-              'mission': orgDoc['mission'] ?? "No mission provided",
-            });
-          }
-        }
-
-        if (!mounted) return;
-        setState(() {
-          registeredOrganizations = tempOrganizations;
+      if (registrationDoc.exists) {
+        tempOrganizations.add({
+          'id': orgId,
+          'name': orgDoc['name'] ?? "Unknown Organization",
+          'volunteerTypes': (orgDoc['volunteerTypes'] != null && orgDoc['volunteerTypes'] is List)
+              ? (orgDoc['volunteerTypes'] as List).map((e) => e.toString()).toList()
+              : [],
+          'locations': (orgDoc['locations'] != null && orgDoc['locations'] is List)
+              ? (orgDoc['locations'] as List).map((e) => e.toString()).toList()
+              : [],
         });
-      } catch (e) {
-        debugPrint("Error loading registered organizations: $e");
-
       }
+    }
+
+    if (!mounted) return;
+
+    setState(() {
+      registeredOrganizations = tempOrganizations;
+      filteredRegisteredOrganizations = List.from(registeredOrganizations);
+
+      // 🔹 Carga opciones únicas para dropdowns
+      volunteerTypes = registeredOrganizations
+          .expand((org) => (org['volunteerTypes'] as List<String>))
+          .toSet()
+          .toList();
+      volunteerTypes.insert(0, "All");
+
+      locations = registeredOrganizations
+          .expand((org) => (org['locations'] as List<String>))
+          .toSet()
+          .toList();
+      locations.insert(0, "All");
+    });
+
+  } catch (e) {
+    print("Error loading registered organizations: $e");
   }
-
-  Future<void> _loadOrganizations() async {
-  final querySnapshot = await FirebaseFirestore.instance.collection('organizations').get();
-  
-  setState(() {
-    organizations = querySnapshot.docs.map((doc) {
-      final data = doc.data();
-      return {
-        'id': doc.id,
-        'name': data['name'] ?? "Unknown Organization",
-        'volunteerTypes': (data['volunteerTypes'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
-        'locations': (data['locations'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
-      };
-    }).toList();
-
-    filteredOrganizations = List.from(organizations);
-
-    volunteerTypes = organizations
-        .expand((org) => (org['volunteerTypes'] as List<String>))
-        .toSet()
-        .toList();
-    volunteerTypes.insert(0, "All");
-
-    locations = organizations
-        .expand((org) => (org['locations'] as List<String>))
-        .toSet()
-        .toList();
-    locations.insert(0, "All");
-  });
 }
+
 
   void _applyFilters() {
     setState(() {
       filteredRegisteredOrganizations = registeredOrganizations.where((org) {
         final matchesVolunteerType = selectedVolunteerType == "All" ||
             selectedVolunteerType == null ||
-            (org['volunteerTypes'] as List<String>).contains(selectedVolunteerType);
+            org['volunteerTypes'].contains(selectedVolunteerType);
+
         final matchesLocation = selectedLocation == "All" ||
             selectedLocation == null ||
-            (org['locations'] as List<String>).contains(selectedLocation);
+            org['locations'].contains(selectedLocation);
+
         return matchesVolunteerType && matchesLocation;
       }).toList();
     });
@@ -140,7 +131,7 @@ class _AllRegisteredOrgsScreenState extends State<AllRegisteredOrgsScreen> {
                 setState(() {
                   selectedVolunteerType = null;
                   selectedLocation = null;
-                  filteredOrganizations = List.from(organizations);
+                  filteredRegisteredOrganizations = List.from(registeredOrganizations);
                 });
                 Navigator.pop(context);
               },
@@ -186,7 +177,7 @@ class _AllRegisteredOrgsScreenState extends State<AllRegisteredOrgsScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         title: const Text(
-          "Registered Organizations",
+          "All Organizations",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
         ),
         iconTheme: const IconThemeData(color: Colors.black),
@@ -207,21 +198,19 @@ class _AllRegisteredOrgsScreenState extends State<AllRegisteredOrgsScreen> {
               ),
             ),
           ),
-          Container(color: Colors.black.withAlpha(77)),
+          Container(color: Colors.black.withOpacity(0.3)),
           SafeArea(
-            child: SingleChildScrollView(
+            child: Padding(
               padding: const EdgeInsets.all(20),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-
-                  children: [
-                    _buildRegisteredOrganizationList(registeredOrganizations),
-                    const SizedBox(height: 10),
-
-                  ],
-                ),
-              ),
+              child: filteredRegisteredOrganizations.isEmpty
+                  ? const Center(child: Text("No organizations found.", style: TextStyle(color: Colors.white)))
+                  : ListView.builder(
+                      itemCount: filteredRegisteredOrganizations.length,
+                      itemBuilder: (context, index) {
+                        final org = filteredRegisteredOrganizations[index];
+                        return _buildOrganizationCard(org);
+                      },
+                    ),
             ),
           ),
         ],
@@ -229,42 +218,45 @@ class _AllRegisteredOrgsScreenState extends State<AllRegisteredOrgsScreen> {
     );
   }
 
-  void _navigateToRegisteredOrgInfo(String orgId, String orgName) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => RegisteredOrgInfoScreen(organizationId: orgId,organizationName: orgName,),),);
-  }
-
-  Widget _buildRegisteredOrganizationCard(Map<String, dynamic> org) {
-      return GestureDetector(
-        onTap: () => _navigateToRegisteredOrgInfo(org["id"], org["name"]),
-        child: Card(
-          elevation: 3,
-          margin: const EdgeInsets.symmetric(vertical: 8),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          color: Colors.white,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(org["name"], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red)),
-                const SizedBox(height: 5),
-                Text("${org["date"]} • ${org["mission"]}", style: const TextStyle(color: Colors.black)),
-                const SizedBox(height: 5),
-                const Text("Tap to view details", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
-              ],
-            ),
+  Widget _buildOrganizationCard(Map<String, dynamic> org) {
+    return GestureDetector(
+      onTap: () => _navigateToRegisteredOrgInfo(org["id"], org["name"]),
+      child: Card(
+        elevation: 3,
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        color: Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(org["name"], style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red)),
+              const SizedBox(height: 5),
+              Text(
+                "Volunteer Types: ${org["volunteerTypes"].join(", ")}",
+                style: const TextStyle(color: Colors.black, fontSize: 16),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                "Locations: ${org["locations"].join(", ")}",
+                style: const TextStyle(color: Colors.black, fontSize: 16),
+              ),
+              const SizedBox(height: 5),
+              const Text("Tap to view details", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
+            ],
           ),
         ),
-      );
-    }
+      ),
+    );
+  }
 
-  Widget _buildRegisteredOrganizationList(List<Map<String, dynamic>> registorgs) {
-      if (registorgs.isEmpty) {
-        return const Center(child: Text("You are not registered in any organization.", style: TextStyle(color: Colors.white)));
-      }
-      return Column(
-        children: registorgs.map((org) => _buildRegisteredOrganizationCard(org)).toList(),
-      );
-    }
-  
+  void _navigateToRegisteredOrgInfo(String orgId, String orgName) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => RegisteredOrgInfoScreen(organizationId: orgId, organizationName: orgName),
+      ),
+    );
+  }
 }

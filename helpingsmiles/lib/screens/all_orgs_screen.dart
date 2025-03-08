@@ -25,34 +25,34 @@ class _AllOrgsScreenState extends State<AllOrgsScreen> {
   }
 
   Future<void> _loadOrganizations() async {
-  final querySnapshot = await FirebaseFirestore.instance.collection('organizations').get();
-  
-  setState(() {
-    organizations = querySnapshot.docs.map((doc) {
-      final data = doc.data();
-      return {
-        'id': doc.id,
-        'name': data['name'] ?? "Unknown Organization",
-        'volunteerTypes': (data['volunteerTypes'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
-        'locations': (data['locations'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
-      };
-    }).toList();
+    final querySnapshot = await FirebaseFirestore.instance.collection('organizations').get();
+    
+    setState(() {
+      organizations = querySnapshot.docs.map((doc) {
+        final data = doc.data();
+        return {
+          'id': doc.id,
+          'name': data['name'] ?? "Unknown Organization",
+          'volunteerTypes': (data['volunteerTypes'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+          'locations': (data['locations'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+        };
+      }).toList();
 
-    filteredOrganizations = List.from(organizations);
+      filteredOrganizations = List.from(organizations);
 
-    volunteerTypes = organizations
-        .expand((org) => (org['volunteerTypes'] as List<String>))
-        .toSet()
-        .toList();
-    volunteerTypes.insert(0, "All");
+      volunteerTypes = organizations
+          .expand((org) => (org['volunteerTypes'] as List<String>))
+          .toSet()
+          .toList();
+      volunteerTypes.insert(0, "All");
 
-    locations = organizations
-        .expand((org) => (org['locations'] as List<String>))
-        .toSet()
-        .toList();
-    locations.insert(0, "All");
-  });
-}
+      locations = organizations
+          .expand((org) => (org['locations'] as List<String>))
+          .toSet()
+          .toList();
+      locations.insert(0, "All");
+    });
+  }
 
   void _applyFilters() {
     setState(() {
