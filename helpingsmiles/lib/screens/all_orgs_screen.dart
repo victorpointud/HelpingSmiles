@@ -12,10 +12,10 @@ class AllOrgsScreen extends StatefulWidget {
 class _AllOrgsScreenState extends State<AllOrgsScreen> {
   List<Map<String, dynamic>> organizations = [];
   List<Map<String, dynamic>> filteredOrganizations = [];
-  String? selectedMission;
-  String? selectedDate;
-  List<String> missions = [];
-  List<String> dates = [];
+  String? selectedVolunteerType;
+  String? selectedLocation;
+  List<String> volunteerTypes = [];
+  List<String> locations = [];
   
 
   @override
@@ -25,34 +25,47 @@ class _AllOrgsScreenState extends State<AllOrgsScreen> {
   }
 
   Future<void> _loadOrganizations() async {
-    final querySnapshot = await FirebaseFirestore.instance.collection('organizations').get();
-    setState(() {
-      organizations = querySnapshot.docs.map((doc) {
-        final data = doc.data();
-        return {
-          'id': doc.id,
-          'name': data['name'] ?? "Unknown Organization",
-          'mission': data['mission'] ?? "No mission provided",
-          'date': data['date'] ?? "No date provided",
-        };
-      }).toList();
+  final querySnapshot = await FirebaseFirestore.instance.collection('organizations').get();
+  
+  setState(() {
+    organizations = querySnapshot.docs.map((doc) {
+      final data = doc.data();
+      return {
+        'id': doc.id,
+        'name': data['name'] ?? "Unknown Organization",
+        'volunteerTypes': (data['volunteerTypes'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+        'locations': (data['locations'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+      };
+    }).toList();
 
-      filteredOrganizations = List.from(organizations);
+    filteredOrganizations = List.from(organizations);
 
-      missions = organizations.map((org) => org['mission'].toString()).toSet().toList();
-      missions.insert(0, "All");
+    volunteerTypes = organizations
+        .expand((org) => (org['volunteerTypes'] as List<String>))
+        .toSet()
+        .toList();
+    volunteerTypes.insert(0, "All");
 
-      dates = organizations.map((org) => org['date'].toString()).toSet().toList();
-      dates.insert(0, "All");
-    });
-  }
+    locations = organizations
+        .expand((org) => (org['locations'] as List<String>))
+        .toSet()
+        .toList();
+    locations.insert(0, "All");
+  });
+}
 
   void _applyFilters() {
     setState(() {
       filteredOrganizations = organizations.where((org) {
-        final matchesMission = selectedMission == "All" || selectedMission == null || org['mission'] == selectedMission;
-        final matchesDate = selectedDate == "All" || selectedDate == null || org['date'] == selectedDate;
-        return matchesMission && matchesDate;
+        final matchesVolunteerType = selectedVolunteerType == "All" ||
+            selectedVolunteerType == null ||
+            org['volunteerTypes'].contains(selectedVolunteerType);
+
+        final matchesLocation = selectedLocation == "All" ||
+            selectedLocation == null ||
+            org['locations'].contains(selectedLocation);
+
+        return matchesVolunteerType && matchesLocation;
       }).toList();
     });
   }
@@ -67,34 +80,33 @@ class _AllOrgsScreenState extends State<AllOrgsScreen> {
           title: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                "Filter Organizations",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
+              const Text("Filter Organizations", style: TextStyle(fontWeight: FontWeight.bold)),
               IconButton(
                 icon: const Icon(Icons.close, color: Colors.black),
                 onPressed: () => Navigator.pop(context),
               ),
             ],
           ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildDropdown("Mission", selectedMission, missions, (value) {
-                setState(() => selectedMission = value);
-              }),
-              const SizedBox(height: 10),
-              _buildDropdown("Date Created", selectedDate, dates, (value) {
-                setState(() => selectedDate = value);
-              }),
-            ],
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildDropdown("Volunteer Type", selectedVolunteerType, volunteerTypes, (value) {
+                  setState(() => selectedVolunteerType = value);
+                }),
+                const SizedBox(height: 10),
+                _buildDropdown("Location", selectedLocation, locations, (value) {
+                  setState(() => selectedLocation = value);
+                }),
+              ],
+            ),
           ),
           actions: [
             ElevatedButton(
               onPressed: () {
                 setState(() {
-                  selectedMission = null;
-                  selectedDate = null;
+                  selectedVolunteerType = null;
+                  selectedLocation = null;
                   filteredOrganizations = List.from(organizations);
                 });
                 Navigator.pop(context);
@@ -197,7 +209,15 @@ class _AllOrgsScreenState extends State<AllOrgsScreen> {
             children: [
               Text(org["name"], style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red)),
               const SizedBox(height: 5),
-              Text("${org["date"]} • ${org["mission"]} ", style: const TextStyle(color: Colors.black, fontSize: 16)),
+              Text(
+                "Volunteer Types: ${org["volunteerTypes"].join(", ")}",
+                style: const TextStyle(color: Colors.black, fontSize: 16),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                "Locations: ${org["locations"].join(", ")}",
+                style: const TextStyle(color: Colors.black, fontSize: 16),
+              ),
               const SizedBox(height: 5),
               const Text("Tap to view details", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
             ],
