@@ -18,14 +18,23 @@ class _EditOrgProfileManagerState extends State<EditOrgProfileManager> {
   final _dateController = TextEditingController();
   final _missionController = TextEditingController();
   final _objectivesController = TextEditingController();
-  final _volunteerTypesController = TextEditingController();
-  final _locationsController = TextEditingController();
-
-
   final _repNameController = TextEditingController();
   final _repLastNameController = TextEditingController();
   final _repPhoneController = TextEditingController();
   final _repEmailController = TextEditingController();
+
+  List<String> selectedVolunteerTypes = [];
+  List<String> selectedLocations = [];
+
+  final List<String> availableVolunteerTypes = [
+    "Administration", "Education", "Medical Assistance", "Community Service", 
+    "Environmental", "Technology", "Sports", "Other"
+  ];
+
+  final List<String> availableLocations = [
+    "Venezuela", "USA", "Colombia", "Spain", "Mexico", "Argentina",
+    "Germany", "France", "Italy", "Canada", "Brasil", "Online"
+  ];
 
   String _organizationName = "Loading...";
 
@@ -49,9 +58,9 @@ class _EditOrgProfileManagerState extends State<EditOrgProfileManager> {
           _dateController.text = doc.data()?['date'] ?? "";
           _passwordController.text = doc.data()?['password'] ?? "";
           _missionController.text = doc.data()?['mission'] ?? "";
-          _locationsController.text = (doc.data()?['locations'] as List<dynamic>?)?.join("\n") ?? "";
           _objectivesController.text = (doc.data()?['objectives'] as List<dynamic>?)?.join("\n") ?? "";
-          _volunteerTypesController.text = (doc.data()?['volunteerTypes'] as List<dynamic>?)?.join("\n") ?? "";
+          selectedVolunteerTypes = List<String>.from(doc.data()?['volunteerTypes'] ?? []);
+          selectedLocations = List<String>.from(doc.data()?['locations'] ?? []);
         });
 
         _loadRepresentativeData(user.uid);
@@ -88,17 +97,19 @@ class _EditOrgProfileManagerState extends State<EditOrgProfileManager> {
 
     if (_formKey.currentState!.validate()) {
       try {
-      
-        if (_emailController.text.trim() != user.email || _passwordController.text.trim().isNotEmpty) {
+        bool isEmailChanged = _emailController.text.trim() != user.email;
+        bool isPasswordChanged = _passwordController.text.trim().isNotEmpty;
+
+        if (isEmailChanged || isPasswordChanged) {
           bool reauthenticated = await _reauthenticateUser();
           if (!reauthenticated) return;
         }
 
-        if (_emailController.text.trim() != user.email) {
+        if (isEmailChanged) {
           await user.updateEmail(_emailController.text.trim());
         }
 
-        if (_passwordController.text.trim().isNotEmpty) {
+        if (isPasswordChanged) {
           await user.updatePassword(_passwordController.text.trim());
         }
 
@@ -108,13 +119,10 @@ class _EditOrgProfileManagerState extends State<EditOrgProfileManager> {
           'date': _dateController.text.trim(),
           'email': _emailController.text.trim(),
           'mission': _missionController.text.trim(),
-          'password': _passwordController.text.trim(),
-          'locations': _locationsController.text.trim().split("\n").where((item) => item.isNotEmpty).toList(),
-          'objectives': _objectivesController.text.trim().split("\n").where((item) => item.isNotEmpty).toList(),
-          'volunteerTypes': _volunteerTypesController.text.trim().split("\n").where((item) => item.isNotEmpty).toList(),
+          'volunteerTypes': selectedVolunteerTypes,
+          'locations': selectedLocations,
         }, SetOptions(merge: true));
 
-     
         await FirebaseFirestore.instance
             .collection('organizations')
             .doc(user.uid)
@@ -137,27 +145,26 @@ class _EditOrgProfileManagerState extends State<EditOrgProfileManager> {
     }
   }
 
+  Future<bool> _reauthenticateUser() async {
+    final user = FirebaseAuth.instance.currentUser;
 
-Future<bool> _reauthenticateUser() async {
-  final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return false;
 
-  if (user == null) return false;
+    try {
+      final credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: _passwordController.text.trim(), 
+      );
 
-  try {
-    final credential = EmailAuthProvider.credential(
-      email: user.email!,
-      password: _passwordController.text.trim(), 
-    );
-
-    await user.reauthenticateWithCredential(credential);
-    return true;
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Reauthentication failed: ${e.toString()}")),
-    );
-    return false;
+      await user.reauthenticateWithCredential(credential);
+      return true;
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Reauthentication failed: ${e.toString()}")),
+      );
+      return false;
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -209,17 +216,20 @@ Future<bool> _reauthenticateUser() async {
                             _buildTextField(_phoneController, "Phone Number", Icons.phone),
                             _buildTextField(_dateController, "Date of Creation", Icons.calendar_today),
                             _buildTextField(_missionController, "Mission", Icons.flag),
-                            _buildMultiLineTextField(_locationsController, "Locations", Icons.location_on),
-                            _buildMultiLineTextField(_objectivesController, "Objectives (One per line)", Icons.list),
-                            _buildMultiLineTextField(_volunteerTypesController, "Volunteer Types (One per line)", Icons.people),
-                            
+                            _buildMultiLineTextField(_objectivesController, "Objectives (One per line)", Icons.list),         
+                            const SizedBox(height: 20),
+                            _buildSelectionField("Volunteer Types", selectedVolunteerTypes, availableVolunteerTypes, Icons.people, (newSelection) {
+                              setState(() => selectedVolunteerTypes = newSelection);
+                            }),
+                            _buildSelectionField("Locations", selectedLocations, availableLocations, Icons.location_on, (newSelection) {
+                              setState(() => selectedLocations = newSelection);
+                            }),
                             const SizedBox(height: 20),
                             const Text("Representative Information", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
                             _buildTextField(_repNameController, "Representative First Name", Icons.person),
                             _buildTextField(_repLastNameController, "Representative Last Name", Icons.person_outline),
                             _buildTextField(_repPhoneController, "Representative Phone", Icons.phone),
                             _buildTextField(_repEmailController, "Representative Email", Icons.email),
-
                             const SizedBox(height: 20),
                               _buildSaveButton(),
                           ],
@@ -235,6 +245,90 @@ Future<bool> _reauthenticateUser() async {
       ),
     );
   }
+
+  void _showMultiSelectDialog(List<String> options, List<String> selectedList, String title, Function(List<String>) onSelected) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        List<String> tempSelected = List.from(selectedList);
+        return AlertDialog(
+          title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+          content: StatefulBuilder(
+            builder: (context, setState) {
+              return SingleChildScrollView(
+                child: Column(
+                  children: options.map((option) {
+                    return ListTile(
+                      title: Text(option, style: const TextStyle(color: Colors.black)),
+                      leading: Icon(
+                        tempSelected.contains(option) ? Icons.check_circle : Icons.radio_button_unchecked,
+                        color: tempSelected.contains(option) ? Colors.red : Colors.grey,
+                      ),
+                      onTap: () {
+                        setState(() {
+                          if (tempSelected.contains(option)) {
+                            tempSelected.remove(option);
+                          } else {
+                            tempSelected.add(option);
+                          }
+                        });
+                      },
+                    );
+                  }).toList(),
+                ),
+              );
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel", style: TextStyle(color: Colors.red)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              onPressed: () {
+                onSelected(tempSelected);
+                Navigator.pop(context);
+              },
+              child: const Text("Save", style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildSelectionField(String label, List<String> selectedList, List<String> options, IconData icon, Function(List<String>) onSelected) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 10),
+    child: InkWell(
+      onTap: () => _showMultiSelectDialog(options, selectedList, "Select $label", onSelected),
+      child: InputDecorator(
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+          prefixIcon: Icon(icon, color: Colors.red),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+          filled: true,
+          fillColor: Colors.white,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                selectedList.isNotEmpty ? selectedList.join(", ") : "Tap to select",
+                style: const TextStyle(color: Colors.black, fontSize: 16),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const Icon(Icons.arrow_drop_down, color: Colors.black),
+          ],
+        ),
+      ),
+    ),
+  );
+}
 
   Widget _buildTextField(TextEditingController controller, String label, IconData icon, {bool isPassword = false}) {
     return Padding(
@@ -283,6 +377,7 @@ Future<bool> _reauthenticateUser() async {
       ),
     );
   }
+
 
   void _showSuccessDialog() {
       showDialog(
