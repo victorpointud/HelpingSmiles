@@ -14,6 +14,7 @@ import 'all_registered_events_screen.dart';
 import 'all_registered_orgs_screen.dart';
 import 'calendar_screen.dart';
 import 'notifications_screen.dart';
+import 'history_screen.dart';
 import 'dart:math';
 
 
@@ -54,6 +55,7 @@ class VolHomeScreenState extends State<VolHomeScreen> {
         actions: [
           IconButton(icon: const Icon(Icons.notifications, color: Colors.black), onPressed: _navigateToNotifications),
           IconButton(icon: const Icon(Icons.event, color: Colors.black), onPressed: _navigateToCalendar),
+          IconButton(icon: const Icon(Icons.check, color: Colors.black), onPressed: _navigateToHistory),
           IconButton(icon: const Icon(Icons.person, color: Colors.black), onPressed: _navigateToProfile),
           IconButton(icon: const Icon(Icons.logout, color: Colors.red), onPressed: _logout),
         ],
@@ -193,10 +195,13 @@ class VolHomeScreenState extends State<VolHomeScreen> {
     Navigator.push(context, MaterialPageRoute(builder: (_) => CalendarScreen()));
   }
 
+  void _navigateToHistory() {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => HistoryScreen()));
+  }
+
   void _navigateToNotifications() {
     Navigator.push(context, MaterialPageRoute(builder: (_) => NotificationsScreen()));
   }
-
 
   void _navigateToRegisteredOrgInfo(String orgId, String orgName) {
     Navigator.push(context, MaterialPageRoute(builder: (_) => RegisteredOrgInfoScreen(organizationId: orgId,organizationName: orgName,),),);
