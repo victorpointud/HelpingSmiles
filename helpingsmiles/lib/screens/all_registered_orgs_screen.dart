@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:helpingsmiles/screens/registered_org_info_screen.dart';
+import 'registered_org_info_screen.dart';
 
 
 class AllRegisteredOrgsScreen extends StatefulWidget {
@@ -12,47 +11,127 @@ class AllRegisteredOrgsScreen extends StatefulWidget {
 }
 
 class _AllRegisteredOrgsScreenState extends State<AllRegisteredOrgsScreen> {
-  List<Map<String, dynamic>> registeredOrganizations = [];
+  List<Map<String, dynamic>> organizations = [];
+  List<Map<String, dynamic>> filteredOrganizations = [];
+  String? selectedMission;
+  String? selectedDate;
+  List<String> missions = [];
+  List<String> dates = [];
 
   @override
   void initState() {
     super.initState();
-    _loadRegisteredOrganizations();
+    _loadOrganizations();
   }
 
-  Future<void> _loadRegisteredOrganizations() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
+  Future<void> _loadOrganizations() async {
+    final querySnapshot = await FirebaseFirestore.instance.collection('organizations').get();
+    setState(() {
+      organizations = querySnapshot.docs.map((doc) {
+        final data = doc.data();
+        return {
+          'id': doc.id,
+          'name': data['name'] ?? "Unknown Organization",
+          'mission': data['mission'] ?? "No mission provided",
+          'date': data['date'] ?? "No date provided",
+        };
+      }).toList();
 
-    try {
-      final orgsSnapshot = await FirebaseFirestore.instance.collection('organizations').get();
-      List<Map<String, dynamic>> tempOrganizations = [];
+      filteredOrganizations = List.from(organizations);
 
-      for (var orgDoc in orgsSnapshot.docs) {
-        final regRef = orgDoc.reference.collection('registrations').doc(user.uid);
-        final regDoc = await regRef.get();
+      missions = organizations.map((org) => org['mission'].toString()).toSet().toList();
+      missions.insert(0, "All");
 
-        if (regDoc.exists) {
-          tempOrganizations.add({
-            'id': orgDoc.id,
-            'name': orgDoc['name'] ?? "Unknown Organization",
-            'mission': orgDoc['mission'] ?? "No mission provided",
-          });
-        }
-      }
-
-      setState(() {
-        registeredOrganizations = tempOrganizations;
-      });
-    } catch (e) {
-      print("Error loading registered organizations: $e");
-    }
+      dates = organizations.map((org) => org['date'].toString()).toSet().toList();
+      dates.insert(0, "All");
+    });
   }
 
-  void _navigateToRegisteredOrgInfo(String orgId, String orgName) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => RegisteredOrgInfoScreen(organizationId: orgId, organizationName: orgName)),
+  void _applyFilters() {
+    setState(() {
+      filteredOrganizations = organizations.where((org) {
+        final matchesMission = selectedMission == "All" || selectedMission == null || org['mission'] == selectedMission;
+        final matchesDate = selectedDate == "All" || selectedDate == null || org['date'] == selectedDate;
+        return matchesMission && matchesDate;
+      }).toList();
+    });
+  }
+
+  void _showFilterDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          titlePadding: const EdgeInsets.all(10),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                "Filter Organizations",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close, color: Colors.black),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildDropdown("Mission", selectedMission, missions, (value) {
+                setState(() => selectedMission = value);
+              }),
+              const SizedBox(height: 10),
+              _buildDropdown("Date Created", selectedDate, dates, (value) {
+                setState(() => selectedDate = value);
+              }),
+            ],
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  selectedMission = null;
+                  selectedDate = null;
+                  filteredOrganizations = List.from(organizations);
+                });
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              child: const Text("Clear Filters", style: TextStyle(color: Colors.white)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                _applyFilters();
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              child: const Text("Apply Filters", style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildDropdown(String label, String? selectedValue, List<String> options, Function(String?) onChanged) {
+    return DropdownButtonFormField<String>(
+      value: selectedValue,
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        filled: true,
+        fillColor: Colors.grey[200],
+      ),
+      items: options.map((option) {
+        return DropdownMenuItem(
+          value: option,
+          child: Text(option, overflow: TextOverflow.ellipsis),
+        );
+      }).toList(),
+      onChanged: (value) => onChanged(value),
     );
   }
 
@@ -62,10 +141,16 @@ class _AllRegisteredOrgsScreenState extends State<AllRegisteredOrgsScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         title: const Text(
-          "My Registered Organizations",
+          "All Organizations",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
         ),
         iconTheme: const IconThemeData(color: Colors.black),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search, color: Colors.black),
+            onPressed: _showFilterDialog,
+          ),
+        ],
       ),
       body: Stack(
         children: [
@@ -80,40 +165,53 @@ class _AllRegisteredOrgsScreenState extends State<AllRegisteredOrgsScreen> {
           Container(color: Colors.black.withOpacity(0.3)),
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: registeredOrganizations.isEmpty
-                  ? const Center(child: Text("You are not registered in any organization.", style: TextStyle(color: Colors.white)))
+              padding: const EdgeInsets.all(20),
+              child: filteredOrganizations.isEmpty
+                  ? const Center(child: Text("No organizations found.", style: TextStyle(color: Colors.white)))
                   : ListView.builder(
-                      itemCount: registeredOrganizations.length,
+                      itemCount: filteredOrganizations.length,
                       itemBuilder: (context, index) {
-                        final org = registeredOrganizations[index];
-                        return GestureDetector(
-                          onTap: () => _navigateToRegisteredOrgInfo(org["id"], org["name"]),
-                          child: Card(
-                            elevation: 3,
-                            margin: const EdgeInsets.symmetric(vertical: 8),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                            color: Colors.white,
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Text(org["name"], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red)),
-                                  const SizedBox(height: 5),
-                                  Text(org["mission"], style: const TextStyle(fontSize: 14, color: Colors.black)),
-                                  const SizedBox(height: 5),
-                                  const Text("Click to see more info", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
+                        final org = filteredOrganizations[index];
+                        return _buildOrganizationCard(org);
                       },
                     ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildOrganizationCard(Map<String, dynamic> org) {
+    return GestureDetector(
+      onTap: () => _navigateToRegisteredOrgInfo(org["id"], org["name"]),
+      child: Card(
+        elevation: 3,
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        color: Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(org["name"], style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red)),
+              const SizedBox(height: 5),
+              Text("${org["date"]} • ${org["mission"]} ", style: const TextStyle(color: Colors.black, fontSize: 16)),
+              const SizedBox(height: 5),
+              const Text("Click to see more info", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _navigateToRegisteredOrgInfo(String orgId, String orgName) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => RegisteredOrgInfoScreen(organizationId: orgId, organizationName: orgName),
       ),
     );
   }
