@@ -265,6 +265,7 @@ void _navigateToMoreRegisteredOrgs() {
           return {
             'id': doc.id,
             'name': data['name'] ?? "Unknown Organization",
+            'date': data['date'] ?? "No date provided",
             'mission': data['mission'] ?? "Unknown Mission",
           };
         }).toList();
@@ -290,6 +291,7 @@ void _navigateToMoreRegisteredOrgs() {
             tempOrganizations.add({
               'id': orgDoc.id,
               'name': orgDoc['name'] ?? "Unknown Organization",
+              'date': orgDoc['date'] ?? "No date provided",
               'mission': orgDoc['mission'] ?? "No mission provided",
             });
           }
@@ -303,7 +305,7 @@ void _navigateToMoreRegisteredOrgs() {
         debugPrint("Error loading registered organizations: $e");
 
       }
-    }
+  }
 
   Future<void> _loadregisteredEventInfo() async {
   final user = FirebaseAuth.instance.currentUser;
@@ -392,7 +394,7 @@ void _navigateToMoreRegisteredOrgs() {
             children: [
               Text(org["name"], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red)),
               const SizedBox(height: 5),
-              Text(org["mission"], style: const TextStyle(fontSize: 14, color: Colors.black)),
+              Text("${org["date"]} • ${org["mission"]}", style: const TextStyle(color: Colors.black)),
               const SizedBox(height: 5),
               const Text("Click to see more info", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
             ],
@@ -417,7 +419,7 @@ void _navigateToMoreRegisteredOrgs() {
             children: [
               Text(org["name"], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red)),
               const SizedBox(height: 5),
-              Text(org["mission"], style: const TextStyle(fontSize: 14, color: Colors.black)),
+              Text("${org["date"]} • ${org["mission"]}", style: const TextStyle(color: Colors.black)),
               const SizedBox(height: 5),
               const Text("Click to see more info", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
             ],
