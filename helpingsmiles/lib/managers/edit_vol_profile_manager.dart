@@ -319,16 +319,25 @@ class _EditVolProfileManagerState extends State<EditVolProfileManager> {
   }
 
   void _showSuccessDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Success"),
-        content: const Text("Your profile has been updated successfully."),
-      ),
-    );
-    Future.delayed(const Duration(seconds: 2), () {
-      Navigator.pop(context);
-      Navigator.pop(context, true);
-    });
-  }
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text("Success", style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.black)),
+          content: const Text("Your profile has been updated successfully.", style: TextStyle(fontSize: 15, color: Colors.black)),
+          actions: [
+            Center(
+              child: CircularProgressIndicator(
+                color: Colors.red,
+              ),
+            ),
+          ],
+        ),
+      );
+
+      Future.delayed(const Duration(seconds: 2), () {
+        Navigator.pop(context); 
+        Navigator.pop(context, true); 
+      });
+    }
+
 }
