@@ -15,7 +15,6 @@ class _VolProfileScreenState extends State<VolProfileScreen> {
   String? email;
   String? phone;
   String? date;
-  String? password;
   String? location;
   List<String> interests = [];
   List<String> skills = [];
@@ -34,15 +33,12 @@ class _VolProfileScreenState extends State<VolProfileScreen> {
         if (mounted) {
           setState(() {
             name = doc.data()?['name'] ?? "Not specified";
-            email = doc.data()?['email'] ?? "Not specified";
+            email = user.email ?? "Not specified";
             phone = doc.data()?['phone'] ?? "Not specified";
             date = doc.data()?['date'] ?? "Not specified";
             location = doc.data()?['location'] ?? "Not specified";
-            password = doc.data()?['password'] ?? "Not specified";
-            final dynamic interestsData = doc.data()?['interests'];
-            interests = (interestsData is List) ? interestsData.cast<String>() : [];
-            final dynamic skillsData = doc.data()?['skills'];
-            skills = (skillsData is List) ? skillsData.cast<String>() : [];
+            interests = List<String>.from(doc.data()?['interests'] ?? []);
+            skills = List<String>.from(doc.data()?['skills'] ?? []);
           });
         }
       }
@@ -58,40 +54,35 @@ class _VolProfileScreenState extends State<VolProfileScreen> {
     });
   }
 
-
   void _confirmDeleteAccount() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Delete Account", style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.black)),
-        content: const Text("Are you sure you want to delete your account? This action cannot be undone.",  style: TextStyle(fontSize: 15, color: Colors.black)),
+        title: const Text("Delete Account", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
+        content: const Text("Are you sure you want to delete your account? This action cannot be undone.", style: TextStyle(fontSize: 16, color: Colors.black)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel",  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 9, 34, 225))),
+            child: const Text("Cancel", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               _deleteAccount();
             },
-            child: const Text("Delete", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 255, 2, 2))),
+            child: const Text("Delete", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
     );
   }
 
-   Future<void> _deleteAccount() async {
+  Future<void> _deleteAccount() async {
     final user = FirebaseAuth.instance.currentUser;
-
     if (user != null) {
       try {
-        
-        await FirebaseFirestore.instance.collection('organizations').doc(user.uid).delete();
-
+        await FirebaseFirestore.instance.collection('volunteers').doc(user.uid).delete();
         await user.delete();
-
         Navigator.of(context).pushReplacementNamed('/login');
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -111,6 +102,16 @@ class _VolProfileScreenState extends State<VolProfileScreen> {
           style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
         ),
         iconTheme: const IconThemeData(color: Colors.black),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit, color: Colors.black),
+            onPressed: _navigateToEditProfile,
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete, color: Colors.red),
+            onPressed: _confirmDeleteAccount,
+          ),
+        ],
       ),
       body: Stack(
         children: [
@@ -122,38 +123,39 @@ class _VolProfileScreenState extends State<VolProfileScreen> {
               ),
             ),
           ),
-          Container(color: Colors.black.withOpacity(0.3),),
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                const SizedBox(height: 20),
-                _buildProfileSection(Icons.person, "Name", name ?? "Not specified"),
-                _buildProfileSection(Icons.email, "Email", email ?? "Not specified"),
-                _buildProfileSection(Icons.phone, "Phone Number", phone ?? "Not specified"),
-                _buildProfileSection(Icons.calendar_today, "Date of Birth", date ?? "Not specified"),
-                _buildProfileSection(Icons.lock, "Password", password ?? "Not specified"),
-                _buildProfileSection(Icons.location_on, "Location", location ?? "Not specified"),
-                _buildProfileList(Icons.favorite, "Interests", interests),
-                _buildProfileList(Icons.star, "Skills", skills),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    ElevatedButton(
-                      onPressed: _navigateToEditProfile,
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                      child: const Text("Edit Profile", style: TextStyle(color: Colors.white)),
+          Container(color: Colors.black.withOpacity(0.3)),
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Center(
+                child: Card(
+                  color: Colors.white,
+                  elevation: 10,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Center(
+                          child: Text(
+                            "Volunteer Profile",
+                            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        _buildProfileSection(Icons.person, "Name", name ?? "Not specified"),
+                        _buildProfileSection(Icons.email, "Email", email ?? "Not specified"),
+                        _buildProfileSection(Icons.phone, "Phone", phone ?? "Not specified"),
+                        _buildProfileSection(Icons.calendar_today, "Date of Birth", date ?? "Not specified"),
+                        _buildProfileSection(Icons.location_on, "Location", location ?? "Not specified"),
+                        _buildProfileList(Icons.favorite, "Interests", interests),
+                        _buildProfileList(Icons.star, "Skills", skills),
+                      ],
                     ),
-                    const SizedBox(width: 10),
-                    ElevatedButton(
-                      onPressed: _confirmDeleteAccount,
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
-                      child: const Text("Delete Account", style: TextStyle(color: Colors.white)),
-                    ),
-                  ],
+                  ),
                 ),
-              ],
+              ),
             ),
           ),
         ],
@@ -162,58 +164,65 @@ class _VolProfileScreenState extends State<VolProfileScreen> {
   }
 
   Widget _buildProfileSection(IconData icon, String title, String content) {
-    return Card(
-      elevation: 4,
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      color: Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Row(
-          children: [
-            Icon(icon, color: Colors.red),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text.rich(
-                TextSpan(
-                  children: [
-                    TextSpan(
-                      text: "$title: ",
-                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
-                    ),
-                    TextSpan(
-                      text: content,
-                      style: const TextStyle(fontWeight: FontWeight.normal, color: Colors.black),
-                    ),
-                  ],
-                ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.red),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: "$title: ",
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black),
+                  ),
+                  TextSpan(
+                    text: content,
+                    style: const TextStyle(fontSize: 16, color: Colors.black),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildProfileList(IconData icon, String title, List<String> items) {
-    return Card(
-      elevation: 4,
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      color: Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(children: [
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
               Icon(icon, color: Colors.red),
               const SizedBox(width: 10),
-              Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black))
-            ]),
-            ...items.map((item) => Text("• $item", style: const TextStyle(fontSize: 16, color: Colors.black))),
-          ],
-        ),
+              Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
+            ],
+          ),
+          if (items.isEmpty)
+            const Padding(
+              padding: EdgeInsets.only(left: 32, top: 5),
+              child: Text("Not specified", style: TextStyle(fontSize: 16, color: Colors.black)),
+            )
+          else
+            Column(
+              children: items.map((item) => Padding(
+                padding: const EdgeInsets.only(left: 32, top: 5),
+                child: Row(
+                  children: [
+                    const Icon(Icons.check_circle, color: Color.fromARGB(255, 0, 0, 0), size: 16),
+                    const SizedBox(width: 5),
+                    Expanded(child: Text(item, style: const TextStyle(fontSize: 16, color: Colors.black))),
+                  ],
+                ),
+              )).toList(),
+            ),
+        ],
       ),
     );
   }
