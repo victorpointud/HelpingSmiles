@@ -59,7 +59,7 @@ class VolHomeScreenState extends State<VolHomeScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.calendar_today, color: Colors.black),
+            icon: const Icon(Icons.event, color: Colors.black),
             onPressed: () {
               Navigator.push(
                 context,

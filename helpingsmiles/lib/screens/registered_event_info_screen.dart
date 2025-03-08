@@ -12,12 +12,15 @@ class RegisteredEventInfoScreen extends StatefulWidget {
 
 class _RegisteredEventInfoScreenState extends State<RegisteredEventInfoScreen> {
   Map<String, dynamic>? eventData;
+  Map<String, dynamic>? representativeData;
   bool isLoading = true;
+  bool isRepLoading = true;
 
   @override
   void initState() {
     super.initState();
     _loadEventData();
+    _loadRepresentativeData();
   }
 
   Future<void> _loadEventData() async {
@@ -39,6 +42,29 @@ class _RegisteredEventInfoScreenState extends State<RegisteredEventInfoScreen> {
       setState(() {
         isLoading = false;
       });
+    }
+  }
+
+  Future<void> _loadRepresentativeData() async {
+    try {
+      final repDoc = await FirebaseFirestore.instance
+          .collection('events')
+          .doc(widget.eventId)
+          .collection('representatives')
+          .doc('info')
+          .get();
+
+      if (repDoc.exists && repDoc.data() != null) {
+        setState(() {
+          representativeData = repDoc.data();
+        });
+      } else {
+        print("No representative data found.");
+      }
+    } catch (e) {
+      print("Error loading representative data: $e");
+    } finally {
+      setState(() => isRepLoading = false);
     }
   }
 
@@ -78,7 +104,7 @@ class _RegisteredEventInfoScreenState extends State<RegisteredEventInfoScreen> {
                           child: Padding(
                             padding: const EdgeInsets.all(20),
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 Text(
                                   eventData!["name"] ?? "Unnamed Event",
@@ -89,6 +115,8 @@ class _RegisteredEventInfoScreenState extends State<RegisteredEventInfoScreen> {
                                 _buildDetailRow(Icons.location_on, "Location", eventData!["location"] ?? "No location provided"),
                                 _buildDetailRow(Icons.timelapse, "Duration", "${eventData!["duration"] ?? "N/A"} hours"),
                                 _buildDetailRow(Icons.people, "Volunteer Type", eventData!["volunteerType"] ?? "Not specified"),
+                                const SizedBox(height: 20),
+                                _buildRepresentativeSection(), 
                                 const SizedBox(height: 20),
                                 const Text(
                                   "Description:",
@@ -138,4 +166,41 @@ class _RegisteredEventInfoScreenState extends State<RegisteredEventInfoScreen> {
       ),
     );
   }
+
+  Widget _buildRepresentativeSection() {
+    if (isRepLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (representativeData == null) {
+      return const Center(
+        child: Text(
+          "No representative assigned for this event.",
+          style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic, color: Colors.black54),
+        ),
+      );
+    }
+    return Card(
+      color: Colors.white,
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Text(
+              "Representative",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+            ),
+            const SizedBox(height: 10),
+            _buildDetailRow(Icons.person, "Name", "${representativeData!['repName']} ${representativeData!['repLastName']}"),
+            _buildDetailRow(Icons.email, "Email", representativeData!['repEmail']),
+            _buildDetailRow(Icons.phone, "Phone", representativeData!['repPhone']),
+          ],
+        ),
+      ),
+    );
+  }
+
 }

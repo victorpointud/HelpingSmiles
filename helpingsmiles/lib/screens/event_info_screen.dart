@@ -13,12 +13,15 @@ class EventInfoScreen extends StatefulWidget {
 
 class _EventInfoScreenState extends State<EventInfoScreen> {
   Map<String, dynamic>? eventData;
+  Map<String, dynamic>? representativeData;
   bool isLoading = true;
+  bool isRepLoading = true;
 
   @override
   void initState() {
     super.initState();
     _loadEventData();
+    _loadRepresentativeData();
   }
 
   Future<void> _loadEventData() async {
@@ -40,6 +43,29 @@ class _EventInfoScreenState extends State<EventInfoScreen> {
       setState(() {
         isLoading = false;
       });
+    }
+  }
+
+  Future<void> _loadRepresentativeData() async {
+    try {
+      final repDoc = await FirebaseFirestore.instance
+          .collection('events')
+          .doc(widget.eventId)
+          .collection('representatives')
+          .doc('info')
+          .get();
+
+      if (repDoc.exists && repDoc.data() != null) {
+        setState(() {
+          representativeData = repDoc.data();
+        });
+      } else {
+        print("No representative data found.");
+      }
+    } catch (e) {
+      print("Error loading representative data: $e");
+    } finally {
+      setState(() => isRepLoading = false);
     }
   }
 
@@ -79,7 +105,7 @@ class _EventInfoScreenState extends State<EventInfoScreen> {
                           child: Padding(
                             padding: const EdgeInsets.all(20),
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 Text(
                                   eventData!["name"] ?? "Unnamed Event",
@@ -90,6 +116,8 @@ class _EventInfoScreenState extends State<EventInfoScreen> {
                                 _buildDetailRow(Icons.location_on, "Location", eventData!["location"] ?? "No location provided"),
                                 _buildDetailRow(Icons.timelapse, "Duration", "${eventData!["duration"] ?? "N/A"} hours"),
                                 _buildDetailRow(Icons.people, "Volunteer Type", eventData!["volunteerType"] ?? "Not specified"),
+                                const SizedBox(height: 20),
+                                _buildRepresentativeSection(), 
                                 const SizedBox(height: 20),
                                 const Text(
                                   "Description:",
@@ -103,7 +131,7 @@ class _EventInfoScreenState extends State<EventInfoScreen> {
                                 const SizedBox(height: 10),
                                 Center(
                                   child: ElevatedButton(
-                                    onPressed: () => _registerForEvent('id'),
+                                    onPressed: () => _registerForEvent(widget.eventId),
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Colors.red,
                                       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
@@ -123,81 +151,7 @@ class _EventInfoScreenState extends State<EventInfoScreen> {
     );
   }
 
-  Future<void> _registerForEvent(String eventId) async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      try {
-        final volunteerDoc = await FirebaseFirestore.instance.collection('volunteers').doc(user.uid).get();
-
-        if (!volunteerDoc.exists) {
-          _showErrorDialog("Volunteer profile not found!");
-          return;
-        }
-
-        final volunteerData = volunteerDoc.data() ?? {};
-        final name = volunteerData['name'] ?? "Not specified";
-        final email = user.email ?? "Not specified";
-        final phone = volunteerData['phone'] ?? "Not specified";
-        final skills = (volunteerData['skills'] as List<dynamic>?)?.cast<String>() ?? [];
-        final interests = (volunteerData['interests'] as List<dynamic>?)?.cast<String>() ?? [];
-        final location = volunteerData['location'] ?? "Not specified";
-        final date = volunteerData['date'] ?? "Not specified";
-
-        await FirebaseFirestore.instance.collection('events').doc(eventId).collection('registrations').doc(user.uid).set({
-          'userId': user.uid,
-          'name': name,
-          'email': email,
-          'phone': phone,
-          'skills': skills,
-          'interests': interests,
-          'location': location,
-          'date': date,
-          'timestamp': FieldValue.serverTimestamp(),
-        });
-
-        _showSuccessDialog(); 
-
-      } catch (e) {
-        _showErrorDialog("Failed to register for event.");
-      }
-    }
-  }
-
-  void _showSuccessDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Registration Successful!", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
-        content: const Text("You have successfully registered for this event.", style: TextStyle(fontSize: 16, color: Colors.black)),
-        actions: [
-          Center(child: CircularProgressIndicator(color: Colors.red)), 
-        ],
-      ),
-    );
-
-    
-    Future.delayed(const Duration(seconds: 2), () {
-      Navigator.pop(context); 
-    });
-  }
-
-  void _showErrorDialog(String message) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Error", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.red)),
-        content: Text(message, style: const TextStyle(fontSize: 16, color: Colors.black)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("OK", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDetailRow(IconData icon, String title, String value) {
+   Widget _buildDetailRow(IconData icon, String title, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -224,4 +178,98 @@ class _EventInfoScreenState extends State<EventInfoScreen> {
       ),
     );
   }
+
+  Widget _buildRepresentativeSection() {
+    if (isRepLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (representativeData == null) {
+      return const Center(
+        child: Text(
+          "No representative assigned for this event.",
+          style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic, color: Colors.black54),
+        ),
+      );
+    }
+    return Card(
+      color: Colors.white,
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Text(
+              "Representative",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+            ),
+            const SizedBox(height: 10),
+            _buildDetailRow(Icons.person, "Name", "${representativeData!['repName']} ${representativeData!['repLastName']}"),
+            _buildDetailRow(Icons.email, "Email", representativeData!['repEmail']),
+            _buildDetailRow(Icons.phone, "Phone", representativeData!['repPhone']),
+          ],
+        ),
+      ),
+    );
+  }
+  
+  Future<void> _registerForEvent(String eventId) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        final volunteerDoc = await FirebaseFirestore.instance.collection('volunteers').doc(user.uid).get();
+
+        if (!volunteerDoc.exists) {
+          _showErrorDialog("Volunteer profile not found!");
+          return;
+        }
+
+        final volunteerData = volunteerDoc.data() ?? {};
+        await FirebaseFirestore.instance.collection('events').doc(eventId).collection('registrations').doc(user.uid).set({
+          'userId': user.uid,
+          'name': volunteerData['name'] ?? "Not specified",
+          'email': user.email ?? "Not specified",
+          'phone': volunteerData['phone'] ?? "Not specified",
+          'skills': volunteerData['skills'] ?? [],
+          'interests': volunteerData['interests'] ?? [],
+          'location': volunteerData['location'] ?? "Not specified",
+          'date': volunteerData['date'] ?? "Not specified",
+          'timestamp': FieldValue.serverTimestamp(),
+        });
+
+        _showSuccessDialog();
+      } catch (e) {
+        _showErrorDialog("Failed to register for event.");
+      }
+    }
+  }
+
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => const AlertDialog(
+        title: Text("Registration Successful!", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
+        content: Text("You have successfully registered for this event.", style: TextStyle(fontSize: 16, color: Colors.black)),
+      ),
+    );
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Error", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.red)),
+        content: Text(message, style: const TextStyle(fontSize: 16, color: Colors.black)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("OK", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
 }

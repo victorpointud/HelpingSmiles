@@ -12,7 +12,6 @@ class AllEventsScreen extends StatefulWidget {
 class _AllEventsScreenState extends State<AllEventsScreen> {
   List<Map<String, dynamic>> events = [];
   List<Map<String, dynamic>> filteredEvents = [];
-  TextEditingController searchController = TextEditingController();
   String? selectedDuration;
   String? selectedInterest;
   String? selectedSkill;
@@ -23,14 +22,14 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
     "Communication",
     "Organization and logistics",
     "Teaching and mentoring",
-    "Technical skills",
-    "Manual skills",
-    "Medical and care skills",
-    "Artistic and cultural skills",
-    "Sports and recreational skills",
-    "Research and analytical skills",
-    "Leadership and management skills",
-    "other"
+    "Technical",
+    "Manual",
+    "Medical and care",
+    "Artistic and cultural",
+    "Sports and recreational",
+    "Research and analytical",
+    "Leadership and management",
+    "Other"
   ];
 
   @override
@@ -51,7 +50,7 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
           'location': data['location'] ?? "No location provided",
           'duration': data['duration'] ?? "No duration provided",
           'interest': data['interest'] ?? "No interest provided",
-          'skills': data['skills'] ?? [], // Asegúrate de que 'skills' es un array en Firestore
+          'skills': data['skills'] ?? [],
         };
       }).toList();
       filteredEvents = List.from(events);
@@ -61,36 +60,6 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
 
       interests = events.map((event) => event['interest'].toString()).toSet().toList();
       interests.insert(0, "All");
-    });
-  }
-
-  void _filterEvents(String query) {
-    setState(() {
-      filteredEvents = events.where((event) {
-        final name = event['name'].toString().toLowerCase();
-        return name.contains(query.toLowerCase());
-      }).toList();
-    });
-  }
-
-  void _filterByDuration(String? duration) {
-    setState(() {
-      selectedDuration = duration;
-      _applyFilters();
-    });
-  }
-
-  void _filterByInterest(String? interest) {
-    setState(() {
-      selectedInterest = interest;
-      _applyFilters();
-    });
-  }
-
-  void _filterBySkill(String? skill) {
-    setState(() {
-      selectedSkill = skill;
-      _applyFilters();
     });
   }
 
@@ -105,6 +74,90 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
     });
   }
 
+ void _showFilterDialog() {
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        backgroundColor: Colors.white, 
+        titlePadding: const EdgeInsets.all(10), 
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              "Filter Events",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            IconButton(
+              icon: const Icon(Icons.close, color: Colors.black), 
+              onPressed: () => Navigator.pop(context), 
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildDropdown("Duration", selectedDuration, durations, (value) {
+              setState(() => selectedDuration = value);
+            }),
+            const SizedBox(height: 10),
+            _buildDropdown("Interest", selectedInterest, interests, (value) {
+              setState(() => selectedInterest = value);
+            }),
+            const SizedBox(height: 10),
+            _buildDropdown("Skill", selectedSkill, skills, (value) {
+              setState(() => selectedSkill = value);
+            }, isExpanded: true), 
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              setState(() {
+                selectedDuration = null;
+                selectedInterest = null;
+                selectedSkill = null;
+                filteredEvents = List.from(events);
+              });
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text("Clear Filters", style: TextStyle(color: Colors.white)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              _applyFilters();
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text("Apply Filters", style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+Widget _buildDropdown(String label, String? selectedValue, List<String> options, Function(String?) onChanged, {bool isExpanded = false}) {
+  return DropdownButtonFormField<String>(
+    value: selectedValue,
+    isExpanded: isExpanded, 
+    decoration: InputDecoration(
+      labelText: label,
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+      filled: true,
+      fillColor: Colors.grey[200],
+    ),
+    items: options.map((option) {
+      return DropdownMenuItem(
+        value: option,
+        child: Text(option, overflow: TextOverflow.ellipsis), 
+      );
+    }).toList(),
+    onChanged: (value) => onChanged(value),
+  );
+}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -115,97 +168,12 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
         ),
         iconTheme: const IconThemeData(color: Colors.black),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(280), // Aumentamos la altura para los dropdowns
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: TextField(
-                  controller: searchController,
-                  decoration: InputDecoration(
-                    hintText: 'Search events...',
-                    prefixIcon: const Icon(Icons.search, color: Colors.black),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide.none,
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[200],
-                  ),
-                  onChanged: _filterEvents,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: DropdownButtonFormField<String>(
-                  value: selectedDuration,
-                  decoration: InputDecoration(
-                    hintText: 'Filter by duration',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide.none,
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[200],
-                  ),
-                  items: durations.map((duration) {
-                    return DropdownMenuItem(
-                      value: duration,
-                      child: Text(duration),
-                    );
-                  }).toList(),
-                  onChanged: _filterByDuration,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: DropdownButtonFormField<String>(
-                  value: selectedInterest,
-                  decoration: InputDecoration(
-                    hintText: 'Filter by interest',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide.none,
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[200],
-                  ),
-                  items: interests.map((interest) {
-                    return DropdownMenuItem(
-                      value: interest,
-                      child: Text(interest),
-                    );
-                  }).toList(),
-                  onChanged: _filterByInterest,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: DropdownButtonFormField<String>(
-                  value: selectedSkill,
-                  decoration: InputDecoration(
-                    hintText: 'Filter by skill',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide.none,
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[200],
-                  ),
-                  items: skills.map((skill) {
-                    return DropdownMenuItem(
-                      value: skill,
-                      child: Text(skill),
-                    );
-                  }).toList(),
-                  onChanged: _filterBySkill,
-                ),
-              ),
-              const SizedBox(height: 16), // Espacio invisible más pequeño que el botón
-            ],
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search, color: Colors.black),
+            onPressed: _showFilterDialog,
           ),
-        ),
+        ],
       ),
       body: Stack(
         children: [
@@ -257,8 +225,6 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
               Text("Duration: ${event["duration"]}", style: const TextStyle(color: Colors.black)),
               const SizedBox(height: 5),
               Text("Interest: ${event["interest"]}", style: const TextStyle(color: Colors.black)),
-              const SizedBox(height: 5),
-              //Text("Skills: ${event["skills"].join(", ")}", style: const TextStyle(color: Colors.black)),
               const SizedBox(height: 5),
               const Text("Click to see more info", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
             ],
