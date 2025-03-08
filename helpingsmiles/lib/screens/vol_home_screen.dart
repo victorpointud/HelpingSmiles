@@ -354,7 +354,7 @@ class VolHomeScreenState extends State<VolHomeScreen> {
   void _logout() async {
     await AuthManager.logoutUser();
 
-    if (!mounted) return; // Verifica si el widget sigue en pantalla antes de navegar
+    if (!mounted) return;
 
     Navigator.pushReplacement(
       context,

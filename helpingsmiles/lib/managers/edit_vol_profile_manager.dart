@@ -72,23 +72,19 @@ class _EditVolProfileManagerState extends State<EditVolProfileManager> {
       bool isEmailChanged = _emailController.text.trim() != user.email;
       bool isPasswordChanged = _passwordController.text.trim().isNotEmpty;
 
-      // Solo pide reautenticación si se intenta cambiar el email o la contraseña
       if (isEmailChanged || isPasswordChanged) {
         bool reauthenticated = await _reauthenticateUser();
         if (!reauthenticated) return;
       }
 
-      // Si el email cambió, lo actualiza
       if (isEmailChanged) {
         await user.updateEmail(_emailController.text.trim());
       }
 
-      // Si la contraseña cambió (y no está vacía), la actualiza
       if (isPasswordChanged) {
         await user.updatePassword(_passwordController.text.trim());
       }
 
-      // Guarda el resto de los datos en Firestore sin necesidad de reautenticación
       await FirebaseFirestore.instance.collection('volunteers').doc(user.uid).set({
         'name': _nameController.text.trim(),
         'phone': _phoneController.text.trim(),
@@ -299,9 +295,9 @@ class _EditVolProfileManagerState extends State<EditVolProfileManager> {
       ),
       validator: (value) {
         if (!isPassword && value!.isEmpty) {
-          return "Please enter $label"; // Requiere valores solo en campos normales
+          return "Please enter $label"; 
         }
-        return null; // Permite contraseña vacía
+        return null; 
       },
     ),
   );

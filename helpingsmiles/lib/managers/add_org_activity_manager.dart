@@ -12,7 +12,6 @@ class AddOrgActivityManager extends StatefulWidget {
 class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
   final _formKey = GlobalKey<FormState>();
 
-  // Campos de la actividad
   final _activityNameController = TextEditingController();
   final _dateController = TextEditingController();
   final _durationController = TextEditingController();
@@ -20,7 +19,6 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
   final _locationController = TextEditingController();
   final _descriptionController = TextEditingController();
 
-  // Campos del representante
   final _repNameController = TextEditingController();
   final _repLastNameController = TextEditingController();
   final _repPhoneController = TextEditingController();
@@ -29,7 +27,6 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
   String _organizationName = "Loading...";
   bool _isLoading = false;
 
-  // Lista de intereses
   final List<String> _interests = [
     "Environment",
     "Education",
@@ -44,7 +41,6 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
     "other"
   ];
 
-  // Lista de habilidades
   final List<String> _skills = [
     "All",
     "Communication",
@@ -60,10 +56,8 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
     "other"
   ];
 
-  // Variable para almacenar el interés seleccionado
   String? _selectedInterest;
 
-  // Lista de habilidades seleccionadas
   List<String> _selectedSkills = [];
 
   @override
@@ -99,7 +93,6 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
     }
 
     try {
-      // ✅ Guardar la actividad en Firestore
       DocumentReference eventRef = await FirebaseFirestore.instance.collection('events').add({
         'organizationId': user.uid,
         'organizationName': _organizationName,
@@ -109,12 +102,11 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
         'organizationType': _organizationTypeController.text.trim(),
         'location': _locationController.text.trim(),
         'description': _descriptionController.text.trim(),
-        'interest': _selectedInterest, // Guardar el interés seleccionado
-        'skills': _selectedSkills, // Guardar las habilidades seleccionadas
+        'interest': _selectedInterest, 
+        'skills': _selectedSkills,
         'createdAt': FieldValue.serverTimestamp(),
       });
 
-      // ✅ Guardar responsable en la subcolección "representatives/info" dentro del evento
       await eventRef.collection('representatives').doc('info').set({
         'repName': _repNameController.text.trim(),
         'repLastName': _repLastNameController.text.trim(),
@@ -151,7 +143,6 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
     });
   }
 
-  // Método para mostrar el diálogo de selección múltiple de habilidades
   Future<void> _showMultiSelectSkills() async {
     final List<String>? results = await showDialog(
       context: context,
@@ -222,7 +213,6 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
 
                             const SizedBox(height: 20),
 
-                            // Selector de intereses
                             DropdownButtonFormField<String>(
                               value: _selectedInterest,
                               onChanged: (String? newValue) {
@@ -239,7 +229,6 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
                               decoration: InputDecoration(
                                 labelText: "Interest",
                                 labelStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
-                                //prefixIcon: Icon(Icons.interests, color: Colors.red),
                                 filled: true,
                                 fillColor: Colors.white,
                                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
@@ -249,7 +238,6 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
 
                             const SizedBox(height: 20),
 
-                            // Selector de habilidades (múltiple)
                             InkWell(
                               onTap: _showMultiSelectSkills,
                               child: InputDecorator(
@@ -280,7 +268,6 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
 
                             const SizedBox(height: 20),
 
-                            // ✅ Sección para añadir responsable
                             const Text(
                               "Activity Representative",
                               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
