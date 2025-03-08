@@ -239,7 +239,7 @@ class _OrgEventsListScreenState extends State<OrgEventsListScreen> {
                 ],
               ),
               const SizedBox(height: 10),
-              const Text("Click to see more info", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
+              const Text("Tap to view details", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
             ],
           ),
         ),

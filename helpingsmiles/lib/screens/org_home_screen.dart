@@ -344,7 +344,7 @@ void _navigateToAllExtraOrgs() {
               Text(org["name"], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red)),
               Text(org["mission"], style: const TextStyle(fontSize: 14, color: Colors.black)),
               const SizedBox(height: 5),
-              const Text("Click to see more info", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
+              const Text("Tap to view details", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
             ],
           ),
         ),

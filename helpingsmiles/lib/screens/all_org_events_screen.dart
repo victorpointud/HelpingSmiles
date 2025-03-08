@@ -22,7 +22,6 @@ class _AllOrgEventsScreenState extends State<AllOrgEventsScreen> {
     _loadOrgEvents();
   }
 
-  /// ✅ Cargar el nombre de la organización basada en `organizationId`
   Future<void> _loadOrganizationName() async {
     try {
       final orgDoc = await FirebaseFirestore.instance
@@ -47,7 +46,6 @@ class _AllOrgEventsScreenState extends State<AllOrgEventsScreen> {
     }
   }
 
-  /// ✅ Cargar eventos asociados a la organización
   Future<void> _loadOrgEvents() async {
     try {
       final querySnapshot = await FirebaseFirestore.instance
@@ -93,7 +91,7 @@ class _AllOrgEventsScreenState extends State<AllOrgEventsScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         title: Text(
-          organizationName, // ✅ Ahora muestra el nombre real de la organización
+          organizationName,
           style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
         ),
         iconTheme: const IconThemeData(color: Colors.black),

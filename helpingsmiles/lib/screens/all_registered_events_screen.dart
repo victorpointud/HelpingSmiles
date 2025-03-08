@@ -120,7 +120,7 @@ class _AllRegisteredEventsScreenState extends State<AllRegisteredEventsScreen> {
               const SizedBox(height: 5),
               Text("${event["date"]} • ${event["location"]}", style: const TextStyle(color: Colors.black)),
               const SizedBox(height: 5),
-              const Text("Click to see more info", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
+              const Text("Tap to view details", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
             ],
           ),
         ),

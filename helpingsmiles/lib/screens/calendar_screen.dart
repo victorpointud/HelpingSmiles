@@ -166,7 +166,7 @@ class CalendarScreenState extends State<CalendarScreen> {
                               ),
                               const SizedBox(height: 10),
                               Text(
-                                "Click to see more information.",
+                                "Tap to view detailsrmation.",
                                 style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
                               ),
                               const SizedBox(height: 10),

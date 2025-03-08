@@ -210,19 +210,19 @@ class VolHomeScreenState extends State<VolHomeScreen> {
     Navigator.push(context, MaterialPageRoute(builder: (_) => OrgInfoScreen(organizationId: orgId, organizationName: orgName,),),);
   }
 
- void _navigateToMoreEvents() {
+  void _navigateToMoreEvents() {
   Navigator.push(context, MaterialPageRoute(builder: (_) => const AllEventsScreen()),);
 }
 
-void _navigateToMoreOrgs() {
+  void _navigateToMoreOrgs() {
   Navigator.push(context, MaterialPageRoute(builder: (_) => const AllOrgsScreen()),);
 }
 
-void _navigateToMoreRegisteredEvents() {
+  void _navigateToMoreRegisteredEvents() {
   Navigator.push(context, MaterialPageRoute(builder: (_) => const AllRegisteredEventsScreen()),);
 }
 
-void _navigateToMoreRegisteredOrgs() {
+  void _navigateToMoreRegisteredOrgs() {
   Navigator.push(context, MaterialPageRoute(builder: (_) => const AllRegisteredOrgsScreen()),);
 }
 
@@ -399,7 +399,7 @@ void _navigateToMoreRegisteredOrgs() {
               const SizedBox(height: 5),
               Text("${org["date"]} • ${org["mission"]}", style: const TextStyle(color: Colors.black)),
               const SizedBox(height: 5),
-              const Text("Click to see more info", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
+              const Text("Tap to view details", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
             ],
           ),
         ),
@@ -424,7 +424,7 @@ void _navigateToMoreRegisteredOrgs() {
               const SizedBox(height: 5),
               Text("${org["date"]} • ${org["mission"]}", style: const TextStyle(color: Colors.black)),
               const SizedBox(height: 5),
-              const Text("Click to see more info", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
+              const Text("Tap to view details", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
             ],
           ),
         ),
@@ -467,7 +467,7 @@ void _navigateToMoreRegisteredOrgs() {
               const SizedBox(height: 5),
               Text("${event["date"]} • ${event["location"]}", style: const TextStyle(color: Colors.black)),
               const SizedBox(height: 5),
-              const Text("Click to see more info", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
+              const Text("Tap to view details", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
             ],
           ),
         ),
@@ -492,7 +492,7 @@ void _navigateToMoreRegisteredOrgs() {
               const SizedBox(height: 5),
               Text("${event["date"]} • ${event["location"]}", style: const TextStyle(color: Colors.black)),
               const SizedBox(height: 5),
-              const Text("Click to see more info", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
+              const Text("Tap to view details", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
             ],
           ),
         ),

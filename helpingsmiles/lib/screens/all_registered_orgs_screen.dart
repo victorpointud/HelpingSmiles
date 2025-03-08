@@ -199,7 +199,7 @@ class _AllRegisteredOrgsScreenState extends State<AllRegisteredOrgsScreen> {
               const SizedBox(height: 5),
               Text("${org["date"]} • ${org["mission"]} ", style: const TextStyle(color: Colors.black, fontSize: 16)),
               const SizedBox(height: 5),
-              const Text("Click to see more info", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
+              const Text("Tap to view details", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
             ],
           ),
         ),

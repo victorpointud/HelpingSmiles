@@ -109,7 +109,7 @@ class _RegisteredVolInfoScreenState extends State<RegisteredVolInfoScreen> {
             children: [
               Text(volunteer["name"], style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
               Text("${volunteer["email"]} • ${volunteer["phone"]}", style: const TextStyle(color: Colors.black)),
-              const Text("Click to see more info", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color:Colors.black)), 
+              const Text("Tap to view details", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color:Colors.black)), 
             ],
           ),
         ),

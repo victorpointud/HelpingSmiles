@@ -56,6 +56,58 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
+  /// 🚨 **Elimina TODAS las notificaciones del usuario**
+  Future<void> _clearAllNotifications() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    try {
+      for (var event in upcomingEvents) {
+        await FirebaseFirestore.instance
+            .collection('events')
+            .doc(event['id'])
+            .collection('registrations')
+            .doc(user.uid)
+            .delete();
+      }
+
+      setState(() {
+        upcomingEvents.clear();
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("All notifications cleared.")),
+      );
+    } catch (e) {
+      print("Error clearing notifications: $e");
+    }
+  }
+
+  /// ❌ **Elimina una notificación individual**
+  Future<void> _deleteNotification(String eventId) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('events')
+          .doc(eventId)
+          .collection('registrations')
+          .doc(user.uid)
+          .delete();
+
+      setState(() {
+        upcomingEvents.removeWhere((event) => event['id'] == eventId);
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Notification removed.")),
+      );
+    } catch (e) {
+      print("Error deleting notification: $e");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -66,6 +118,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
         ),
         iconTheme: const IconThemeData(color: Colors.black),
+        actions: [
+          if (upcomingEvents.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.delete_forever, color: Colors.red),
+              onPressed: _clearAllNotifications,
+            ),
+        ],
       ),
       body: Stack(
         children: [
@@ -103,46 +162,57 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Widget _buildNotificationCard(Map<String, dynamic> event) {
-    return GestureDetector(
-      onTap: () => _navigateToEventInfo(event["id"]),
-      child: Card(
-        elevation: 4,
-        margin: const EdgeInsets.symmetric(vertical: 10),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        color: Colors.white,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Reminder: ${event["name"]}",
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red),
+    return Card(
+      elevation: 4,
+      margin: const EdgeInsets.symmetric(vertical: 10),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: () => _navigateToEventInfo(event["id"]),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Reminder: ${event["name"]}",
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        const Icon(Icons.calendar_today, color: Colors.red),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text("Date: ${event["date"]}", style: const TextStyle(fontSize: 16, color: Colors.black)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 5),
+                    Row(
+                      children: [
+                        const Icon(Icons.location_on, color: Colors.red),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text("Location: ${event["location"]}", style: const TextStyle(fontSize: 16, color: Colors.black)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    const Text("Tap to view details", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
+                  ],
+                ),
               ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  const Icon(Icons.calendar_today, color: Colors.red),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text("Date: ${event["date"]}", style: const TextStyle(fontSize: 16, color: Colors.black)),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 5),
-              Row(
-                children: [
-                  const Icon(Icons.location_on, color: Colors.red),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text("Location: ${event["location"]}", style: const TextStyle(fontSize: 16, color: Colors.black)),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              const Text("Tap to view details", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
-            ],
-          ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.close, color: Colors.black),
+              onPressed: () => _deleteNotification(event["id"]),
+            ),
+          ],
         ),
       ),
     );
