@@ -13,6 +13,7 @@ import 'all_orgs_screen.dart';
 import 'all_registered_events_screen.dart';
 import 'all_registered_orgs_screen.dart';
 import 'calendar_screen.dart';
+import 'notifications_screen.dart';
 import 'dart:math';
 
 
@@ -40,13 +41,6 @@ class VolHomeScreenState extends State<VolHomeScreen> {
     _loadregisteredEventInfo();
   }
 
-  List<Map<String, dynamic>> _getRandomElements(List<Map<String, dynamic>> list) {
-    if (list.length <= 2) return list; 
-    final random = Random();
-    list.shuffle(random); 
-    return list.take(2).toList();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -54,19 +48,12 @@ class VolHomeScreenState extends State<VolHomeScreen> {
         backgroundColor: Colors.white,
         automaticallyImplyLeading: false,
         title: Text(
-          "Welcome, ${userName ?? 'Loading...'}!",
+          "$userName",
           style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.event, color: Colors.black),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => CalendarScreen()),
-              );
-            },
-          ),
+          IconButton(icon: const Icon(Icons.notifications, color: Colors.black), onPressed: _navigateToNotifications),
+          IconButton(icon: const Icon(Icons.event, color: Colors.black), onPressed: _navigateToCalendar),
           IconButton(icon: const Icon(Icons.person, color: Colors.black), onPressed: _navigateToProfile),
           IconButton(icon: const Icon(Icons.logout, color: Colors.red), onPressed: _logout),
         ],
@@ -81,7 +68,7 @@ class VolHomeScreenState extends State<VolHomeScreen> {
               ),
             ),
           ),
-          Container(color: Colors.black.withAlpha(77)), // 0.3 * 255 = 77,
+          Container(color: Colors.black.withAlpha(77)),
           SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
@@ -187,6 +174,13 @@ class VolHomeScreenState extends State<VolHomeScreen> {
     );
   }
 
+  List<Map<String, dynamic>> _getRandomElements(List<Map<String, dynamic>> list) {
+    if (list.length <= 2) return list; 
+    final random = Random();
+    list.shuffle(random); 
+    return list.take(2).toList();
+  }
+
   void _navigateToProfile() {
     Navigator.push(context, MaterialPageRoute(builder: (_) => const VolProfileScreen()));
   }
@@ -194,6 +188,15 @@ class VolHomeScreenState extends State<VolHomeScreen> {
   void _navigateToEventInfo(String eventId) {
     Navigator.push(context, MaterialPageRoute(builder: (_) => EventInfoScreen(eventId: eventId),),);
   }
+
+  void _navigateToCalendar() {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => CalendarScreen()));
+  }
+
+  void _navigateToNotifications() {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => NotificationsScreen()));
+  }
+
 
   void _navigateToRegisteredOrgInfo(String orgId, String orgName) {
     Navigator.push(context, MaterialPageRoute(builder: (_) => RegisteredOrgInfoScreen(organizationId: orgId,organizationName: orgName,),),);
