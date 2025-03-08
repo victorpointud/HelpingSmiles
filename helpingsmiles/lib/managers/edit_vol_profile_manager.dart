@@ -17,10 +17,20 @@ class _EditVolProfileManagerState extends State<EditVolProfileManager> {
   final _phoneController = TextEditingController();
   final _dateController = TextEditingController();
   final _locationController = TextEditingController();
-  final _interestsController = TextEditingController();
-  final _skillsController = TextEditingController();
+
+  List<String> selectedInterests = [];
+  List<String> selectedSkills = [];
 
   String _volunteerName = "Loading...";
+
+  final List<String> availableInterests = [
+    "Education", "Environment", "Health", "Animal Care", "Community Service", "Technology", "Art & Culture", "Sports"
+  ];
+
+  final List<String> availableSkills = [
+    "Communication", "Organization", "Mentoring", "Technical", "Manual Labor", "Medical", "Artistic", "Leadership"
+  ];
+
 
   @override
   void initState() {
@@ -41,56 +51,113 @@ class _EditVolProfileManagerState extends State<EditVolProfileManager> {
           _dateController.text = doc.data()?['date'] ?? "";
           _passwordController.text = "";
           _locationController.text = doc.data()?['location'] ?? "";
-          _interestsController.text = (doc.data()?['interests'] as List<dynamic>?)?.join("\n") ?? "";
-          _skillsController.text = (doc.data()?['skills'] as List<dynamic>?)?.join("\n") ?? "";
+          selectedInterests = List<String>.from(doc.data()?['interests'] ?? []);
+          selectedSkills = List<String>.from(doc.data()?['skills'] ?? []);
         });
       }
     }
   }
 
   Future<void> _saveProfile() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("No user is signed in. Please log in again.")),
-      );
-      return;
-    }
-
-    if (_formKey.currentState!.validate()) {
-      try {
-
-        if (_emailController.text.trim() != user.email || _passwordController.text.trim().isNotEmpty) {
-          bool reauthenticated = await _reauthenticateUser();
-          if (!reauthenticated) return;
-        }
-
-        if (_emailController.text.trim() != user.email) {
-          await user.updateEmail(_emailController.text.trim());
-        }
-
-        if (_passwordController.text.trim().isNotEmpty) {
-          await user.updatePassword(_passwordController.text.trim());
-        }
-
-        await FirebaseFirestore.instance.collection('volunteers').doc(user.uid).set({
-          'name': _nameController.text.trim(),
-          'phone': _phoneController.text.trim(),
-          'date': _dateController.text.trim(),
-          'location': _locationController.text.trim(),
-          'interests': _interestsController.text.trim().split("\n").where((item) => item.isNotEmpty).toList(),
-          'skills': _skillsController.text.trim().split("\n").where((item) => item.isNotEmpty).toList(),
-        }, SetOptions(merge: true));
-
-        _showSuccessDialog();
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error updating profile: ${e.toString()}")),
-        );
-      }
-    }
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("No user is signed in. Please log in again.")),
+    );
+    return;
   }
 
+  if (_formKey.currentState!.validate()) {
+    try {
+      bool isEmailChanged = _emailController.text.trim() != user.email;
+      bool isPasswordChanged = _passwordController.text.trim().isNotEmpty;
+
+      // Solo pide reautenticación si se intenta cambiar el email o la contraseña
+      if (isEmailChanged || isPasswordChanged) {
+        bool reauthenticated = await _reauthenticateUser();
+        if (!reauthenticated) return;
+      }
+
+      // Si el email cambió, lo actualiza
+      if (isEmailChanged) {
+        await user.updateEmail(_emailController.text.trim());
+      }
+
+      // Si la contraseña cambió (y no está vacía), la actualiza
+      if (isPasswordChanged) {
+        await user.updatePassword(_passwordController.text.trim());
+      }
+
+      // Guarda el resto de los datos en Firestore sin necesidad de reautenticación
+      await FirebaseFirestore.instance.collection('volunteers').doc(user.uid).set({
+        'name': _nameController.text.trim(),
+        'phone': _phoneController.text.trim(),
+        'date': _dateController.text.trim(),
+        'location': _locationController.text.trim(),
+        'interests': selectedInterests,
+        'skills': selectedSkills,
+      }, SetOptions(merge: true));
+
+      _showSuccessDialog();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error updating profile: ${e.toString()}")),
+      );
+    }
+  }
+}
+
+  void _showMultiSelectDialog(List<String> options, List<String> selectedList, String title, Function(List<String>) onSelected) {
+  showDialog(
+    context: context,
+    builder: (context) {
+      List<String> tempSelected = List.from(selectedList);
+      return AlertDialog(
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        content: StatefulBuilder(
+          builder: (context, setState) {
+            return SingleChildScrollView(
+              child: Column(
+                children: options.map((option) {
+                  return ListTile(
+                    title: Text(option, style: const TextStyle(color: Colors.black)),
+                    leading: Icon(
+                      tempSelected.contains(option) ? Icons.check_circle : Icons.radio_button_unchecked,
+                      color: tempSelected.contains(option) ? Colors.red : Colors.grey,
+                    ),
+                    onTap: () {
+                      setState(() {
+                        if (tempSelected.contains(option)) {
+                          tempSelected.remove(option);
+                        } else {
+                          tempSelected.add(option);
+                        }
+                      });
+                    },
+                  );
+                }).toList(),
+              ),
+            );
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel", style: TextStyle(color: Colors.red)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () {
+              onSelected(tempSelected);
+              Navigator.pop(context);
+            },
+            child: const Text("Save", style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      );
+    },
+  );
+}
   Future<bool> _reauthenticateUser() async {
     final user = FirebaseAuth.instance.currentUser;
 
@@ -161,10 +228,15 @@ class _EditVolProfileManagerState extends State<EditVolProfileManager> {
                             _buildTextField(_phoneController, "Phone Number", Icons.phone),
                             _buildTextField(_dateController, "Date of Birth", Icons.calendar_today),
                             _buildTextField(_locationController, "Location", Icons.location_on),
-                            _buildMultiLineTextField(_interestsController, "Interests (One per line)", Icons.favorite),
-                            _buildMultiLineTextField(_skillsController, "Skills (One per line)", Icons.star),
+                            _buildSelectionField("Interests", selectedInterests, availableInterests, Icons.favorite, (newSelection) {
+                              setState(() => selectedInterests = newSelection);
+                            }),
+                            _buildSelectionField("Skills", selectedSkills, availableSkills, Icons.star, (newSelection) {
+                              setState(() => selectedSkills = newSelection);
+                            }),
                             const SizedBox(height: 20),
                             _buildSaveButton(),
+                            
                           ],
                         ),
                       ),
@@ -179,42 +251,61 @@ class _EditVolProfileManagerState extends State<EditVolProfileManager> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label, IconData icon, {bool isPassword = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: TextFormField(
-        controller: controller,
-        obscureText: isPassword,
+  Widget _buildSelectionField(String label, List<String> selectedList, List<String> options, IconData icon, Function(List<String>) onSelected) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 10),
+    child: InkWell(
+      onTap: () => _showMultiSelectDialog(options, selectedList, "Select $label", onSelected),
+      child: InputDecorator(
         decoration: InputDecoration(
           labelText: label,
           labelStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
           prefixIcon: Icon(icon, color: Colors.red),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
           filled: true,
           fillColor: Colors.white,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         ),
-        validator: (value) => value!.isEmpty ? "Please enter $label" : null,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                selectedList.isNotEmpty ? selectedList.join(", ") : "Tap to select",
+                style: const TextStyle(color: Colors.black, fontSize: 16),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const Icon(Icons.arrow_drop_down, color: Colors.black),
+          ],
+        ),
       ),
-    );
-  }
+    ),
+  );
+}
 
-  Widget _buildMultiLineTextField(TextEditingController controller, String label, IconData icon) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: TextFormField(
-        controller: controller,
-        maxLines: 3,
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
-          prefixIcon: Icon(icon, color: Colors.red),
-          filled: true,
-          fillColor: Colors.white,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-        ),
+  Widget _buildTextField(TextEditingController controller, String label, IconData icon, {bool isPassword = false}) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 10),
+    child: TextFormField(
+      controller: controller,
+      obscureText: isPassword,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+        prefixIcon: Icon(icon, color: Colors.red),
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
       ),
-    );
-  }
+      validator: (value) {
+        if (!isPassword && value!.isEmpty) {
+          return "Please enter $label"; // Requiere valores solo en campos normales
+        }
+        return null; // Permite contraseña vacía
+      },
+    ),
+  );
+}
 
   Widget _buildSaveButton() {
     return SizedBox(

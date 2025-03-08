@@ -74,7 +74,7 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
     });
   }
 
- void _showFilterDialog() {
+  void _showFilterPopUp() {
   showDialog(
     context: context,
     builder: (context) {
@@ -82,12 +82,9 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
         backgroundColor: Colors.white, 
         titlePadding: const EdgeInsets.all(10), 
         title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              "Filter Events",
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [   
+            const Text("Filter Events",style: TextStyle(fontWeight: FontWeight.bold)),
             IconButton(
               icon: const Icon(Icons.close, color: Colors.black), 
               onPressed: () => Navigator.pop(context), 
@@ -138,7 +135,7 @@ class _AllEventsScreenState extends State<AllEventsScreen> {
   );
 }
 
-Widget _buildDropdown(String label, String? selectedValue, List<String> options, Function(String?) onChanged, {bool isExpanded = false}) {
+  Widget _buildDropdown(String label, String? selectedValue, List<String> options, Function(String?) onChanged, {bool isExpanded = false}) {
   return DropdownButtonFormField<String>(
     value: selectedValue,
     isExpanded: isExpanded, 
@@ -171,7 +168,7 @@ Widget _buildDropdown(String label, String? selectedValue, List<String> options,
         actions: [
           IconButton(
             icon: const Icon(Icons.search, color: Colors.black),
-            onPressed: _showFilterDialog,
+            onPressed: _showFilterPopUp,
           ),
         ],
       ),

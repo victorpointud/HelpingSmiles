@@ -16,6 +16,7 @@ class _AllOrgsScreenState extends State<AllOrgsScreen> {
   String? selectedDate;
   List<String> missions = [];
   List<String> dates = [];
+  
 
   @override
   void initState() {
@@ -56,7 +57,7 @@ class _AllOrgsScreenState extends State<AllOrgsScreen> {
     });
   }
 
-  void _showFilterDialog() {
+  void _showFilterPopUp() {
     showDialog(
       context: context,
       builder: (context) {
@@ -147,7 +148,7 @@ class _AllOrgsScreenState extends State<AllOrgsScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.search, color: Colors.black),
-            onPressed: _showFilterDialog,
+            onPressed: _showFilterPopUp,
           ),
         ],
       ),

@@ -128,7 +128,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-
   Widget _buildLevelCard() {
     return Card(
       elevation: 4,
