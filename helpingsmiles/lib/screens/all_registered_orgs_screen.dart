@@ -25,32 +25,32 @@ class _AllRegisteredOrgsScreenState extends State<AllRegisteredOrgsScreen> {
     _loadRegisteredOrganizations();
   }
 
- Future<void> _loadRegisteredOrganizations() async {
-  final user = FirebaseAuth.instance.currentUser;
-  if (user == null) return;
+  Future<void> _loadRegisteredOrganizations() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
 
-  try {
-    List<Map<String, dynamic>> tempOrganizations = [];
-    final orgsSnapshot = await FirebaseFirestore.instance.collection('organizations').get();
+    try {
+      List<Map<String, dynamic>> tempOrganizations = [];
+      final orgsSnapshot = await FirebaseFirestore.instance.collection('organizations').get();
 
-    for (var orgDoc in orgsSnapshot.docs) {
-      final orgId = orgDoc.id;
-      final registrationRef = orgDoc.reference.collection('registrations').doc(user.uid);
-      final registrationDoc = await registrationRef.get();
+      for (var orgDoc in orgsSnapshot.docs) {
+        final orgId = orgDoc.id;
+        final registrationRef = orgDoc.reference.collection('registrations').doc(user.uid);
+        final registrationDoc = await registrationRef.get();
 
-      if (registrationDoc.exists) {
-        tempOrganizations.add({
-          'id': orgId,
-          'name': orgDoc['name'] ?? "Unknown Organization",
-          'volunteerTypes': (orgDoc['volunteerTypes'] != null && orgDoc['volunteerTypes'] is List)
-              ? (orgDoc['volunteerTypes'] as List).map((e) => e.toString()).toList()
-              : [],
-          'locations': (orgDoc['locations'] != null && orgDoc['locations'] is List)
-              ? (orgDoc['locations'] as List).map((e) => e.toString()).toList()
-              : [],
-        });
+        if (registrationDoc.exists) {
+          tempOrganizations.add({
+            'id': orgId,
+            'name': orgDoc['name'] ?? "Unknown Organization",
+            'volunteerTypes': (orgDoc['volunteerTypes'] != null && orgDoc['volunteerTypes'] is List)
+                ? (orgDoc['volunteerTypes'] as List).map((e) => e.toString()).toList()
+                : [],
+            'locations': (orgDoc['locations'] != null && orgDoc['locations'] is List)
+                ? (orgDoc['locations'] as List).map((e) => e.toString()).toList()
+                : [],
+          });
+        }
       }
-    }
 
     if (!mounted) return;
 
@@ -177,7 +177,7 @@ class _AllRegisteredOrgsScreenState extends State<AllRegisteredOrgsScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         title: const Text(
-          "All Organizations",
+          "All Registered Organizations",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
         ),
         iconTheme: const IconThemeData(color: Colors.black),

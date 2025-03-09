@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'registered_event_info_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AllRegisteredEventsScreen extends StatefulWidget {
   const AllRegisteredEventsScreen({super.key});
@@ -22,53 +23,88 @@ class _AllRegisteredEventsScreenState extends State<AllRegisteredEventsScreen> {
   @override
   void initState() {
     super.initState();
-    _loadEvents();
+    _loadRegisteredEvents();
   }
 
-Future<void> _loadEvents() async {
-  final querySnapshot = await FirebaseFirestore.instance.collection('events').get();
-  setState(() {
-    registeredEvents = querySnapshot.docs.map((doc) {
-      final data = doc.data();
-      return {
-        'id': doc.id,
-        'name': data['name'] ?? "Unnamed Event",
-        'date': data['date'] ?? "No date provided",
-        'location': data['location'] ?? "No location provided",
-        'duration': data['duration'] ?? "No duration provided",
-        'interest': data['interest'] ?? "No interest provided",
-        'skills': (data['skills'] != null && data['skills'] is List) 
-            ? (data['skills'] as List).map((e) => e.toString()).toList()
-            : [], 
-      };
-    }).toList();
+Future<void> _loadRegisteredEvents() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
 
-    filteredRegisteredEvents = List.from(registeredEvents);
+    try {
+      List<Map<String, dynamic>> tempEvents = [];
+      final eventsSnapshot = await FirebaseFirestore.instance.collection('events').get();
 
-    durations = registeredEvents.map((event) => event['duration'].toString()).toSet().toList();
-    durations.insert(0, "All");
+      for (var eventDoc in eventsSnapshot.docs) {
+        final eventId = eventDoc.id;
+        final registrationRef = eventDoc.reference.collection('registrations').doc(user.uid);
+        final registrationDoc = await registrationRef.get();
 
-    interests = registeredEvents.map((event) => event['interest'].toString()).toSet().toList();
-    interests.insert(0, "All");
+        if (registrationDoc.exists) {
+          tempEvents.add({
+            'id': eventId,
+            'name': eventDoc['name'] ?? "Unknown event",
+            'duration': (eventDoc['duration'] != null && eventDoc['duration'] is List)
+                ? (eventDoc['duration'] as List).map((e) => e.toString()).toList()
+                : [],
+           'interest': (eventDoc['interest'] != null && eventDoc['interest'] is List)
+                ? (eventDoc['interest'] as List).map((e) => e.toString()).toList()
+                : [],
+            'skills': (eventDoc['skills'] != null && eventDoc['skills'] is List)
+                ? (eventDoc['skills'] as List).map((e) => e.toString()).toList()
+                : [],
 
-    skills = registeredEvents
-        .where((event) => event['skills'] != null) 
-        .expand((event) => (event['skills'] as List<dynamic>).map((e) => e.toString())) 
-        .toSet()
-        .toList();
+          });
+        }
+      }
 
-    skills.insert(0, "All"); 
-  });
+    if (!mounted) return;
+
+    setState(() {
+      registeredEvents = tempEvents;
+      filteredRegisteredEvents = List.from(registeredEvents);
+
+      interests = registeredEvents
+          .expand((event) => (event['interest'] as List<String>))
+          .toSet()
+          .toList();
+      interests.insert(0, "All");
+
+      durations = registeredEvents
+          .expand((event) => (event['duration'] as List<String>))
+          .toSet()
+          .toList();
+      durations.insert(0, "All");
+      
+      skills = registeredEvents
+          .expand((event) => (event['skills'] as List<String>))
+          .toSet()
+          .toList();
+      skills.insert(0, "All");
+    });
+
+  } catch (e) {
+    print("Error loading registered eventanizations: $e");
+  }
 }
 
 
-  void _applyFilters() {
+   void _applyFilters() {
     setState(() {
-      filteredRegisteredEvents = registeredEvents.where((event) {
-        final matchesDuration = selectedDuration == "All" || selectedDuration == null || event['duration'] == selectedDuration;
-        final matchesInterest = selectedInterest == "All" || selectedInterest == null || event['interest'] == selectedInterest;
-        final matchesSkill = selectedSkill == "All" || selectedSkill == null || (event['skills'] as List<String>).contains(selectedSkill);
-        return matchesDuration && matchesInterest && matchesSkill;
+      filteredRegisteredEvents = registeredEvents.where((org) {
+
+        final matchesInterest = selectedInterest == "All" ||
+            selectedInterest == null ||
+            org['volunteerTypes'].contains(selectedInterest);
+
+        final matchesSkill = selectedSkill == "All" ||
+            selectedSkill == null ||
+            org['locations'].contains(selectedSkill);
+
+        final matchesDuration = selectedDuration == "All" ||
+            selectedDuration == null ||
+            org['locations'].contains(selectedDuration);
+
+        return matchesInterest && matchesSkill && matchesDuration;
       }).toList();
     });
   }
