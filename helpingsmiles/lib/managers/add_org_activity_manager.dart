@@ -58,7 +58,7 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
 
   String? _selectedInterest;
 
-  List<String> _selectedSkills = [];
+  String? _selectedSkills;
 
   @override
   void initState() {
@@ -143,24 +143,6 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
     });
   }
 
-  Future<void> _showMultiSelectSkills() async {
-    final List<String>? results = await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return MultiSelectDialog(
-          items: _skills,
-          selectedItems: _selectedSkills,
-        );
-      },
-    );
-
-    if (results != null) {
-      setState(() {
-        _selectedSkills = results;
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -232,46 +214,40 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
                                 filled: true,
                                 fillColor: Colors.white,
                                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                                prefixIcon: const Icon(Icons.favorite, color: Colors.red), // 🔥 Icono de Intereses
                               ),
                               validator: (value) => value == null ? "Please select an interest" : null,
                             ),
 
                             const SizedBox(height: 20),
 
-                            InkWell(
-                              onTap: _showMultiSelectSkills,
-                              child: InputDecorator(
-                                decoration: InputDecoration(
-                                  labelText: "Skills",
-                                  labelStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
-                                  prefixIcon: Icon(Icons.work, color: Colors.red),
-                                  filled: true,
-                                  fillColor: Colors.white,
-                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                                ),
-                                child: Wrap(
-                                  spacing: 6.0,
-                                  runSpacing: 6.0,
-                                  children: _selectedSkills.map((skill) {
-                                    return Chip(
-                                      label: Text(skill),
-                                      onDeleted: () {
-                                        setState(() {
-                                          _selectedSkills.remove(skill);
-                                        });
-                                      },
-                                    );
-                                  }).toList(),
-                                ),
+                            DropdownButtonFormField<String>(
+                              value: _selectedSkills,
+                              onChanged: (String? newValue) {
+                                setState(() {
+                                  _selectedSkills = newValue;
+                                });
+                              },
+                              items: _skills.map<DropdownMenuItem<String>>((String value) {
+                                return DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Text(value),
+                                );
+                              }).toList(),
+                              decoration: InputDecoration(
+                                labelText: "Skills",
+                                labelStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+                                filled: true,
+                                fillColor: Colors.white,
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                                prefixIcon: const Icon(Icons.build, color: Colors.red),
                               ),
+                              validator: (value) => value == null ? "Please select a skill" : null,
                             ),
-
                             const SizedBox(height: 20),
 
-                            const Text(
-                              "Activity Representative",
-                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
-                            ),
+                            const SizedBox(height: 20),
+                            const Text( "Activity Representative", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),),
                             const SizedBox(height: 10),
                             _buildTextField(_repNameController, "First Name", Icons.person),
                             _buildTextField(_repLastNameController, "Last Name", Icons.person_outline),
