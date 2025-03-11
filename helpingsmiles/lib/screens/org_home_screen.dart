@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -11,6 +13,8 @@ import 'registered_org_info_screen.dart';
 import 'all_org_events_screen.dart';
 import 'all_extra_orgs_screen.dart';
 import 'calendar_screen.dart';
+import 'history_screen.dart';
+import 'notifications_screen.dart';
 
 class OrgHomeScreen extends StatefulWidget {
   const OrgHomeScreen({super.key});
@@ -106,53 +110,6 @@ class OrgHomeScreenState extends State<OrgHomeScreen> {
     }
   }
 
-  void _navigate(BuildContext context, Widget screen) {
-    if (!mounted) return; // Evita usar `context` si el widget ya no está en pantalla
-
-    Navigator.push(context, MaterialPageRoute(builder: (_) => screen)).then((result) {
-      if (mounted && result == true) _loadOrganizationData();
-    });
-  }
-
-
-  void _navigateToVolunteers() {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisteredVolInfoScreen()));
-  }
-
-  void _logout() async {
-    await AuthManager.logoutUser();
-
-    if (!mounted) return; // Verifica si el widget sigue en pantalla antes de navegar
-
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-    );
-  }
-
- void _navigateToAllOrgEvents() {
-  if (organizationId != null) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => AllOrgEventsScreen(organizationId: organizationId!)),
-    );
-  } else {
-    debugPrint("Error: organizationId is null");
-
-  }
-}
-
-void _navigateToAllExtraOrgs() {
-  if (organizationId != null) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => AllExtraOrgsScreen(currentOrganizationId: organizationId!)),
-    );
-  } else {
-    debugPrint("Error: organizationId is null");
-  }
-}
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -160,19 +117,13 @@ void _navigateToAllExtraOrgs() {
         backgroundColor: Colors.white,
         automaticallyImplyLeading: false,
         title: Text(
-          "Welcome, ${organizationName ?? 'Loading...'}!",
+          "$organizationName",
           style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.calendar_today, color: Colors.black),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => CalendarScreen()),
-              );
-            },
-          ),
+          IconButton(icon: const Icon(Icons.notifications, color: Colors.black), onPressed: _navigateToNotifications),
+          IconButton(icon: const Icon(Icons.event, color: Colors.black), onPressed: _navigateToCalendar),
+          IconButton(icon: const Icon(Icons.check, color: Colors.black), onPressed: _navigateToHistory),
           IconButton(icon: const Icon(Icons.person, color: Colors.black), onPressed: _navigateToProfile),
           IconButton(icon: const Icon(Icons.logout, color: Colors.red), onPressed: _logout),
         ],
@@ -187,7 +138,7 @@ void _navigateToAllExtraOrgs() {
               ),
             ),
           ),
-        Container(color: Colors.black.withAlpha(77)), // 0.3 * 255 = 77
+        Container(color: Colors.black.withAlpha(77)),
           SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
@@ -195,7 +146,7 @@ void _navigateToAllExtraOrgs() {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildSectionTitle("Upcoming Events"),
-                  _buildEventList(),
+                  _buildEventList(_getRandomElements(events)),
                   const SizedBox(height: 10),
                   Center(
                     child: ElevatedButton.icon(
@@ -213,7 +164,7 @@ void _navigateToAllExtraOrgs() {
 
                   const SizedBox(height: 20),
                   _buildSectionTitle("Other Organizations"),
-                  _buildOtherOrganizationsList(),
+                  _buildOtherOrganizationsList(_getRandomElements(otherOrganizations.toList())),
                   const SizedBox(height: 10),
                   Center(
                     child: ElevatedButton.icon(
@@ -260,6 +211,72 @@ void _navigateToAllExtraOrgs() {
     );
   }
 
+  List<Map<String, dynamic>> _getRandomElements(List<Map<String, dynamic>> list) {
+    if (list.length <= 2) return list; 
+    final random = Random();
+    list.shuffle(random); 
+    return list.take(2).toList();
+  }
+
+  void _navigate(BuildContext context, Widget screen) {
+    if (!mounted) return;
+
+    Navigator.push(context, MaterialPageRoute(builder: (_) => screen)).then((result) {
+      if (mounted && result == true) _loadOrganizationData();
+    });
+  }
+
+  void _navigateToCalendar() {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => CalendarScreen()));
+  }
+
+  void _navigateToHistory() {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => HistoryScreen()));
+  }
+
+  void _navigateToNotifications() {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => NotificationsScreen()));
+  }
+
+
+  void _navigateToVolunteers() {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisteredVolInfoScreen()));
+  }
+
+  void _logout() async {
+    await AuthManager.logoutUser();
+
+    if (!mounted) return; 
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+    );
+  }
+
+  void _navigateToAllOrgEvents() {
+  if (organizationId != null) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => AllOrgEventsScreen(organizationId: organizationId!)),
+    );
+  } else {
+    debugPrint("Error: organizationId is null");
+
+  }
+}
+
+void _navigateToAllExtraOrgs() {
+  if (organizationId != null) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => AllExtraOrgsScreen(currentOrganizationId: organizationId!)),
+    );
+  } else {
+    debugPrint("Error: organizationId is null");
+  }
+}
+
   void _navigateToProfile() {
     Navigator.push(context, MaterialPageRoute(builder: (_) => const OrgProfileScreen()));
   }
@@ -286,7 +303,7 @@ void _navigateToAllExtraOrgs() {
     );
   }
 
-  Widget _buildEventList() {
+  Widget _buildEventList(List<Map<String, dynamic>> events) {
     if (events.isEmpty) {
       return const Center(child: Text("No upcoming events. Add one!", style: TextStyle(color: Colors.white)));
     }
@@ -319,9 +336,11 @@ void _navigateToAllExtraOrgs() {
     );
   }
 
-  Widget _buildOtherOrganizationsList() {
+  Widget _buildOtherOrganizationsList(List<Map<String, dynamic>> otherOrganizations) {
     if (otherOrganizations.isEmpty) {
-      return const Center(child: Text("No other organizations found.", style: TextStyle(color: Colors.white)));
+      return const Center(
+        child: Text("No other organizations found.", style: TextStyle(color: Colors.white)),
+      );
     }
     return Column(
       children: otherOrganizations.map((org) => _buildOrganizationCard(org)).toList(),
