@@ -332,7 +332,6 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
   }
 }
 
-// Diálogo para selección múltiple
 class MultiSelectDialog extends StatefulWidget {
   final List<String> items;
   final List<String> selectedItems;
