@@ -4,132 +4,117 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../managers/edit_org_profile_manager.dart';
 
 class OrgProfileScreen extends StatefulWidget {
-  const OrgProfileScreen({super.key});
+  final String organizationId;
+  final String organizationName;
+
+  const OrgProfileScreen({
+    super.key,
+    required this.organizationId,
+    required this.organizationName,
+  });
 
   @override
   _OrgProfileScreenState createState() => _OrgProfileScreenState();
 }
 
 class _OrgProfileScreenState extends State<OrgProfileScreen> {
-  String? name;
-  String? email;
-  String? phone;
-  String? date;
-  String? password;
-  String? mission;
-  List<String> objectives = [];
-  List<String> volunteerTypes = [];
-  List<String> locations = [];
-
-  // Representative fields
-  String? repName;
-  String? repLastName;
-  String? repPhone;
-  String? repEmail;
+  Map<String, dynamic>? orgData;
+  Map<String, dynamic>? representativeData;
+  bool isLoading = true;
+  bool isRepLoading = true;
 
   @override
   void initState() {
     super.initState();
     _loadOrganizationData();
+    _loadRepresentativeData();
   }
 
   Future<void> _loadOrganizationData() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      final doc = await FirebaseFirestore.instance.collection('organizations').doc(user.uid).get();
+    try {
+      final doc = await FirebaseFirestore.instance.collection('organizations').doc(widget.organizationId).get();
       if (doc.exists) {
         setState(() {
-          name = doc['name'] ?? "Not specified";
-          phone = doc['phone'] ?? "Not specified";
-          date = doc['date'] ?? "Not specified";
-          email = doc['email'] ?? "Not specified";
-          password = doc['password'] ?? "Not specified";
-          mission = doc['mission'] ?? "Not specified";
-          objectives = _convertToList(doc['objectives']);
-          volunteerTypes = _convertToList(doc['volunteerTypes']);
-          locations = _convertToList(doc['locations']);
+          orgData = doc.data();
         });
-
-        // Load Representative Information
-        _loadRepresentativeData(user.uid);
+      } else {
+        setState(() {
+          orgData = null;
+        });
       }
+    } catch (e) {
+      debugPrint("Error loading organization data: $e");
+    } finally {
+      setState(() => isLoading = false);
     }
   }
 
-  Future<void> _loadRepresentativeData(String organizationId) async {
-    final repDoc = await FirebaseFirestore.instance
-        .collection('organizations')
-        .doc(organizationId)
-        .collection('representatives')
-        .doc('info') 
-        .get();
+  Future<void> _loadRepresentativeData() async {
+    try {
+      final repDoc = await FirebaseFirestore.instance
+          .collection('organizations')
+          .doc(widget.organizationId)
+          .collection('representatives')
+          .doc('info')
+          .get();
 
-    if (repDoc.exists) {
-      setState(() {
-        repName = repDoc.data()?['repName'] ?? "Not specified";
-        repLastName = repDoc.data()?['repLastName'] ?? "Not specified";
-        repPhone = repDoc.data()?['repPhone'] ?? "Not specified";
-        repEmail = repDoc.data()?['repEmail'] ?? "Not specified";
-      });
-    }
-  }
-
-  List<String> _convertToList(dynamic data) {
-    if (data is List) {
-      return data.whereType<String>().toList();
-    } else if (data is String) {
-      return [data];
-    } else {
-      return [];
+      if (repDoc.exists && repDoc.data() != null) {
+        setState(() {
+          representativeData = repDoc.data();
+        });
+      } else {
+        debugPrint("No representative data found.");
+      }
+    } catch (e) {
+      debugPrint("Error loading representative data: $e");
+    } finally {
+      setState(() => isRepLoading = false);
     }
   }
 
   void _navigateToEditProfile() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const EditOrgProfileManager()),
+      MaterialPageRoute(builder: (_) => EditOrgProfileManager(organizationId: widget.organizationId)), 
     ).then((result) {
       if (result == true) _loadOrganizationData();
     });
-  }
-
-  Future<void> _deleteAccount() async {
-    final user = FirebaseAuth.instance.currentUser;
-
-    if (user != null) {
-      try {
-        await FirebaseFirestore.instance.collection('organizations').doc(user.uid).delete();
-        await user.delete();
-        Navigator.of(context).pushReplacementNamed('/login');
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error deleting account: $e")),
-        );
-      }
-    }
   }
 
   void _confirmDeleteAccount() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Delete Account", style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.black)),
-        content: const Text("Are you sure you want to delete your account? This action cannot be undone.",  style: TextStyle(fontSize: 15, color: Colors.black)),
+        title: const Text("Delete Account", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
+        content: const Text("Are you sure you want to delete your account? This action cannot be undone.",
+            style: TextStyle(fontSize: 16, color: Colors.black)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel",  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 9, 34, 225))),
+            child: const Text("Cancel", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               _deleteAccount();
             },
-            child: const Text("Delete", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 255, 2, 2))),
+            child: const Text("Delete", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _deleteAccount() async {
+    try {
+      await FirebaseFirestore.instance.collection('organizations').doc(widget.organizationId).delete();
+      await FirebaseAuth.instance.currentUser?.delete();
+      Navigator.of(context).pushReplacementNamed('/login');
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error deleting account: $e")),
+      );
+    }
   }
 
   @override
@@ -138,10 +123,20 @@ class _OrgProfileScreenState extends State<OrgProfileScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         title: Text(
-          name ?? "Organization Profile",
+          widget.organizationName,
           style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
         ),
         iconTheme: const IconThemeData(color: Colors.black),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit, color: Colors.black),
+            onPressed: _navigateToEditProfile,
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete, color: Colors.red),
+            onPressed: _confirmDeleteAccount,
+          ),
+        ],
       ),
       body: Stack(
         children: [
@@ -154,40 +149,71 @@ class _OrgProfileScreenState extends State<OrgProfileScreen> {
             ),
           ),
           Container(color: Colors.black.withOpacity(0.3)),
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const SizedBox(height: 20),
-                _buildProfileSection(Icons.business, "Organization Name", name),
-                _buildProfileSection(Icons.email, "Email", email),
-                _buildProfileSection(Icons.phone, "Phone Number", phone),
-                _buildProfileSection(Icons.calendar_today, "Date of Creation", date),
-                _buildProfileSection(Icons.flag, "Mission", mission),
-                _buildProfileList(Icons.list, "Objectives", objectives),
-                _buildProfileList(Icons.people, "Volunteer Types", volunteerTypes),
-                _buildProfileList(Icons.location_on, "Locations", locations),
-                _buildProfileSection(Icons.person,  "Representative", "${repName ?? "Not specified"} ${repLastName ?? "Not specified"} - ${repPhone ?? "Not specified"} - ${repEmail ?? "Not specified"}"),   
+          SafeArea(
+            child: isLoading
+                ? const Center(child: CircularProgressIndicator(color: Colors.red))
+                : orgData == null
+                    ? const Center(child: Text("Organization not found.", style: TextStyle(color: Colors.white)))
+                    : SingleChildScrollView(
+                        padding: const EdgeInsets.all(20),
+                        child: Center(
+                          child: Card(
+                            color: Colors.white,
+                            elevation: 10,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                            child: Padding(
+                              padding: const EdgeInsets.all(20),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Center(
+                                    child: Text(
+                                      "Organization Profile",
+                                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 20),
+                                  _buildDetailRow(Icons.phone, "Phone", orgData!["phone"] ?? "Not specified"),
+                                  _buildDetailRow(Icons.calendar_today, "Date Created", orgData!["date"] ?? "Not specified"),
+                                  _buildDetailRow(Icons.flag, "Mission", orgData!["mission"] ?? "Not specified"),
+                                  _buildDetailList(Icons.list, "Objectives", orgData!["objectives"] ?? []),
+                                  _buildDetailList(Icons.people, "Volunteer Types", orgData!["volunteerTypes"] ?? []),
+                                  _buildDetailList(Icons.location_on, "Locations", orgData!["locations"] ?? []),
+                                  const SizedBox(height: 20),
+                                  _buildRepresentativeSection(),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+          ),
+        ],
+      ),
+    );
+  }
 
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    ElevatedButton(
-                      onPressed: _navigateToEditProfile,
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                      child: const Text("Edit Profile", style: TextStyle(color: Colors.white)),
-                    ),
-                    const SizedBox(width: 10),
-                    ElevatedButton(
-                      onPressed: _confirmDeleteAccount,
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
-                      child: const Text("Delete Account", style: TextStyle(color: Colors.white)),
-                    ),
-                  ],
-                ),
-              ],
+  Widget _buildDetailRow(IconData icon, String title, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.red),
+          const SizedBox(width: 10),
+          Expanded(
+            child: RichText(
+              text: TextSpan(
+                style: const TextStyle(fontSize: 16, color: Colors.black),
+                children: [
+                  TextSpan(
+                    text: "$title: ",
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  TextSpan(
+                    text: value,
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -195,37 +221,79 @@ class _OrgProfileScreenState extends State<OrgProfileScreen> {
     );
   }
 
-  Widget _buildProfileSection(IconData icon, String title, String? content) {
-    return Card(
-      elevation: 4,
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      color: Colors.white,
-      child: ListTile(
-        leading: Icon(icon, color: Colors.red),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
-        subtitle: Text(content ?? 'Not specified', style: const TextStyle(color: Colors.black, fontSize: 16)),
+  Widget _buildDetailList(IconData icon, String title, List<dynamic> items) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: Colors.red),
+              const SizedBox(width: 10),
+              Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
+            ],
+          ),
+          if (items.isEmpty)
+            const Padding(
+              padding: EdgeInsets.only(left: 32, top: 5),
+              child: Text("Not specified", style: TextStyle(fontSize: 16, color: Colors.black)),
+            )
+          else
+            Column(
+              children: items.map((item) => Padding(
+                padding: const EdgeInsets.only(left: 32, top: 5),
+                child: Row(
+                  children: [
+                    const Icon(Icons.check_circle, color: Color.fromARGB(255, 0, 0, 0), size: 16),
+                    const SizedBox(width: 5),
+                    Expanded(child: Text(item, style: const TextStyle(fontSize: 16, color: Colors.black))),
+                  ],
+                ),
+              )).toList(),
+            ),
+        ],
       ),
     );
   }
 
-  Widget _buildProfileList(IconData icon, String title, List<String> items) {
+  Widget _buildRepresentativeSection() {
+    if (isRepLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (representativeData == null) {
+      return Card(
+        color: Colors.white,
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        child: const Padding(
+          padding: EdgeInsets.all(16),
+          child: Text(
+            "No representative assigned for this organization.",
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black),
+          ),
+        ),
+      );
+    }
+
     return Card(
-      elevation: 4,
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       color: Colors.white,
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Row(children: [
-              Icon(icon, color: Colors.red),
-              const SizedBox(width: 10),
-              Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black))
-            ]),
-            ...items.map((item) => Text("• $item", style: const TextStyle(fontSize: 16, color: Colors.black))),
+            const Text(
+              "Representative",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+            ),
+            const SizedBox(height: 10),
+            _buildDetailRow(Icons.person, "Name", "${representativeData!['repName']} ${representativeData!['repLastName']}"),
+            _buildDetailRow(Icons.email, "Email", representativeData!['repEmail']),
+            _buildDetailRow(Icons.phone, "Phone", representativeData!['repPhone']),
           ],
         ),
       ),

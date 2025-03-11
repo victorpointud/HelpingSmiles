@@ -3,7 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class EditOrgProfileManager extends StatefulWidget {
-  const EditOrgProfileManager({super.key});
+  final String organizationId;
+
+  const EditOrgProfileManager({super.key, required this.organizationId});
 
   @override
   _EditOrgProfileManagerState createState() => _EditOrgProfileManagerState();

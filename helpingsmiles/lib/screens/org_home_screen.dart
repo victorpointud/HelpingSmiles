@@ -238,7 +238,6 @@ class OrgHomeScreenState extends State<OrgHomeScreen> {
     Navigator.push(context, MaterialPageRoute(builder: (_) => NotificationsScreen()));
   }
 
-
   void _navigateToVolunteers() {
     Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisteredVolInfoScreen()));
   }
@@ -266,7 +265,7 @@ class OrgHomeScreenState extends State<OrgHomeScreen> {
   }
 }
 
-void _navigateToAllExtraOrgs() {
+  void _navigateToAllExtraOrgs() {
   if (organizationId != null) {
     Navigator.push(
       context,
@@ -278,8 +277,20 @@ void _navigateToAllExtraOrgs() {
 }
 
   void _navigateToProfile() {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => const OrgProfileScreen()));
+  if (organizationId != null && organizationName != null) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => OrgProfileScreen(
+          organizationId: organizationId!,
+          organizationName: organizationName!,
+        ),
+      ),
+    );
+  } else {
+    debugPrint("Error: organizationId or organizationName is null");
   }
+}
 
   void _navigateToRegisteredOrgInfo(String orgId, String orgName) {
   Navigator.push(
