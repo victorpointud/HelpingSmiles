@@ -154,6 +154,7 @@ class _EditVolProfileManagerState extends State<EditVolProfileManager> {
     },
   );
 }
+  
   Future<bool> _reauthenticateUser() async {
     final user = FirebaseAuth.instance.currentUser;
 

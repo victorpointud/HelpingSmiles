@@ -24,10 +24,14 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
   final _repPhoneController = TextEditingController();
   final _repEmailController = TextEditingController();
 
+
   String _organizationName = "Loading...";
   bool _isLoading = false;
 
-  final List<String> _interests = [
+  List<String> selectedType = [];
+  List<String> selectedSkills = [];
+
+  List<String> availableType = [
     "Environment",
     "Education",
     "Health and Wellness",
@@ -41,7 +45,7 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
     "other"
   ];
 
-  final List<String> _skills = [
+  List<String> availableSkills = [
     "All",
     "Communication",
     "Organization and logistics",
@@ -195,58 +199,15 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
 
                             const SizedBox(height: 20),
 
-                            DropdownButtonFormField<String>(
-                              value: _selectedInterest,
-                              onChanged: (String? newValue) {
-                                setState(() {
-                                  _selectedInterest = newValue;
-                                });
-                              },
-                              items: _interests.map<DropdownMenuItem<String>>((String value) {
-                                return DropdownMenuItem<String>(
-                                  value: value,
-                                  child: Text(value),
-                                );
-                              }).toList(),
-                              decoration: InputDecoration(
-                                labelText: "Interest",
-                                labelStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
-                                filled: true,
-                                fillColor: Colors.white,
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                                prefixIcon: const Icon(Icons.favorite, color: Colors.red), // 🔥 Icono de Intereses
-                              ),
-                              validator: (value) => value == null ? "Please select an interest" : null,
-                            ),
+                            _buildSelectionField("Type", selectedType, availableType, Icons.favorite, (newSelection) {
+                              setState(() => selectedType = newSelection);
+                            }),
+                            _buildSelectionField("Skills", selectedSkills, availableSkills, Icons.star, (newSelection) {
+                              setState(() => selectedSkills = newSelection);
+                            }),
 
                             const SizedBox(height: 20),
 
-                            DropdownButtonFormField<String>(
-                              value: _selectedSkills,
-                              onChanged: (String? newValue) {
-                                setState(() {
-                                  _selectedSkills = newValue;
-                                });
-                              },
-                              items: _skills.map<DropdownMenuItem<String>>((String value) {
-                                return DropdownMenuItem<String>(
-                                  value: value,
-                                  child: Text(value),
-                                );
-                              }).toList(),
-                              decoration: InputDecoration(
-                                labelText: "Skills",
-                                labelStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
-                                filled: true,
-                                fillColor: Colors.white,
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                                prefixIcon: const Icon(Icons.build, color: Colors.red),
-                              ),
-                              validator: (value) => value == null ? "Please select a skill" : null,
-                            ),
-                            const SizedBox(height: 20),
-
-                            const SizedBox(height: 20),
                             const Text( "Activity Representative", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),),
                             const SizedBox(height: 10),
                             _buildTextField(_repNameController, "First Name", Icons.person),
@@ -272,6 +233,90 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
       ),
     );
   }
+
+  Widget _buildSelectionField(String label, List<String> selectedList, List<String> options, IconData icon, Function(List<String>) onSelected) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 10),
+    child: InkWell(
+      onTap: () => _showMultiSelectDialog(options, selectedList, "Select $label", onSelected),
+      child: InputDecorator(
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+          prefixIcon: Icon(icon, color: Colors.red),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+          filled: true,
+          fillColor: Colors.white,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                selectedList.isNotEmpty ? selectedList.join(", ") : "Tap to select",
+                style: const TextStyle(color: Colors.black, fontSize: 16),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const Icon(Icons.arrow_drop_down, color: Colors.black),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+  void _showMultiSelectDialog(List<String> options, List<String> selectedList, String title, Function(List<String>) onSelected) {
+  showDialog(
+    context: context,
+    builder: (context) {
+      List<String> tempSelected = List.from(selectedList);
+      return AlertDialog(
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        content: StatefulBuilder(
+          builder: (context, setState) {
+            return SingleChildScrollView(
+              child: Column(
+                children: options.map((option) {
+                  return ListTile(
+                    title: Text(option, style: const TextStyle(color: Colors.black)),
+                    leading: Icon(
+                      tempSelected.contains(option) ? Icons.check_circle : Icons.radio_button_unchecked,
+                      color: tempSelected.contains(option) ? Colors.red : Colors.grey,
+                    ),
+                    onTap: () {
+                      setState(() {
+                        if (tempSelected.contains(option)) {
+                          tempSelected.remove(option);
+                        } else {
+                          tempSelected.add(option);
+                        }
+                      });
+                    },
+                  );
+                }).toList(),
+              ),
+            );
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel", style: TextStyle(color: Colors.red)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () {
+              onSelected(tempSelected);
+              Navigator.pop(context);
+            },
+            child: const Text("Save", style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      );
+    },
+  );
+}
 
   Widget _buildTextField(TextEditingController controller, String label, IconData icon, {bool isMultiline = false}) {
     return Padding(
