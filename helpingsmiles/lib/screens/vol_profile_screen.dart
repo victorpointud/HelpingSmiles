@@ -192,6 +192,7 @@ class _VolProfileScreenState extends State<VolProfileScreen> {
   }
 
   Widget _buildProfileList(IconData icon, String title, List<String> items) {
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Column(
@@ -226,4 +227,5 @@ class _VolProfileScreenState extends State<VolProfileScreen> {
       ),
     );
   }
+
 }

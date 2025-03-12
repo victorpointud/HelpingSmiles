@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class VolInfoScreen extends StatefulWidget {
-  final String volunteerId; // Se recibe el ID del voluntario
+  final String volunteerId; 
 
   const VolInfoScreen({super.key, required this.volunteerId});
 
@@ -50,7 +50,7 @@ class _VolInfoScreenState extends State<VolInfoScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         title: Text(
-          name ?? "Volunteer Details",
+          name ?? "Volunteer Profile",
           style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
         ),
         iconTheme: const IconThemeData(color: Colors.black),
@@ -66,20 +66,31 @@ class _VolInfoScreenState extends State<VolInfoScreen> {
             ),
           ),
           Container(color: Colors.black.withOpacity(0.3)),
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                const SizedBox(height: 20),
-                _buildProfileSection(Icons.person, "Name", name ?? "Not specified"),
-                _buildProfileSection(Icons.email, "Email", email ?? "Not specified"),
-                _buildProfileSection(Icons.phone, "Phone Number", phone ?? "Not specified"),
-                _buildProfileSection(Icons.calendar_today, "Date of Birth", date ?? "Not specified"),
-                _buildProfileSection(Icons.location_on, "Location", location ?? "Not specified"),
-                _buildProfileList(Icons.favorite, "Interests", interests),
-                _buildProfileList(Icons.star, "Skills", skills),
-                const SizedBox(height: 20),
-              ],
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Center(
+                child: Card(
+                  color: Colors.white,
+                  elevation: 10,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildProfileSection(Icons.person, "Name", name ?? "Not specified"),
+                        _buildProfileSection(Icons.email, "Email", email ?? "Not specified"),
+                        _buildProfileSection(Icons.phone, "Phone", phone ?? "Not specified"),
+                        _buildProfileSection(Icons.calendar_today, "Date of Birth", date ?? "Not specified"),
+                        _buildProfileSection(Icons.location_on, "Location", location ?? "Not specified"),
+                        _buildProfileList(Icons.favorite, "Interests", interests),
+                        _buildProfileList(Icons.star, "Skills", skills),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             ),
           ),
         ],
@@ -88,59 +99,68 @@ class _VolInfoScreenState extends State<VolInfoScreen> {
   }
 
   Widget _buildProfileSection(IconData icon, String title, String content) {
-    return Card(
-      elevation: 4,
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      color: Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Row(
-          children: [
-            Icon(icon, color: Colors.red),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text.rich(
-                TextSpan(
-                  children: [
-                    TextSpan(
-                      text: "$title: ",
-                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
-                    ),
-                    TextSpan(
-                      text: content,
-                      style: const TextStyle(fontWeight: FontWeight.normal, color: Colors.black),
-                    ),
-                  ],
-                ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.red),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: "$title: ",
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black),
+                  ),
+                  TextSpan(
+                    text: content,
+                    style: const TextStyle(fontSize: 16, color: Colors.black),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildProfileList(IconData icon, String title, List<String> items) {
-    return Card(
-      elevation: 4,
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      color: Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(children: [
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
               Icon(icon, color: Colors.red),
               const SizedBox(width: 10),
-              Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black))
-            ]),
-            ...items.map((item) => Text("• $item", style: const TextStyle(fontSize: 16, color: Colors.black))),
-          ],
-        ),
+              Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
+            ],
+          ),
+          if (items.isEmpty)
+            const Padding(
+              padding: EdgeInsets.only(left: 32, top: 5),
+              child: Text("Not specified", style: TextStyle(fontSize: 16, color: Colors.black)),
+            )
+          else
+            Column(
+              children: items.map((item) => Padding(
+                padding: const EdgeInsets.only(left: 32, top: 5),
+                child: Row(
+                  children: [
+                    const Icon(Icons.check_circle, color: Color.fromARGB(255, 0, 0, 0), size: 16),
+                    const SizedBox(width: 5),
+                    Expanded(child: Text(item, style: const TextStyle(fontSize: 16, color: Colors.black))),
+                  ],
+                ),
+              )).toList(),
+            ),
+        ],
       ),
     );
   }
+
 }
