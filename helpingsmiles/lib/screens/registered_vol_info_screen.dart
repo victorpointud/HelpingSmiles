@@ -12,6 +12,7 @@ class RegisteredVolInfoScreen extends StatefulWidget {
 
 class _RegisteredVolInfoScreenState extends State<RegisteredVolInfoScreen> {
   List<Map<String, dynamic>> registeredVolunteers = [];
+  int totalVolunteers = 0;
 
   @override
   void initState() {
@@ -32,12 +33,14 @@ class _RegisteredVolInfoScreenState extends State<RegisteredVolInfoScreen> {
         registeredVolunteers = querySnapshot.docs.map((doc) {
           final data = doc.data();
           return {
-            'id': doc.id, 
+            'id': doc.id,
             'name': data['name'] ?? "Unknown Volunteer",
             'email': data['email'] ?? "No email provided",
             'phone': data['phone'] ?? "No phone provided",
           };
         }).toList();
+
+        totalVolunteers = registeredVolunteers.length;
       });
     } catch (e) {
       print("Error loading volunteers: $e");
@@ -51,6 +54,56 @@ class _RegisteredVolInfoScreenState extends State<RegisteredVolInfoScreen> {
         builder: (context) => VolInfoScreen(volunteerId: volunteerId),
       ),
     );
+  }
+
+  void _confirmDeleteVolunteer(String volunteerId) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Delete Volunteer", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
+        content: const Text("Are you sure you want to remove this volunteer from your organization? This action cannot be undone.",
+            style: TextStyle(fontSize: 16, color: Colors.black)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _deleteVolunteer(volunteerId);
+            },
+            child: const Text("Delete", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 🔥 **Elimina el voluntario de Firestore**
+  Future<void> _deleteVolunteer(String volunteerId) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    try {
+      final orgRef = FirebaseFirestore.instance.collection('organizations').doc(user.uid);
+      await orgRef.collection('registrations').doc(volunteerId).delete();
+
+      /// 🔥 **Actualiza la lista local después de eliminar**
+      setState(() {
+        registeredVolunteers.removeWhere((volunteer) => volunteer['id'] == volunteerId);
+        totalVolunteers = registeredVolunteers.length;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Volunteer removed successfully")),
+      );
+    } catch (e) {
+      print("Error deleting volunteer: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error deleting volunteer: $e")),
+      );
+    }
   }
 
   @override
@@ -78,15 +131,44 @@ class _RegisteredVolInfoScreenState extends State<RegisteredVolInfoScreen> {
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(20),
-              child: registeredVolunteers.isEmpty
-                  ? const Center(child: Text("No registered volunteers.", style: TextStyle(color: Colors.white)))
-                  : ListView.builder(
-                      itemCount: registeredVolunteers.length,
-                      itemBuilder: (context, index) {
-                        final volunteer = registeredVolunteers[index];
-                        return _buildVolunteerCard(volunteer);
-                      },
+              child: Column(
+                children: [
+                  /// 🔥 **Muestra el total de voluntarios**
+                  Card(
+                    color: Colors.white,
+                    elevation: 5,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(15),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.people, color: Colors.red, size: 24),
+                          const SizedBox(width: 10),
+                          Text(
+                            "Total Volunteers: $totalVolunteers",
+                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+                          ),
+                        ],
+                      ),
                     ),
+                  ),
+                  const SizedBox(height: 10),
+
+                  /// 🔥 **Lista de voluntarios**
+                  Expanded(
+                    child: registeredVolunteers.isEmpty
+                        ? const Center(child: Text("No registered volunteers.", style: TextStyle(color: Colors.white)))
+                        : ListView.builder(
+                            itemCount: registeredVolunteers.length,
+                            itemBuilder: (context, index) {
+                              final volunteer = registeredVolunteers[index];
+                              return _buildVolunteerCard(volunteer);
+                            },
+                          ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -94,25 +176,44 @@ class _RegisteredVolInfoScreenState extends State<RegisteredVolInfoScreen> {
     );
   }
 
+  /// 🔥 **Construye la tarjeta de cada voluntario**
   Widget _buildVolunteerCard(Map<String, dynamic> volunteer) {
-    return GestureDetector(
-      onTap: () => _navigateToVolunteerDetails(volunteer["id"]), 
-      child: Card(
-        elevation: 3,
-        margin: const EdgeInsets.symmetric(vertical: 8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        color: Colors.white,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(volunteer["name"], style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
-              Text("${volunteer["email"]} • ${volunteer["phone"]}", style: const TextStyle(color: Colors.black)),
-              const Text("Tap to view details", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color:Colors.black)), 
-            ],
+    return Card(
+      elevation: 3,
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      color: Colors.white,
+      child: Stack(
+        children: [
+          Positioned(
+            top: -2,
+            left: 320,
+            child: IconButton(
+              icon: const Icon(Icons.close, color: Colors.red),
+              onPressed: () => _confirmDeleteVolunteer(volunteer["id"]),
+            ),
           ),
-        ),
+
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                GestureDetector(
+                  onTap: () => _navigateToVolunteerDetails(volunteer["id"]),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(volunteer["name"], style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+                      Text("${volunteer["email"]} • ${volunteer["phone"]}", style: const TextStyle(color: Colors.black)),
+                      const Text("Tap to view details", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
