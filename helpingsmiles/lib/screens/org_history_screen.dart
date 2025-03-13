@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'registered_event_info_screen.dart';
-import 'registered_org_info_screen.dart';
 
 class OrgHistoryScreen extends StatefulWidget {
   const OrgHistoryScreen({super.key});
@@ -12,8 +11,8 @@ class OrgHistoryScreen extends StatefulWidget {
 }
 
 class _OrgHistoryScreenState extends State<OrgHistoryScreen> {
-  List<Map<String, dynamic>> registeredOrganizations = [];
   List<Map<String, dynamic>> completedEvents = [];
+  int totalVolunteers = 0;
   int totalPoints = 0;
 
   @override
@@ -27,49 +26,39 @@ class _OrgHistoryScreenState extends State<OrgHistoryScreen> {
     if (user == null) return;
 
     try {
-      final orgsSnapshot = await FirebaseFirestore.instance
-          .collection('organizations')
-          .get();
-
-      List<Map<String, dynamic>> tempOrgs = [];
-      for (var doc in orgsSnapshot.docs) {
-        final registrationRef = doc.reference.collection('registrations').doc(user.uid);
-        final registrationDoc = await registrationRef.get();
-
-        if (registrationDoc.exists) {
-          tempOrgs.add({
-            'id': doc.id,
-            'name': doc.data()['name'] ?? "Unnamed Organization",
-          });
-        }
-      }
 
       final eventsSnapshot = await FirebaseFirestore.instance
           .collection('events')
+          .where('organizationId', isEqualTo: user.uid)
+          .where('status', isEqualTo: 'completed')
           .get();
 
       List<Map<String, dynamic>> tempEvents = [];
       for (var doc in eventsSnapshot.docs) {
-        final registrationRef = doc.reference.collection('registrations').doc(user.uid);
-        final registrationDoc = await registrationRef.get();
-
-        if (registrationDoc.exists && registrationDoc.data()?['status'] == 'completed') {
-          tempEvents.add({
-            'id': doc.id,
-            'name': doc.data()['name'] ?? "Unnamed Event",
-          });
-        }
+        tempEvents.add({
+          'id': doc.id,
+          'name': doc.data()['name'] ?? "Unnamed Event",
+        });
       }
 
-      int calculatedPoints = (tempOrgs.length * 2) + tempEvents.length;
+      final volunteersSnapshot = await FirebaseFirestore.instance
+          .collection('organizations')
+          .doc(user.uid)
+          .collection('registrations')
+          .get();
+
+      int volunteerCount = volunteersSnapshot.docs.length;
+
+      int calculatedPoints = (tempEvents.length * 2) + volunteerCount;
 
       setState(() {
-        registeredOrganizations = tempOrgs;
         completedEvents = tempEvents;
+        totalVolunteers = volunteerCount;
         totalPoints = calculatedPoints;
       });
+
     } catch (e) {
-      print("Error loading history: $e");
+      debugPrint("Error loading history: $e");
     }
   }
 
@@ -113,12 +102,12 @@ class _OrgHistoryScreenState extends State<OrgHistoryScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  _buildSection("Registered Organizations", registeredOrganizations, Icons.business, "You haven't registered for any organizations yet.", isOrg: true),
                   const SizedBox(height: 20),
-                  _buildSection("Completed Events", completedEvents, Icons.event, "You haven't completed any events yet.", isOrg: false),
+                  _buildSection("Completed Events", completedEvents, Icons.event, "No completed events yet."),
+                  const SizedBox(height: 20),
+                  _buildVolCountCard(),
                   const SizedBox(height: 20),
                   _buildLevelCard(),
-                  
                 ],
               ),
             ),
@@ -127,6 +116,38 @@ class _OrgHistoryScreenState extends State<OrgHistoryScreen> {
       ),
     );
   }
+
+  Widget _buildVolCountCard() {
+  return Card(
+    elevation: 4,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+    color: Colors.white,
+    child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Icon(Icons.groups, color: Colors.red, size: 25),
+              SizedBox(width: 10),
+              Text(
+                "Total Volunteers Registered",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+              ),
+            ],
+          ),
+          const SizedBox(height: 15),
+          Text(
+            "$totalVolunteers",
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.red),
+          ),
+        ],
+      ),
+    ),
+  );
+}
 
   Widget _buildLevelCard() {
     return Card(
@@ -150,7 +171,7 @@ class _OrgHistoryScreenState extends State<OrgHistoryScreen> {
             const SizedBox(height: 5),
             Text(
               "Total Points: $totalPoints",
-              style: const TextStyle(fontSize: 16, color: Colors.black),
+              style: const TextStyle(fontSize: 16, color: Colors.black, ),
             ),
           ],
         ),
@@ -158,7 +179,7 @@ class _OrgHistoryScreenState extends State<OrgHistoryScreen> {
     );
   }
 
-  Widget _buildSection(String title, List<Map<String, dynamic>> items, IconData icon, String emptyMessage, {required bool isOrg}) {
+  Widget _buildSection(String title, List<Map<String, dynamic>> items, IconData icon, String emptyMessage) {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
@@ -182,11 +203,7 @@ class _OrgHistoryScreenState extends State<OrgHistoryScreen> {
                     children: items.map((item) {
                       return GestureDetector(
                         onTap: () {
-                          if (isOrg) {
-                            _navigateToRegisteredOrgInfo(item["id"], item["name"]);
-                          } else {
-                            _navigateToRegisteredEventInfo(item["id"]);
-                          }
+                          _navigateToRegisteredEventInfo(item["id"]);
                         },
                         child: Card(
                           elevation: 3,
@@ -197,7 +214,7 @@ class _OrgHistoryScreenState extends State<OrgHistoryScreen> {
                             padding: const EdgeInsets.all(16),
                             child: Row(
                               children: [
-                                Icon(isOrg ? Icons.business : Icons.event, color: Colors.red),
+                                Icon(Icons.event, color: Colors.red),
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: Text(
@@ -219,15 +236,6 @@ class _OrgHistoryScreenState extends State<OrgHistoryScreen> {
     );
   }
 
-  void _navigateToRegisteredOrgInfo(String orgId, String orgName) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => RegisteredOrgInfoScreen(organizationId: orgId, organizationName: orgName),
-      ),
-    );
-  }
-  
   void _navigateToRegisteredEventInfo(String eventId) {
     Navigator.push(
       context,

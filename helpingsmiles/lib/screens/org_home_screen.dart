@@ -13,7 +13,7 @@ import 'registered_org_info_screen.dart';
 import 'all_org_events_screen.dart';
 import 'all_extra_orgs_screen.dart';
 import 'calendar_screen.dart';
-import 'vol_history_screen.dart';
+import 'org_history_screen.dart';
 import 'notifications_screen.dart';
 
 class OrgHomeScreen extends StatefulWidget {
@@ -123,7 +123,7 @@ class OrgHomeScreenState extends State<OrgHomeScreen> {
         actions: [
           IconButton(icon: const Icon(Icons.notifications, color: Colors.black), onPressed: _navigateToNotifications),
           IconButton(icon: const Icon(Icons.event, color: Colors.black), onPressed: _navigateToCalendar),
-          IconButton(icon: const Icon(Icons.check, color: Colors.black), onPressed: _navigateToVolHistory),
+          IconButton(icon: const Icon(Icons.check, color: Colors.black), onPressed: _navigateToOrgHistory),
           IconButton(icon: const Icon(Icons.person, color: Colors.black), onPressed: _navigateToProfile),
           IconButton(icon: const Icon(Icons.logout, color: Colors.red), onPressed: _logout),
         ],
@@ -230,8 +230,8 @@ class OrgHomeScreenState extends State<OrgHomeScreen> {
     Navigator.push(context, MaterialPageRoute(builder: (_) => CalendarScreen()));
   }
 
-  void _navigateToVolHistory() {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => VolHistoryScreen()));
+  void _navigateToOrgHistory() {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => OrgHistoryScreen()));
   }
 
   void _navigateToNotifications() {
