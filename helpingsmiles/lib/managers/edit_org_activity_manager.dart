@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class EditOrgActivityManager extends StatefulWidget {
   final String eventId;
@@ -14,107 +14,71 @@ class EditOrgActivityManager extends StatefulWidget {
 
 class _EditOrgActivityManagerState extends State<EditOrgActivityManager> {
   final _formKey = GlobalKey<FormState>();
-  late TextEditingController _activityNameController;
-  late TextEditingController _dateController;
-  late TextEditingController _durationController;
-  late TextEditingController _volunteerTypeController;
-  late TextEditingController _locationController;
-  late TextEditingController _descriptionController;
-  String? name;
+  final _activityNameController = TextEditingController();
+  final _dateController  = TextEditingController();
+  final _durationController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  final _repNameController = TextEditingController();
+  final _repLastNameController = TextEditingController();
+  final _repPhoneController = TextEditingController();
+  final _repEmailController = TextEditingController();
+
+  List<String> selectedVolunteerTypes = [];
+  List<String> selectedLocations = [];
+
+  final List<String> availableVolunteerTypes = [
+    "Administration", "Education", "Medical Assistance", "Community Service", 
+    "Environmental", "Technology", "Sports", "Other"
+  ];
+
+  final List<String> availableLocations = [
+    "Venezuela", "USA", "Colombia", "Spain", "Mexico", "Argentina",
+    "Germany", "France", "Italy", "Canada", "Brasil", "Online"
+  ];
 
   @override
   void initState() {
     super.initState();
-    _loadOrganizationData();
-    _activityNameController = TextEditingController(text: widget.eventData["name"]);
-    _dateController = TextEditingController(text: widget.eventData["date"]);
-    _durationController = TextEditingController(text: widget.eventData["duration"]);
-    _volunteerTypeController = TextEditingController(text: widget.eventData["volunteerType"]);
-    _locationController = TextEditingController(text: widget.eventData["location"]);
-    _descriptionController = TextEditingController(text: widget.eventData["description"]);
+    _loadActivityData();
   }
 
-  Future<void> _loadOrganizationData() async {
+  
+  Future<void> _loadActivityData() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      final doc = await FirebaseFirestore.instance.collection('organizations').doc(user.uid).get();
+      final doc = await FirebaseFirestore.instance.collection('events').doc(user.uid).get();
+      
       if (doc.exists) {
         setState(() {
-          name = doc['name'] ?? "Not specified";
+          _activityNameController.text = doc["name"] ?? "";
+          _dateController.text = doc["date"] ?? "";
+          _durationController.text = doc["duration"] ?? "";
+          _descriptionController.text = doc["description"] ?? "";
+          selectedVolunteerTypes = List<String>.from(doc.data()?['volunteerTypes'] ?? []);
+          selectedLocations = List<String>.from(doc.data()?['locations'] ?? []);
         });
+
+        _loadRepresentativeData(user.uid);
       }
     }
   }
 
-  Future<void> _updateEvent() async {
-    if (_formKey.currentState!.validate()) {
-      try {
-        await FirebaseFirestore.instance.collection('events').doc(widget.eventId).update({
-          'name': _activityNameController.text.trim(),
-          'date': _dateController.text.trim(),
-          'duration': _durationController.text.trim(),
-          'volunteerType': _volunteerTypeController.text.trim(),
-          'location': _locationController.text.trim(),
-          'description': _descriptionController.text.trim(),
-        });
+  Future<void> _loadRepresentativeData(String organizationId) async {
+    final repDoc = await FirebaseFirestore.instance
+        .collection('events')
+        .doc(organizationId)
+        .collection('representatives')
+        .doc('info')
+        .get();
 
-        _showSuccessDialog();
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error updating activity: $e")));
-      }
+    if (repDoc.exists) {
+      setState(() {
+        _repNameController.text = repDoc.data()?['repName'] ?? "";
+        _repLastNameController.text = repDoc.data()?['repLastName'] ?? "";
+        _repPhoneController.text = repDoc.data()?['repPhone'] ?? "";
+        _repEmailController.text = repDoc.data()?['repEmail'] ?? "";
+      });
     }
-  }
-
-  Future<void> _deleteEvent() async {
-    try {
-      await FirebaseFirestore.instance.collection('events').doc(widget.eventId).delete();
-      Navigator.pop(context, true);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error deleting activity: $e")));
-    }
-  }
-
-  void _confirmDelete() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Delete Activity", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
-        content: const Text("Are you sure you want to delete this activity? This action cannot be undone."),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 34, 9, 255))),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _deleteEvent();
-            },
-            child: const Text("Delete", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 255, 17, 0))),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showSuccessDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Success", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
-        content: const Text("Changes saved successfully.", style: TextStyle(fontSize: 16, color: Colors.black)),
-        actions: [
-          Center(
-            child: CircularProgressIndicator(color: Colors.red),
-          ),
-        ],
-      ),
-    );
-
-    Future.delayed(const Duration(seconds: 2), () {
-      Navigator.pop(context);
-      Navigator.pop(context, true);
-    });
   }
 
   @override
@@ -122,9 +86,9 @@ class _EditOrgActivityManagerState extends State<EditOrgActivityManager> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title: Text(
-          name ?? "Organization Activity",
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
+        title: const Text(
+          "Edit Activity",
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
         ),
         iconTheme: const IconThemeData(color: Colors.black),
       ),
@@ -155,38 +119,24 @@ class _EditOrgActivityManagerState extends State<EditOrgActivityManager> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Text("Edit Activity", style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.black)),
-                            const SizedBox(height: 10),
                             _buildTextField(_activityNameController, "Activity Name", Icons.event),
                             _buildTextField(_dateController, "Date (YYYY-MM-DD)", Icons.calendar_today),
                             _buildTextField(_durationController, "Duration (hours)", Icons.timelapse),
-                            _buildTextField(_volunteerTypeController, "Volunteer Type", Icons.people),
-                            _buildTextField(_locationController, "Location", Icons.location_on),
                             _buildMultiLineTextField(_descriptionController, "Description", Icons.description),
+                            _buildSelectionField("Volunteer Types", selectedVolunteerTypes, availableVolunteerTypes, Icons.people, (newSelection) {
+                              setState(() => selectedVolunteerTypes = newSelection);
+                            }),
+                            _buildSelectionField("Locations", selectedLocations, availableLocations, Icons.location_on, (newSelection) {
+                              setState(() => selectedLocations = newSelection);
+                            }),
                             const SizedBox(height: 20),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                ElevatedButton(
-                                  onPressed: _updateEvent,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.red,
-                                    padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                  ),
-                                  child: const Text("Save Changes", style: TextStyle(fontSize: 16, color: Colors.white)),
-                                ),
-                                ElevatedButton(
-                                  onPressed: _confirmDelete,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.black,
-                                    padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                  ),
-                                  child: const Text("Delete Activity", style: TextStyle(fontSize: 16, color: Colors.white)),
-                                ),
-                              ],
-                            ),
+                            const Text("Representative Information", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
+                            _buildTextField(_repNameController, "Representative First Name", Icons.person),
+                            _buildTextField(_repLastNameController, "Representative Last Name", Icons.person_outline),
+                            _buildTextField(_repPhoneController, "Representative Phone", Icons.phone),
+                            _buildTextField(_repEmailController, "Representative Email", Icons.email),
+                            const SizedBox(height: 20),
+                            _buildSaveButton(),
                           ],
                         ),
                       ),
@@ -201,6 +151,126 @@ class _EditOrgActivityManagerState extends State<EditOrgActivityManager> {
     );
   }
 
+  Future<void> _saveActivityChanges() async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("No user is signed in. Please log in again.")),
+    );
+    return;
+  }
+
+  if (_formKey.currentState!.validate()) {
+    try {
+      await FirebaseFirestore.instance.collection('events').doc(widget.eventId).set({
+        'name': _activityNameController.text.trim(),
+        'date': _dateController.text.trim(),
+        'duration': _durationController.text.trim(),
+        'description': _descriptionController.text.trim(),
+        'volunteerTypes': selectedVolunteerTypes,
+        'locations': selectedLocations,
+        'representative': {
+          'repName': _repNameController.text.trim(),
+          'repLastName': _repLastNameController.text.trim(),
+          'repPhone': _repPhoneController.text.trim(),
+          'repEmail': _repEmailController.text.trim(),
+        },
+      }, SetOptions(merge: true));
+
+      _showSuccessDialog();
+
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error updating activity: ${e.toString()}")),
+      );
+    }
+  }
+}
+
+  void _showMultiSelectDialog(List<String> options, List<String> selectedList, String title, Function(List<String>) onSelected) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        List<String> tempSelected = List.from(selectedList);
+        return AlertDialog(
+          title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+          content: StatefulBuilder(
+            builder: (context, setState) {
+              return SingleChildScrollView(
+                child: Column(
+                  children: options.map((option) {
+                    return ListTile(
+                      title: Text(option, style: const TextStyle(color: Colors.black)),
+                      leading: Icon(
+                        tempSelected.contains(option) ? Icons.check_circle : Icons.radio_button_unchecked,
+                        color: tempSelected.contains(option) ? Colors.red : Colors.grey,
+                      ),
+                      onTap: () {
+                        setState(() {
+                          if (tempSelected.contains(option)) {
+                            tempSelected.remove(option);
+                          } else {
+                            tempSelected.add(option);
+                          }
+                        });
+                      },
+                    );
+                  }).toList(),
+                ),
+              );
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel", style: TextStyle(color: Colors.red)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              onPressed: () {
+                onSelected(tempSelected);
+                Navigator.pop(context);
+              },
+              child: const Text("Save", style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildSelectionField(String label, List<String> selectedList, List<String> options, IconData icon, Function(List<String>) onSelected) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 10),
+    child: InkWell(
+      onTap: () => _showMultiSelectDialog(options, selectedList, "Select $label", onSelected),
+      child: InputDecorator(
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+          prefixIcon: Icon(icon, color: Colors.red),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+          filled: true,
+          fillColor: Colors.white,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                selectedList.isNotEmpty ? selectedList.join(", ") : "Tap to select",
+                style: const TextStyle(color: Colors.black, fontSize: 16),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const Icon(Icons.arrow_drop_down, color: Colors.black),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
   Widget _buildTextField(TextEditingController controller, String label, IconData icon, {bool isPassword = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
@@ -209,13 +279,9 @@ class _EditOrgActivityManagerState extends State<EditOrgActivityManager> {
         obscureText: isPassword,
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
           prefixIcon: Icon(icon, color: Colors.red),
-          filled: true,
-          fillColor: Colors.white,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         ),
-        validator: (value) => value!.isEmpty ? "Please enter $label" : null,
       ),
     );
   }
@@ -237,4 +303,42 @@ class _EditOrgActivityManagerState extends State<EditOrgActivityManager> {
       ),
     );
   }
+
+  Widget _buildSaveButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: _saveActivityChanges,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.red,
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+        child: const Text("Save Changes", style: TextStyle(fontSize: 18, color: Colors.white)),
+      ),
+    );
+  }
+
+  void _showSuccessDialog() {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text("Success", style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold, color: Colors.black)),
+          content: const Text("Your profile has been updated successfully.", style: TextStyle(fontSize: 15, color: Colors.black)),
+          actions: [
+            Center(
+              child: CircularProgressIndicator(
+                color: Colors.red,
+              ),
+            ),
+          ],
+        ),
+      );
+
+      Future.delayed(const Duration(seconds: 2), () {
+        Navigator.pop(context); 
+        Navigator.pop(context, true); 
+      });
+    }
+
 }

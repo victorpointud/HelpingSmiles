@@ -380,7 +380,6 @@ class _EditOrgProfileManagerState extends State<EditOrgProfileManager> {
     );
   }
 
-
   void _showSuccessDialog() {
       showDialog(
         context: context,
