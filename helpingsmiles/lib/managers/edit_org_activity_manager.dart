@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class EditOrgActivityManager extends StatefulWidget {
@@ -44,29 +43,32 @@ class _EditOrgActivityManagerState extends State<EditOrgActivityManager> {
 
   
   Future<void> _loadActivityData() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      final doc = await FirebaseFirestore.instance.collection('events').doc(user.uid).get();
-      
-      if (doc.exists) {
-        setState(() {
-          _activityNameController.text = doc["name"] ?? "";
-          _dateController.text = doc["date"] ?? "";
-          _durationController.text = doc["duration"] ?? "";
-          _descriptionController.text = doc["description"] ?? "";
-          selectedVolunteerTypes = List<String>.from(doc.data()?['volunteerTypes'] ?? []);
-          selectedLocations = List<String>.from(doc.data()?['locations'] ?? []);
-        });
+  try {
+    final doc = await FirebaseFirestore.instance.collection('events').doc(widget.eventId).get();
 
-        _loadRepresentativeData(user.uid);
-      }
+    if (doc.exists) {
+      setState(() {
+        _activityNameController.text = doc.data()?['name'] ?? "";
+        _dateController.text = doc.data()?['date'] ?? "";
+        _durationController.text = doc.data()?['duration'] ?? "";
+        _descriptionController.text = doc.data()?['description'] ?? "";
+        selectedVolunteerTypes = List<String>.from(doc.data()?['volunteerTypes'] ?? []);
+        selectedLocations = List<String>.from(doc.data()?['locations'] ?? []);
+      });
+
+      _loadRepresentativeData(); 
+      debugPrint("Event document does not exist.");
     }
+  } catch (e) {
+    debugPrint("Error loading event data: $e");
   }
+}
 
-  Future<void> _loadRepresentativeData(String organizationId) async {
+Future<void> _loadRepresentativeData() async {
+  try {
     final repDoc = await FirebaseFirestore.instance
         .collection('events')
-        .doc(organizationId)
+        .doc(widget.eventId)
         .collection('representatives')
         .doc('info')
         .get();
@@ -78,8 +80,13 @@ class _EditOrgActivityManagerState extends State<EditOrgActivityManager> {
         _repPhoneController.text = repDoc.data()?['repPhone'] ?? "";
         _repEmailController.text = repDoc.data()?['repEmail'] ?? "";
       });
+    } else {
+      debugPrint("Representative document does not exist.");
     }
+  } catch (e) {
+    debugPrint("Error loading representative data: $e");
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -152,34 +159,39 @@ class _EditOrgActivityManagerState extends State<EditOrgActivityManager> {
   }
 
   Future<void> _saveActivityChanges() async {
-  final user = FirebaseAuth.instance.currentUser;
-  if (user == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("No user is signed in. Please log in again.")),
-    );
-    return;
-  }
-
   if (_formKey.currentState!.validate()) {
     try {
+      // Actualizar el evento en Firestore
       await FirebaseFirestore.instance.collection('events').doc(widget.eventId).set({
         'name': _activityNameController.text.trim(),
         'date': _dateController.text.trim(),
         'duration': _durationController.text.trim(),
         'description': _descriptionController.text.trim(),
-        'volunteerTypes': selectedVolunteerTypes,
-        'locations': selectedLocations,
-        'representative': {
-          'repName': _repNameController.text.trim(),
-          'repLastName': _repLastNameController.text.trim(),
-          'repPhone': _repPhoneController.text.trim(),
-          'repEmail': _repEmailController.text.trim(),
-        },
+        'volunteerTypes': selectedVolunteerTypes.isNotEmpty ? selectedVolunteerTypes : [],
+        'locations': selectedLocations.isNotEmpty ? selectedLocations : [],
       }, SetOptions(merge: true));
+
+      debugPrint("Activity updated successfully!");
+
+      // Actualizar el representante en Firestore
+      await FirebaseFirestore.instance
+          .collection('events')
+          .doc(widget.eventId)
+          .collection('representatives')
+          .doc('info')
+          .set({
+        'repName': _repNameController.text.trim(),
+        'repLastName': _repLastNameController.text.trim(),
+        'repPhone': _repPhoneController.text.trim(),
+        'repEmail': _repEmailController.text.trim(),
+      }, SetOptions(merge: true));
+
+      debugPrint("Representative updated successfully!");
 
       _showSuccessDialog();
 
     } catch (e) {
+      debugPrint("Error updating activity: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error updating activity: ${e.toString()}")),
       );
