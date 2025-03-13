@@ -4,14 +4,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'registered_event_info_screen.dart';
 import 'registered_org_info_screen.dart';
 
-class HistoryScreen extends StatefulWidget {
-  const HistoryScreen({super.key});
+class OrgHistoryScreen extends StatefulWidget {
+  const OrgHistoryScreen({super.key});
 
   @override
-  _HistoryScreenState createState() => _HistoryScreenState();
+  _OrgHistoryScreenState createState() => _OrgHistoryScreenState();
 }
 
-class _HistoryScreenState extends State<HistoryScreen> {
+class _OrgHistoryScreenState extends State<OrgHistoryScreen> {
   List<Map<String, dynamic>> registeredOrganizations = [];
   List<Map<String, dynamic>> completedEvents = [];
   int totalPoints = 0;
