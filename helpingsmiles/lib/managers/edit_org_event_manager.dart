@@ -35,6 +35,8 @@ class _EditOrgEventManagerState extends State<EditOrgEventManager> {
     "Germany", "France", "Italy", "Canada", "Brasil", "Online"
   ];
 
+  bool? eventStatus;
+
   @override
   void initState() {
     super.initState();
@@ -54,6 +56,7 @@ class _EditOrgEventManagerState extends State<EditOrgEventManager> {
         _descriptionController.text = doc.data()?['description'] ?? "";
         selectedVolunteerTypes = List<String>.from(doc.data()?['volunteerTypes'] ?? []);
         selectedLocations = List<String>.from(doc.data()?['locations'] ?? []);
+        eventStatus = doc.data()?['status'] ?? true;
       });
 
       _loadRepresentativeData(); 
@@ -137,6 +140,7 @@ class _EditOrgEventManagerState extends State<EditOrgEventManager> {
                             _buildSelectionField("Locations", selectedLocations, availableLocations, Icons.location_on, (newSelection) {
                               setState(() => selectedLocations = newSelection);
                             }),
+                            _buildStatusField(),
                             const SizedBox(height: 20),
                             const Text("Representative Information", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
                             _buildTextField(_repNameController, "Representative First Name", Icons.person),
@@ -159,6 +163,73 @@ class _EditOrgEventManagerState extends State<EditOrgEventManager> {
     );
   }
 
+  Widget _buildStatusField() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: InkWell(
+        onTap: _showStatusDialog,
+        child: InputDecorator(
+          decoration: InputDecoration(
+            labelText: "Status",
+            labelStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+            prefixIcon: const Icon(Icons.toggle_on, color: Colors.red),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+            filled: true,
+            fillColor: Colors.white,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                eventStatus != null ? (eventStatus! ? "Open" : "Close") : "Tap to select",
+                style: const TextStyle(color: Colors.black, fontSize: 16),
+              ),
+              const Icon(Icons.arrow_drop_down, color: Colors.black),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showStatusDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Select Status", style: TextStyle(fontWeight: FontWeight.bold)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                title: const Text("Open"),
+                leading: Radio<bool>(
+                  value: true,
+                  groupValue: eventStatus,
+                  onChanged: (value) {
+                    setState(() => eventStatus = value);
+                    Navigator.pop(context);
+                  },
+                ),
+              ),
+              ListTile(
+                title: const Text("Close"),
+                leading: Radio<bool>(
+                  value: false,
+                  groupValue: eventStatus,
+                  onChanged: (value) {
+                    setState(() => eventStatus = value);
+                    Navigator.pop(context);
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _saveEventChanges() async {
   if (_formKey.currentState!.validate()) {
     try {
@@ -170,6 +241,7 @@ class _EditOrgEventManagerState extends State<EditOrgEventManager> {
         'description': _descriptionController.text.trim(),
         'volunteerTypes': selectedVolunteerTypes.isNotEmpty ? selectedVolunteerTypes : [],
         'locations': selectedLocations.isNotEmpty ? selectedLocations : [],
+        'status': eventStatus ?? true,
       }, SetOptions(merge: true));
 
       debugPrint("Event updated successfully!");

@@ -145,7 +145,7 @@ class OrgHomeScreenState extends State<OrgHomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildSectionTitle("Upcoming Events"),
+                  _buildSectionTitle("Events"),
                   _buildEventList(_getRandomElements(events)),
                   const SizedBox(height: 10),
                   Center(
