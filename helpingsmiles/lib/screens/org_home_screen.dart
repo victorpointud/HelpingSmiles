@@ -337,7 +337,7 @@ class OrgHomeScreenState extends State<OrgHomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(event["name"], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red)),
-              Text("${event["date"]} • ${event["location"]}", style: const TextStyle(fontSize: 14, color: Colors.black)),
+              Text("${event["date"]}", style: const TextStyle(fontSize: 14, color: Colors.black)),
               const SizedBox(height: 5),
               const Text("Click to edit", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
             ],
