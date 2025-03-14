@@ -6,8 +6,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../managers/auth_manager.dart';
 import 'org_profile_screen.dart';
 import 'login_screen.dart';
-import '../managers/add_org_activity_manager.dart';
-import '../managers/edit_org_activity_manager.dart';
+import '../managers/add_org_event_manager.dart';
+import '../managers/edit_org_event_manager.dart';
 import 'registered_vol_info_screen.dart';
 import 'registered_org_info_screen.dart';
 import 'all_org_events_screen.dart';
@@ -205,7 +205,7 @@ class OrgHomeScreenState extends State<OrgHomeScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.red,
-        onPressed: () => _navigate(context, const AddOrgActivityManager()),
+        onPressed: () => _navigate(context, const AddOrgEventManager()),
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
@@ -325,7 +325,7 @@ class OrgHomeScreenState extends State<OrgHomeScreen> {
 
   Widget _buildEventCard(Map<String, dynamic> event) {
     return GestureDetector(
-      onTap: () => _navigate(context, EditOrgActivityManager(eventId: event["id"], eventData: event)),
+      onTap: () => _navigate(context, EditOrgEventManager(eventId: event["id"], eventData: event)),
       child: Card(
         elevation: 3,
         margin: const EdgeInsets.symmetric(vertical: 8),

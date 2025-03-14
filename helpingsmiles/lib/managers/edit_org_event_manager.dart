@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class EditOrgActivityManager extends StatefulWidget {
+class EditOrgEventManager extends StatefulWidget {
   final String eventId;
   final Map<String, dynamic> eventData;
 
-  const EditOrgActivityManager({super.key, required this.eventId, required this.eventData});
+  const EditOrgEventManager({super.key, required this.eventId, required this.eventData});
 
   @override
-  _EditOrgActivityManagerState createState() => _EditOrgActivityManagerState();
+  _EditOrgEventManagerState createState() => _EditOrgEventManagerState();
 }
 
-class _EditOrgActivityManagerState extends State<EditOrgActivityManager> {
+class _EditOrgEventManagerState extends State<EditOrgEventManager> {
   final _formKey = GlobalKey<FormState>();
-  final _activityNameController = TextEditingController();
+  final _eventNameController = TextEditingController();
   final _dateController  = TextEditingController();
   final _durationController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -38,17 +38,17 @@ class _EditOrgActivityManagerState extends State<EditOrgActivityManager> {
   @override
   void initState() {
     super.initState();
-    _loadActivityData();
+    _loadEventData();
   }
 
   
-  Future<void> _loadActivityData() async {
+  Future<void> _loadEventData() async {
   try {
     final doc = await FirebaseFirestore.instance.collection('events').doc(widget.eventId).get();
 
     if (doc.exists) {
       setState(() {
-        _activityNameController.text = doc.data()?['name'] ?? "";
+        _eventNameController.text = doc.data()?['name'] ?? "";
         _dateController.text = doc.data()?['date'] ?? "";
         _durationController.text = doc.data()?['duration'] ?? "";
         _descriptionController.text = doc.data()?['description'] ?? "";
@@ -64,7 +64,7 @@ class _EditOrgActivityManagerState extends State<EditOrgActivityManager> {
   }
 }
 
-Future<void> _loadRepresentativeData() async {
+  Future<void> _loadRepresentativeData() async {
   try {
     final repDoc = await FirebaseFirestore.instance
         .collection('events')
@@ -94,7 +94,7 @@ Future<void> _loadRepresentativeData() async {
       appBar: AppBar(
         backgroundColor: Colors.white,
         title: const Text(
-          "Edit Activity",
+          "Edit Event",
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
         ),
         iconTheme: const IconThemeData(color: Colors.black),
@@ -111,6 +111,7 @@ Future<void> _loadRepresentativeData() async {
           ),
           Container(color: Colors.black.withOpacity(0.3)),
           SafeArea(
+            
             child: SingleChildScrollView(
               child: Center(
                 child: Padding(
@@ -126,7 +127,7 @@ Future<void> _loadRepresentativeData() async {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            _buildTextField(_activityNameController, "Activity Name", Icons.event),
+                            _buildTextField(_eventNameController, "Event Name", Icons.event),
                             _buildTextField(_dateController, "Date (YYYY-MM-DD)", Icons.calendar_today),
                             _buildTextField(_durationController, "Duration (hours)", Icons.timelapse),
                             _buildMultiLineTextField(_descriptionController, "Description", Icons.description),
@@ -158,12 +159,12 @@ Future<void> _loadRepresentativeData() async {
     );
   }
 
-  Future<void> _saveActivityChanges() async {
+  Future<void> _saveEventChanges() async {
   if (_formKey.currentState!.validate()) {
     try {
-      // Actualizar el evento en Firestore
+
       await FirebaseFirestore.instance.collection('events').doc(widget.eventId).set({
-        'name': _activityNameController.text.trim(),
+        'name': _eventNameController.text.trim(),
         'date': _dateController.text.trim(),
         'duration': _durationController.text.trim(),
         'description': _descriptionController.text.trim(),
@@ -171,9 +172,8 @@ Future<void> _loadRepresentativeData() async {
         'locations': selectedLocations.isNotEmpty ? selectedLocations : [],
       }, SetOptions(merge: true));
 
-      debugPrint("Activity updated successfully!");
+      debugPrint("Event updated successfully!");
 
-      // Actualizar el representante en Firestore
       await FirebaseFirestore.instance
           .collection('events')
           .doc(widget.eventId)
@@ -191,9 +191,9 @@ Future<void> _loadRepresentativeData() async {
       _showSuccessDialog();
 
     } catch (e) {
-      debugPrint("Error updating activity: $e");
+      debugPrint("Error updating event: $e");
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error updating activity: ${e.toString()}")),
+        SnackBar(content: Text("Error updating event: ${e.toString()}")),
       );
     }
   }
@@ -320,7 +320,7 @@ Future<void> _loadRepresentativeData() async {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: _saveActivityChanges,
+        onPressed: _saveEventChanges,
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.red,
           padding: const EdgeInsets.symmetric(vertical: 14),

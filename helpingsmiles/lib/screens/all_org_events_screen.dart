@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../managers/edit_org_activity_manager.dart';
+import '../managers/edit_org_event_manager.dart';
 
 class AllOrgEventsScreen extends StatefulWidget {
   final String organizationId;
@@ -76,7 +76,7 @@ class _AllOrgEventsScreenState extends State<AllOrgEventsScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => EditOrgActivityManager(eventId: eventId, eventData: eventData),
+        builder: (_) => EditOrgEventManager(eventId: eventId, eventData: eventData),
       ),
     ).then((updated) {
       if (updated == true) {

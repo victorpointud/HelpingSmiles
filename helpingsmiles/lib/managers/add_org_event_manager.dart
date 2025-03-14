@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class AddOrgActivityManager extends StatefulWidget {
-  const AddOrgActivityManager({super.key});
+class AddOrgEventManager extends StatefulWidget {
+  const AddOrgEventManager({super.key});
 
   @override
-  _AddOrgActivityManagerState createState() => _AddOrgActivityManagerState();
+  _AddOrgEventManagerState createState() => _AddOrgEventManagerState();
 }
 
-class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
+class _AddOrgEventManagerState extends State<AddOrgEventManager> {
   final _formKey = GlobalKey<FormState>();
 
-  final _activityNameController = TextEditingController();
+  final _eventNameController = TextEditingController();
   final _dateController = TextEditingController();
   final _durationController = TextEditingController();
   final _organizationTypeController = TextEditingController();
@@ -82,7 +82,7 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
     }
   }
 
-  Future<void> _saveActivity() async {
+  Future<void> _saveEvent() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
@@ -100,7 +100,7 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
       DocumentReference eventRef = await FirebaseFirestore.instance.collection('events').add({
         'organizationId': user.uid,
         'organizationName': _organizationName,
-        'name': _activityNameController.text.trim(),
+        'name': _eventNameController.text.trim(),
         'date': _dateController.text.trim(),
         'duration': _durationController.text.trim(),
         'organizationType': _organizationTypeController.text.trim(),
@@ -120,9 +120,9 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
 
       _showSuccessDialog();
     } catch (e) {
-      print("❌ Error al guardar actividad y representante: $e");
+      print(" Error saving event & representative: $e");
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error saving activity: $e"))
+        SnackBar(content: Text("Error saving event: $e"))
       );
     } finally {
       setState(() => _isLoading = false);
@@ -134,7 +134,7 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text("Success", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
-        content: const Text("The activity has been added successfully.", style: TextStyle(fontSize: 16, color: Colors.black)),
+        content: const Text("The event has been added successfully.", style: TextStyle(fontSize: 16, color: Colors.black)),
         actions: [
           Center(child: CircularProgressIndicator(color: Colors.red)),
         ],
@@ -190,7 +190,7 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
                               style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.black),
                             ),
                             const SizedBox(height: 10),
-                            _buildTextField(_activityNameController, "Activity Name", Icons.event),
+                            _buildTextField(_eventNameController, "Event Name", Icons.event),
                             _buildTextField(_dateController, "Date (YYYY-MM-DD)", Icons.calendar_today),
                             _buildTextField(_durationController, "Duration (hours)", Icons.timelapse),
                             _buildTextField(_organizationTypeController, "Organization Type", Icons.people),
@@ -208,7 +208,7 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
 
                             const SizedBox(height: 20),
 
-                            const Text( "Activity Representative", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),),
+                            const Text( "Event Representative", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),),
                             const SizedBox(height: 10),
                             _buildTextField(_repNameController, "First Name", Icons.person),
                             _buildTextField(_repLastNameController, "Last Name", Icons.person_outline),
@@ -341,13 +341,13 @@ class _AddOrgActivityManagerState extends State<AddOrgActivityManager> {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: _saveActivity,
+        onPressed: _saveEvent,
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.red,
           padding: const EdgeInsets.symmetric(vertical: 14),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
-        child: const Text("Save Activity", style: TextStyle(fontSize: 18, color: Colors.white)),
+        child: const Text("Save Event", style: TextStyle(fontSize: 18, color: Colors.white)),
       ),
     );
   }
