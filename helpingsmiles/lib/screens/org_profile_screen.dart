@@ -2,15 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../managers/edit_org_profile_manager.dart';
+import 'org_metrics_screen.dart';
+
+
 
 class OrgProfileScreen extends StatefulWidget {
   const OrgProfileScreen({super.key});
 
   @override
-  _OrgProfileScreenState createState() => _OrgProfileScreenState();
+  OrgProfileScreenState createState() => OrgProfileScreenState();
 }
 
-class _OrgProfileScreenState extends State<OrgProfileScreen> {
+class OrgProfileScreenState extends State<OrgProfileScreen> {
   String? name;
   String? email;
   String? phone;
@@ -20,6 +23,7 @@ class _OrgProfileScreenState extends State<OrgProfileScreen> {
   List<String> objectives = [];
   List<String> volunteerTypes = [];
   List<String> locations = [];
+
 
   // Representative fields
   String? repName;
@@ -55,6 +59,8 @@ class _OrgProfileScreenState extends State<OrgProfileScreen> {
       }
     }
   }
+
+
 
   Future<void> _loadRepresentativeData(String organizationId) async {
     final repDoc = await FirebaseFirestore.instance
@@ -93,21 +99,26 @@ class _OrgProfileScreenState extends State<OrgProfileScreen> {
     });
   }
 
-  Future<void> _deleteAccount() async {
-    final user = FirebaseAuth.instance.currentUser;
+    Future<void> _deleteAccount() async {
+      final user = FirebaseAuth.instance.currentUser;
+      final navigator = Navigator.of(context); 
+      final messenger = ScaffoldMessenger.of(context); 
 
-    if (user != null) {
-      try {
-        await FirebaseFirestore.instance.collection('organizations').doc(user.uid).delete();
-        await user.delete();
-        Navigator.of(context).pushReplacementNamed('/login');
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error deleting account: $e")),
-        );
+      if (user != null) {
+        try {
+          await FirebaseFirestore.instance.collection('organizations').doc(user.uid).delete();
+          await user.delete();
+          
+          navigator.pushReplacementNamed('/login'); 
+
+        } catch (e) {
+          messenger.showSnackBar(
+            SnackBar(content: Text("Error deleting account: $e")), 
+          );
+        }
       }
     }
-  }
+
 
   void _confirmDeleteAccount() {
     showDialog(
@@ -171,6 +182,24 @@ class _OrgProfileScreenState extends State<OrgProfileScreen> {
                 _buildProfileSection(Icons.person,  "Representative", "${repName ?? "Not specified"} ${repLastName ?? "Not specified"} - ${repPhone ?? "Not specified"} - ${repEmail ?? "Not specified"}"),   
 
                 const SizedBox(height: 20),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => OrgMetricsScreen(organizacionId: FirebaseAuth.instance.currentUser!.uid),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.bar_chart, color: Colors.white),
+                  label: const Text("View Metrics", style: TextStyle(fontSize: 18, color: Colors.white)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+                const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -208,6 +237,8 @@ class _OrgProfileScreenState extends State<OrgProfileScreen> {
       ),
     );
   }
+
+
 
   Widget _buildProfileList(IconData icon, String title, List<String> items) {
     return Card(

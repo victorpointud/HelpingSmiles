@@ -12,6 +12,7 @@ import 'all_org_events_screen.dart';
 import 'all_extra_orgs_screen.dart';
 import 'calendar_screen.dart';
 
+
 class OrgHomeScreen extends StatefulWidget {
   const OrgHomeScreen({super.key});
 
@@ -32,7 +33,7 @@ class OrgHomeScreenState extends State<OrgHomeScreen> {
     super.initState();
     _loadOrganizationData();
     _loadOtherOrganizations();
-
+    _loadOrganizationFeedback();
   }
 
   Future<void> _loadOrganizationData() async {
