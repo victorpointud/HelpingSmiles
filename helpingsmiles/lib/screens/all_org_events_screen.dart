@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../managers/edit_org_event_manager.dart';
+import 'org_events_manage_volunteers.dart';
 
 class AllOrgEventsScreen extends StatefulWidget {
   final String organizationId;
@@ -132,33 +133,35 @@ class _AllOrgEventsScreenState extends State<AllOrgEventsScreen> {
   }
 
   Widget _buildEventCard(Map<String, dynamic> event) {
-    return GestureDetector(
-      onTap: () => _navigateToEditEvent(event["id"], event),
-      child: Card(
-        elevation: 3,
-        margin: const EdgeInsets.symmetric(vertical: 8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        color: Colors.white,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(event["name"], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red)),
-              const SizedBox(height: 5),
-              _buildDetailRow(Icons.calendar_today, "Date", event["date"]),
-              _buildDetailRow(Icons.location_on, "Location", event["location"]),
-              _buildDetailRow(Icons.timelapse, "Duration", "${event["duration"]} hours"),
-              _buildDetailRow(Icons.people, "Volunteer Type", event["volunteerType"]),
-              const SizedBox(height: 10),
-              const Text(
-                "Description:",
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black),
-              ),
-              Text(event["description"], style: const TextStyle(fontSize: 14, color: Colors.black)),
-              const SizedBox(height: 10),
-              Center(
-                child: ElevatedButton(
+  return GestureDetector(
+    onTap: () => _navigateToEditEvent(event["id"], event),
+    child: Card(
+      elevation: 3,
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(event["name"], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red)),
+            const SizedBox(height: 5),
+            _buildDetailRow(Icons.calendar_today, "Date", event["date"]),
+            _buildDetailRow(Icons.location_on, "Location", event["location"]),
+            _buildDetailRow(Icons.timelapse, "Duration", "${event["duration"]} hours"),
+            _buildDetailRow(Icons.people, "Volunteer Type", event["volunteerType"]),
+            const SizedBox(height: 10),
+            const Text(
+              "Description:",
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black),
+            ),
+            Text(event["description"], style: const TextStyle(fontSize: 14, color: Colors.black)),
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
                   onPressed: () => _navigateToEditEvent(event["id"], event),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
@@ -167,13 +170,31 @@ class _AllOrgEventsScreenState extends State<AllOrgEventsScreen> {
                   ),
                   child: const Text("Edit Event", style: TextStyle(fontSize: 16, color: Colors.white)),
                 ),
-              ),
-            ],
-          ),
+                ElevatedButton(
+                  onPressed: () => _navigateToVolunteers(event["id"]),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: const Text("Manage Volunteers", style: TextStyle(fontSize: 16, color: Colors.white)),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
+void _navigateToVolunteers(String eventId) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => VolunteersScreen(eventId: eventId),
+    ),
+  );
+}
 
   Widget _buildDetailRow(IconData icon, String title, String value) {
     return Padding(
