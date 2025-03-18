@@ -68,12 +68,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       final eventData = doc.data() as Map<String, dynamic>;
       String eventName = eventData['name'] ?? "Unnamed Event";
 
-      QuerySnapshot registrationsSnapshot = await doc.reference.collection('registrations').get();
-      for (var regDoc in registrationsSnapshot.docs) {
+      // Cambia 'registrations' por 'request'
+      QuerySnapshot requestsSnapshot = await doc.reference.collection('requests').get();
+      for (var reqDoc in requestsSnapshot.docs) {
         tempUsers.add({
           'eventId': doc.id,
-          'userId': regDoc.id,
-          'userData': regDoc.data(),
+          'userId': reqDoc.id,
+          'userData': reqDoc.data(),
           'eventName': eventName, // Agrega el nombre del evento aquí
         });
       }
@@ -291,7 +292,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               ],
             ),
             const SizedBox(height: 8), // Reducir el espacio entre elementos
-            // Botón "Reject Volunteer"
+            // Botones "Reject Volunteer" y "Approved"
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -304,11 +305,28 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8), // Reducir el padding del botón
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12), // Aumentar el padding
                   ),
                   child: const Text(
-                    "Reject Volunteer",
-                    style: TextStyle(color: Colors.white, fontSize: 14), // Reducir el tamaño de la fuente del botón
+                    "Decline",
+                    style: TextStyle(color: Colors.white, fontSize: 16), // Aumentar el tamaño de la fuente
+                  ),
+                ),
+                const SizedBox(width: 12), // Aumentar el espacio entre los botones
+                ElevatedButton(
+                  onPressed: () {
+                    // Action to approve the volunteer
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green, // Color verde para el botón "Approved"
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12), // Aumentar el padding
+                  ),
+                  child: const Text(
+                    "Approved",
+                    style: TextStyle(color: Colors.white, fontSize: 16), // Aumentar el tamaño de la fuente
                   ),
                 ),
               ],
