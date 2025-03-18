@@ -119,7 +119,7 @@ class _EventInfoScreenState extends State<EventInfoScreen> {
                                 _buildDetailRow(Icons.people, "Organization", "${eventData!["organizationName"] ?? "Not specified"}"),
                                 _buildDetailRow(Icons.people, "Org Type", "${eventData!["organizationType"] ?? "Not specified"}"),
                                 const SizedBox(height: 20),
-                                _buildRepresentativeSection(), 
+                                _buildRepresentativeSection(),
                                 const SizedBox(height: 20),
                                 const Text(
                                   "Description:",
@@ -133,7 +133,9 @@ class _EventInfoScreenState extends State<EventInfoScreen> {
                                 const SizedBox(height: 10),
                                 Center(
                                   child: ElevatedButton(
-                                    onPressed: () => _registerForEvent(widget.eventId),
+                                    onPressed: () async {
+                                      await _registerAsRequest(widget.eventId); // Envía una solicitud
+                                    },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Colors.red,
                                       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
@@ -244,19 +246,77 @@ class _EventInfoScreenState extends State<EventInfoScreen> {
           'timestamp': FieldValue.serverTimestamp(),
         });
 
-        _showSuccessDialog();
+        _showSuccessDialog("You have successfully registered for this event.");
       } catch (e) {
         _showErrorDialog("Failed to register for event.");
       }
     }
   }
 
-  void _showSuccessDialog() {
+  Future<void> _registerAsRequest(String eventId) async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user != null) {
+    try {
+      print("Fetching volunteer data...");
+      final volunteerDoc = await FirebaseFirestore.instance.collection('volunteers').doc(user.uid).get();
+
+      if (!volunteerDoc.exists) {
+        print("Volunteer profile not found.");
+        _showErrorDialog("Volunteer profile not found!");
+        return;
+      }
+
+      print("Volunteer data found. Checking request...");
+      final requestDoc = await FirebaseFirestore.instance
+          .collection('events')
+          .doc(eventId)
+          .collection('requests')
+          .doc(user.uid)
+          .get();
+
+      if (requestDoc.exists) {
+        print("Request already exists.");
+        _showErrorDialog("You have already submitted a request for this event.");
+        return;
+      }
+
+      print("Creating request...");
+      final volunteerData = volunteerDoc.data() ?? {
+        'name': "Not specified",
+        'phone': "Not specified",
+        'skills': [],
+        'interests': [],
+        'location': "Not specified",
+        'date': "Not specified",
+      };
+      await FirebaseFirestore.instance.collection('events').doc(eventId).collection('requests').doc(user.uid).set({
+        'userId': user.uid,
+        'name': volunteerData['name'],
+        'email': user.email ?? "Not specified",
+        'phone': volunteerData['phone'],
+        'skills': volunteerData['skills'],
+        'interests': volunteerData['interests'],
+        'location': volunteerData['location'],
+        'date': volunteerData['date'],
+        'timestamp': FieldValue.serverTimestamp(),
+        'status': 'pending',
+      });
+
+      print("Request submitted successfully.");
+      _showSuccessDialog("Your request has been submitted successfully.");
+    } catch (e) {
+      print("Error submitting request: $e");
+      _showErrorDialog("Failed to submit request.");
+    }
+  }
+}
+
+  void _showSuccessDialog(String message) {
     showDialog(
       context: context,
-      builder: (context) => const AlertDialog(
-        title: Text("Registration Successful!", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
-        content: Text("You have successfully registered for this event.", style: TextStyle(fontSize: 16, color: Colors.black)),
+      builder: (context) => AlertDialog(
+        title: const Text("Success!", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
+        content: Text(message, style: const TextStyle(fontSize: 16, color: Colors.black)),
       ),
     );
   }
@@ -276,5 +336,4 @@ class _EventInfoScreenState extends State<EventInfoScreen> {
       ),
     );
   }
-
 }
