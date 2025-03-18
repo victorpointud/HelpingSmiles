@@ -157,16 +157,19 @@ class _AllOrgEventsScreenState extends State<AllOrgEventsScreen> {
               ),
               Text(event["description"], style: const TextStyle(fontSize: 14, color: Colors.black)),
               const SizedBox(height: 10),
-              Center(
-                child: ElevatedButton(
-                  onPressed: () => _navigateToEditEvent(event["id"], event),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: () => _navigateToEditEvent(event["id"], event),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    child: const Text("Edit Event", style: TextStyle(fontSize: 16, color: Colors.white)),
                   ),
-                  child: const Text("Edit Event", style: TextStyle(fontSize: 16, color: Colors.white)),
-                ),
+                ],
               ),
             ],
           ),
