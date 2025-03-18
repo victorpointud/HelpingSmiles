@@ -228,6 +228,7 @@ class _EditOrgProfileManagerState extends State<EditOrgProfileManager> {
                             }),
                             const SizedBox(height: 20),
                             const Text("Representative Information", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
+                            const SizedBox(height: 20),
                             _buildTextField(_repNameController, "Representative First Name", Icons.person),
                             _buildTextField(_repLastNameController, "Representative Last Name", Icons.person_outline),
                             _buildTextField(_repPhoneController, "Representative Phone", Icons.phone),

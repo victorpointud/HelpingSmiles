@@ -190,7 +190,10 @@ void _navigateToMetrics() {
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Colors.red,
                                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(15),
+                                        side: const BorderSide(color: Color.fromARGB(255, 0, 0, 0), width: 2),
+                                      ),
                                     ),
                                     child: const Text("View Metrics", style: TextStyle(color: Colors.white, fontSize: 16)),
                                   ),
@@ -280,7 +283,10 @@ void _navigateToMetrics() {
       return Card(
         color: Colors.white,
         elevation: 4,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+          side: const BorderSide(color: Colors.red, width: 2),
+        ),
         child: const Padding(
           padding: EdgeInsets.all(16),
           child: Text(
@@ -294,7 +300,10 @@ void _navigateToMetrics() {
     return Card(
       color: Colors.white,
       elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+        side: const BorderSide(color: Colors.red, width: 2),
+      ),  
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

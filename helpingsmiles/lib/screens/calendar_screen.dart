@@ -80,6 +80,7 @@ class CalendarScreenState extends State<CalendarScreen> {
               ),
             ),
           ),
+          Container(color: Colors.black.withOpacity(0.3)),
           Column(
             children: [
               Padding(
@@ -143,7 +144,10 @@ class CalendarScreenState extends State<CalendarScreen> {
                       onTap: () => _navigateToRegisteredEventInfoDetails(event['id']),
                       child: Card(
                         elevation: 4,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                          side: const BorderSide(color: Colors.red, width: 2),
+                        ),
                         color: Colors.white,
                         child: Padding(
                           padding: const EdgeInsets.all(16),
@@ -166,7 +170,7 @@ class CalendarScreenState extends State<CalendarScreen> {
                               ),
                               const SizedBox(height: 10),
                               Text(
-                                "Tap to view detailsrmation.",
+                                "Tap to view details.",
                                 style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
                               ),
                               const SizedBox(height: 10),
