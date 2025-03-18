@@ -14,12 +14,14 @@ class NotificationsScreen extends StatefulWidget {
 class _NotificationsScreenState extends State<NotificationsScreen> {
   List<Map<String, dynamic>> upcomingEvents = [];
   List<Map<String, dynamic>> registeredUsers = [];
+  List<Map<String, dynamic>> organizationRequests = [];
 
   @override
   void initState() {
     super.initState();
     _loadUpcomingEvents();
     _loadRegisteredUsers();
+    _loadOrganizationRequests();
   }
 
   Future<void> _loadUpcomingEvents() async {
@@ -60,22 +62,37 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Future<void> _loadRegisteredUsers() async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return; // Si no hay usuario autenticado, salir
+
   try {
-    QuerySnapshot eventsSnapshot = await FirebaseFirestore.instance.collection('events').get();
+    // Obtener el UID de la organización autenticada
+    final orgId = user.uid;
+
+    // Obtener todos los eventos organizados por la organización autenticada
+    final eventsSnapshot = await FirebaseFirestore.instance
+        .collection('events')
+        .where('organizationId', isEqualTo: orgId) // Filtrar por organización
+        .get();
+
     List<Map<String, dynamic>> tempUsers = [];
 
-    for (var doc in eventsSnapshot.docs) {
-      final eventData = doc.data() as Map<String, dynamic>;
-      String eventName = eventData['name'] ?? "Unnamed Event";
+    // Recorrer los eventos de la organización
+    for (var eventDoc in eventsSnapshot.docs) {
+      final eventData = eventDoc.data() as Map<String, dynamic>;
+      final eventId = eventDoc.id;
+      final eventName = eventData['name'] ?? "Unnamed Event";
 
-      // Cambia 'registrations' por 'request'
-      QuerySnapshot requestsSnapshot = await doc.reference.collection('requests').get();
+      // Obtener las solicitudes de ese evento
+      final requestsSnapshot = await eventDoc.reference.collection('requests').get();
+
+      // Agregar las solicitudes a la lista temporal
       for (var reqDoc in requestsSnapshot.docs) {
         tempUsers.add({
-          'eventId': doc.id,
+          'eventId': eventId,
           'userId': reqDoc.id,
           'userData': reqDoc.data(),
-          'eventName': eventName, // Agrega el nombre del evento aquí
+          'eventName': eventName,
         });
       }
     }
@@ -88,76 +105,117 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 }
 
+  Future<void> _loadOrganizationRequests() async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return; // Si no hay usuario autenticado, salir
+
+  try {
+    // Obtener el UID de la organización autenticada
+    final orgId = user.uid;
+
+    // Referencia a la colección requestsOrg de la organización autenticada
+    final requestsOrgRef = FirebaseFirestore.instance
+        .collection('organizations')
+        .doc(orgId)
+        .collection('requestsOrg');
+
+    // Obtener las solicitudes de la organización autenticada
+    final requestsOrgSnapshot = await requestsOrgRef.get();
+    List<Map<String, dynamic>> tempOrgs = [];
+
+    for (var reqDoc in requestsOrgSnapshot.docs) {
+      tempOrgs.add({
+        'orgId': orgId,
+        'requestId': reqDoc.id,
+        'orgData': reqDoc.data(),
+      });
+    }
+
+    setState(() {
+      organizationRequests = tempOrgs;
+    });
+  } catch (e) {
+    print("Error loading organization requests: $e");
+  }
+}
+
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        title: const Text(
-          "Notifications",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
-        ),
-        iconTheme: const IconThemeData(color: Colors.black),
-        actions: [
-          if (upcomingEvents.isNotEmpty)
-            IconButton(
-              icon: const Icon(Icons.delete_forever, color: Colors.red),
-              onPressed: _clearAllNotifications,
-            ),
-        ],
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      backgroundColor: Colors.white,
+      title: const Text(
+        "Notifications",
+        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
       ),
-      body: Stack(
-        children: [
-          Container(
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('lib/assets/background.png'),
-                fit: BoxFit.cover,
-              ),
+      iconTheme: const IconThemeData(color: Colors.black),
+      actions: [
+        if (upcomingEvents.isNotEmpty)
+          IconButton(
+            icon: const Icon(Icons.delete_forever, color: Colors.red),
+            onPressed: _clearAllNotifications,
+          ),
+      ],
+    ),
+    body: Stack(
+      children: [
+        Container(
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage('lib/assets/background.png'),
+              fit: BoxFit.cover,
             ),
           ),
-          Container(color: Colors.black.withOpacity(0.3)),
-          SafeArea(
-            child: Column(
-              children: [
-                Expanded(
-                  child: upcomingEvents.isEmpty
-                      ? const Center(
-                          child: Text(
-                            "No upcoming notifications.",
-                            style: TextStyle(fontSize: 18, color: Colors.white),
-                          ),
-                        )
-                      : Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: ListView.builder(
-                            itemCount: upcomingEvents.length,
-                            itemBuilder: (context, index) {
-                              final event = upcomingEvents[index];
-                              return _buildNotificationCard(event);
-                            },
-                          ),
-                        ),
+        ),
+        Container(color: Colors.black.withOpacity(0.3)),
+        SafeArea(
+          child: Column(
+            children: [
+              if (upcomingEvents.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: upcomingEvents.length,
+                    itemBuilder: (context, index) {
+                      final event = upcomingEvents[index];
+                      return _buildNotificationCard(event);
+                    },
+                  ),
                 ),
+              if (registeredUsers.isNotEmpty || organizationRequests.isNotEmpty)
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(20),
                     child: ListView.builder(
-                      itemCount: registeredUsers.length,
+                      itemCount: registeredUsers.length + organizationRequests.length,
                       itemBuilder: (context, index) {
-                        final user = registeredUsers[index];
-                        return _buildUserCard(user);
+                        if (index < registeredUsers.length) {
+                          final user = registeredUsers[index];
+                          return _buildUserCard(user);
+                        } else {
+                          final orgIndex = index - registeredUsers.length;
+                          final orgRequest = organizationRequests[orgIndex];
+                          return _buildOrgCard(orgRequest);
+                        }
                       },
                     ),
                   ),
                 ),
-              ],
-            ),
+              if (upcomingEvents.isEmpty && registeredUsers.isEmpty && organizationRequests.isEmpty)
+                const Center(
+                  child: Text(
+                    "No upcoming notifications.",
+                    style: TextStyle(fontSize: 18, color: Colors.white),
+                  ),
+                ),
+            ],
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _buildNotificationCard(Map<String, dynamic> event) {
     return Card(
@@ -217,18 +275,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Widget _buildUserCard(Map<String, dynamic> user) {
-  // Verifica si el campo "name" no está presente o está vacío
   if (user["userData"]["name"] == null || user["userData"]["name"].isEmpty) {
-    return const SizedBox.shrink(); // No muestra nada si no hay "name"
+    return const SizedBox.shrink();
   }
 
-  // Obtén el nombre del evento
   String eventName = user["eventName"] ?? "Event";
 
-  // Si hay "name", construye la tarjeta
   return GestureDetector(
     onTap: () {
-      // Navega a la pantalla de información del voluntario
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -238,61 +292,56 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     },
     child: Card(
       elevation: 4,
-      margin: const EdgeInsets.symmetric(vertical: 5), // Reducir el margen vertical
+      margin: const EdgeInsets.symmetric(vertical: 5),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       color: Colors.white,
       child: Padding(
-        padding: const EdgeInsets.all(12), // Reducir el padding
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Mensaje: "[Nombre] quiere unirse al evento [Nombre del evento]"
             Text(
               "${user["userData"]["name"]} wants to join the event $eventName",
               style: const TextStyle(
-                fontSize: 16, // Reducir el tamaño de la fuente
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Colors.red, // Texto en rojo
+                color: Colors.red,
               ),
             ),
-            const SizedBox(height: 8), // Reducir el espacio entre elementos
-            // Email con ícono rojo
+            const SizedBox(height: 8),
             Row(
               children: [
-                const Icon(Icons.email, color: Colors.red, size: 18), // Reducir el tamaño del ícono
-                const SizedBox(width: 8), // Reducir el espacio entre el ícono y el texto
+                const Icon(Icons.email, color: Colors.red, size: 18),
+                const SizedBox(width: 8),
                 Text(
                   "Email: ${user["userData"]["email"] ?? "Email not available"}",
-                  style: const TextStyle(fontSize: 14, color: Colors.black), // Reducir el tamaño de la fuente
+                  style: const TextStyle(fontSize: 14, color: Colors.black),
                 ),
               ],
             ),
-            const SizedBox(height: 4), // Reducir el espacio entre elementos
-            // Phone con ícono rojo
+            const SizedBox(height: 4),
             Row(
               children: [
-                const Icon(Icons.phone, color: Colors.red, size: 18), // Reducir el tamaño del ícono
-                const SizedBox(width: 8), // Reducir el espacio entre el ícono y el texto
+                const Icon(Icons.phone, color: Colors.red, size: 18),
+                const SizedBox(width: 8),
                 Text(
                   "Phone: ${user["userData"]["phone"] ?? "Phone not available"}",
-                  style: const TextStyle(fontSize: 14, color: Colors.black), // Reducir el tamaño de la fuente
+                  style: const TextStyle(fontSize: 14, color: Colors.black),
                 ),
               ],
             ),
-            const SizedBox(height: 4), // Reducir el espacio entre elementos
-            // Role con ícono rojo
+            const SizedBox(height: 4),
             Row(
               children: [
-                const Icon(Icons.work, color: Colors.red, size: 18), // Reducir el tamaño del ícono
-                const SizedBox(width: 8), // Reducir el espacio entre el ícono y el texto
+                const Icon(Icons.work, color: Colors.red, size: 18),
+                const SizedBox(width: 8),
                 Text(
                   "Role: ${user["userData"]["role"] ?? "No Role"}",
-                  style: const TextStyle(fontSize: 14, color: Colors.black), // Reducir el tamaño de la fuente
+                  style: const TextStyle(fontSize: 14, color: Colors.black),
                 ),
               ],
             ),
-            const SizedBox(height: 8), // Reducir el espacio entre elementos
-            // Botones "Reject Volunteer" y "Approved"
+            const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -302,29 +351,21 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     final userId = user["userId"];
 
                     try {
-                      // Obtén la referencia al documento en la colección 'requests'
                       final requestRef = FirebaseFirestore.instance
                           .collection('events')
                           .doc(eventId)
                           .collection('requests')
                           .doc(userId);
 
-                      // Verifica si el documento existe antes de eliminarlo
                       final requestDoc = await requestRef.get();
                       if (requestDoc.exists) {
-                        // Elimina el documento de la colección 'requests'
                         await requestRef.delete();
-
-                        // Actualiza la lista de usuarios registrados para reflejar el cambio
                         _loadRegisteredUsers();
-
-                        // Muestra un mensaje de confirmación
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text("User request declined successfully.")),
                         );
                       }
                     } catch (e) {
-                      // Manejo de errores
                       print("Error declining user request: $e");
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text("Error declining user request.")),
@@ -343,14 +384,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     style: TextStyle(color: Colors.white, fontSize: 16),
                   ),
                 ),
-                const SizedBox(width: 12), // Aumentar el espacio entre los botones
+                const SizedBox(width: 12),
                 ElevatedButton(
                   onPressed: () async {
                     final eventId = user["eventId"];
                     final userId = user["userId"];
 
                     try {
-                      // Verificar si el usuario ya está en la colección 'registrations'
                       final registrationRef = FirebaseFirestore.instance
                           .collection('events')
                           .doc(eventId)
@@ -359,17 +399,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
                       final registrationDoc = await registrationRef.get();
                       if (registrationDoc.exists) {
-                        // Si el usuario ya está registrado, mostrar mensaje de error
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text("Error: The user is already registered."),
                             backgroundColor: Colors.red,
                           ),
                         );
-                        return; // Salir sin registrar nuevamente
+                        return;
                       }
 
-                      // Obtener referencia al documento en 'requests'
                       final requestRef = FirebaseFirestore.instance
                           .collection('events')
                           .doc(eventId)
@@ -378,16 +416,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
                       final requestDoc = await requestRef.get();
                       if (requestDoc.exists) {
-                        // Mover el usuario a 'registrations'
                         await registrationRef.set(requestDoc.data()!);
-
-                        // Eliminar de 'requests'
                         await requestRef.delete();
-
-                        // Actualizar la lista de usuarios registrados
                         _loadRegisteredUsers();
-
-                        // Mostrar mensaje de éxito
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text("User successfully registered."),
@@ -421,6 +452,204 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             ),
           ],
         ),
+      ),
+    ),
+  );
+}
+
+  Widget _buildOrgCard(Map<String, dynamic> orgRequest) {
+  final orgData = orgRequest["orgData"] as Map<String, dynamic>;
+
+  return Card(
+    elevation: 4,
+    margin: const EdgeInsets.symmetric(vertical: 5),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+    color: Colors.white,
+    child: Padding(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Organization Request: ${orgData["name"] ?? "Unnamed Organization"}",
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.red,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Icon(Icons.email, color: Colors.red, size: 18),
+              const SizedBox(width: 8),
+              Text(
+                "Email: ${orgData["email"] ?? "Email not available"}",
+                style: const TextStyle(fontSize: 14, color: Colors.black),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              const Icon(Icons.phone, color: Colors.red, size: 18),
+              const SizedBox(width: 8),
+              Text(
+                "Phone: ${orgData["phone"] ?? "Phone not available"}",
+                style: const TextStyle(fontSize: 14, color: Colors.black),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              const Icon(Icons.location_city, color: Colors.red, size: 18),
+              const SizedBox(width: 8),
+              Text(
+                "Location: ${orgData["location"] ?? "No location provided"}",
+                style: const TextStyle(fontSize: 14, color: Colors.black),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              ElevatedButton(
+                onPressed: () async {
+                  final orgId = orgRequest["orgId"];
+                  final requestId = orgRequest["requestId"];
+
+                  try {
+                    // Referencia al documento de la solicitud en requestsOrg
+                    final requestRef = FirebaseFirestore.instance
+                        .collection('organizations')
+                        .doc(orgId)
+                        .collection('requestsOrg')
+                        .doc(requestId);
+
+                    // Verificar si el documento existe antes de eliminarlo
+                    final requestDoc = await requestRef.get();
+                    if (!requestDoc.exists) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Error: The request does not exist in requestsOrg."),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                      return;
+                    }
+
+                    // Eliminar la solicitud de requestsOrg
+                    await requestRef.delete();
+
+                    // Actualizar la lista de solicitudes
+                    _loadOrganizationRequests();
+
+                    // Mostrar un mensaje de éxito
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Organization request declined and removed from requestsOrg."),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  } catch (e) {
+                    print("Error declining organization request: $e");
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("An error occurred while declining the organization request: $e"),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                ),
+                child: const Text(
+                  "Decline",
+                  style: TextStyle(color: Colors.white, fontSize: 16),
+                ),
+              ),
+              const SizedBox(width: 12),
+              ElevatedButton(
+                onPressed: () async {
+                  final orgId = orgRequest["orgId"];
+                  final requestId = orgRequest["requestId"];
+
+                  try {
+                    // Referencia al documento de la solicitud en requestsOrg
+                    final requestRef = FirebaseFirestore.instance
+                        .collection('organizations')
+                        .doc(orgId)
+                        .collection('requestsOrg')
+                        .doc(requestId);
+
+                    // Obtener los datos de la solicitud
+                    final requestDoc = await requestRef.get();
+
+                    if (!requestDoc.exists) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Error: The request does not exist in requestsOrg."),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                      return;
+                    }
+
+                    // Crear la subcolección "registrations" y mover los datos
+                    final registrationRef = FirebaseFirestore.instance
+                        .collection('organizations')
+                        .doc(orgId)
+                        .collection('registrations')
+                        .doc(requestId);
+
+                    // Guardar los datos en la nueva subcolección
+                    await registrationRef.set(requestDoc.data()!);
+
+                    // Eliminar la solicitud de requestsOrg
+                    await requestRef.delete();
+
+                    // Actualizar la lista de solicitudes
+                    _loadOrganizationRequests();
+
+                    // Mostrar un mensaje de éxito
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Organization approved and moved to registrations."),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  } catch (e) {
+                    print("Error approving organization: $e");
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("An error occurred while approving the organization: $e"),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                ),
+                child: const Text(
+                  "Approve",
+                  style: TextStyle(color: Colors.white, fontSize: 16),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     ),
   );

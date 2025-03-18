@@ -290,7 +290,7 @@ class _OrgInfoScreenState extends State<OrgInfoScreen> {
         await FirebaseFirestore.instance
             .collection('organizations')
             .doc(widget.organizationId)
-            .collection('registrations')
+            .collection('requestsOrg')
             .doc(user.uid)
             .set({
           'userId': user.uid,
@@ -302,6 +302,7 @@ class _OrgInfoScreenState extends State<OrgInfoScreen> {
           'location': location,
           'date': date,
           'timestamp': FieldValue.serverTimestamp(),
+          'status': 'pending',
         });
 
         _showSuccessDialog();
@@ -318,7 +319,7 @@ class _OrgInfoScreenState extends State<OrgInfoScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text("Registration Successful!", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)),
-        content: const Text("You have successfully registered for this organization.", style: TextStyle(fontSize: 16, color: Colors.black)),
+        content: const Text("Your request to join the organization has been submitted.", style: TextStyle(fontSize: 16, color: Colors.black)),
         actions: [
           Center(child: CircularProgressIndicator(color: Colors.red)), 
         ],
@@ -345,11 +346,4 @@ class _OrgInfoScreenState extends State<OrgInfoScreen> {
       ),
     );
   }
-
 }
-
-
-
-
-
-
