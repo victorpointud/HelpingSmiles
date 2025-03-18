@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../managers/edit_org_profile_manager.dart';
+import '../../screens/org_metrics_screen.dart'; 
+
 
 class OrgProfileScreen extends StatefulWidget {
   final String organizationId;
@@ -14,10 +16,10 @@ class OrgProfileScreen extends StatefulWidget {
   });
 
   @override
-  _OrgProfileScreenState createState() => _OrgProfileScreenState();
+  OrgProfileScreenState createState() => OrgProfileScreenState();
 }
 
-class _OrgProfileScreenState extends State<OrgProfileScreen> {
+class OrgProfileScreenState extends State<OrgProfileScreen> {
   Map<String, dynamic>? orgData;
   Map<String, dynamic>? representativeData;
   bool isLoading = true;
@@ -80,6 +82,13 @@ class _OrgProfileScreenState extends State<OrgProfileScreen> {
       if (result == true) _loadOrganizationData();
     });
   }
+
+void _navigateToMetrics() {
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (_) => OrgMetricsScreen(organizacionId: widget.organizationId)),
+  );
+}
 
   void _confirmDeleteAccount() {
     showDialog(
@@ -180,6 +189,18 @@ class _OrgProfileScreenState extends State<OrgProfileScreen> {
                                   _buildDetailList(Icons.people, "Volunteer Types", orgData!["volunteerTypes"] ?? []),
                                   _buildDetailList(Icons.location_on, "Locations", orgData!["locations"] ?? []),
                                   const SizedBox(height: 20),
+                                  Center(
+                                  child: ElevatedButton(
+                                    onPressed: _navigateToMetrics,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.red,
+                                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                    ),
+                                    child: const Text("View Metrics", style: TextStyle(color: Colors.white, fontSize: 16)),
+                                  ),
+                                ),
+                                const SizedBox(height: 20),
                                   _buildRepresentativeSection(),
                                 ],
                               ),
