@@ -157,6 +157,10 @@ class OrgHomeScreenState extends State<OrgHomeScreen> {
                         backgroundColor: const Color.fromRGBO(230, 74, 63, 1),
                         foregroundColor: Colors.white,
                         iconColor: Colors.black,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                          side: const BorderSide(color: Color.fromARGB(255, 0, 0, 0), width: 2),
+                        ),
                         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
                       ),
                     ),
@@ -175,6 +179,10 @@ class OrgHomeScreenState extends State<OrgHomeScreen> {
                         backgroundColor: const Color.fromRGBO(230, 74, 63, 1),
                         foregroundColor: Colors.white,
                         iconColor: Colors.black,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                          side: const BorderSide(color: Color.fromARGB(255, 0, 0, 0), width: 2),
+                        ),
                         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
                       ),
                     ),
@@ -191,9 +199,12 @@ class OrgHomeScreenState extends State<OrgHomeScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color.fromARGB(255, 255, 255, 255), 
                           padding: const EdgeInsets.symmetric(vertical: 16), 
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                            side: const BorderSide(color: Colors.red, width: 2),
+                          ),
                         ),
-                        child: const Text("View Volunteers", style: TextStyle(fontSize: 18, color: Color.fromARGB(255, 247, 16, 16))),
+                        child: const Text("View Volunteers", style: TextStyle(fontSize: 18, color: Color.fromARGB(255, 0, 0, 0))),
                       ),
                     ),
                   ),
@@ -207,6 +218,7 @@ class OrgHomeScreenState extends State<OrgHomeScreen> {
         backgroundColor: Colors.red,
         onPressed: () => _navigate(context, const AddOrgEventManager()),
         child: const Icon(Icons.add, color: Colors.white),
+        
       ),
     );
   }
@@ -329,7 +341,10 @@ class OrgHomeScreenState extends State<OrgHomeScreen> {
       child: Card(
         elevation: 3,
         margin: const EdgeInsets.symmetric(vertical: 8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+        side: const BorderSide(color: Colors.red, width: 2),
+      ),
         color: Colors.white,
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -339,7 +354,7 @@ class OrgHomeScreenState extends State<OrgHomeScreen> {
               Text(event["name"], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red)),
               Text("${event["date"]}", style: const TextStyle(fontSize: 14, color: Colors.black)),
               const SizedBox(height: 5),
-              const Text("Click to edit", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
+              const Text("Click to edit.", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
             ],
           ),
         ),
@@ -364,7 +379,10 @@ class OrgHomeScreenState extends State<OrgHomeScreen> {
       child: Card(
         elevation: 3,
         margin: const EdgeInsets.symmetric(vertical: 8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+          side: const BorderSide(color: Colors.red, width: 2),
+        ),
         color: Colors.white,
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -374,7 +392,7 @@ class OrgHomeScreenState extends State<OrgHomeScreen> {
               Text(org["name"], style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.red)),
               Text(org["mission"], style: const TextStyle(fontSize: 14, color: Colors.black)),
               const SizedBox(height: 5),
-              const Text("Tap to view details", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
+              const Text("Tap to view details.", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
             ],
           ),
         ),

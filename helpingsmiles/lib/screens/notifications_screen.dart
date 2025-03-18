@@ -56,7 +56,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
-  /// 🚨 **Elimina TODAS las notificaciones del usuario**
   Future<void> _clearAllNotifications() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -83,7 +82,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
-  /// ❌ **Elimina una notificación individual**
   Future<void> _deleteNotification(String eventId) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -165,7 +163,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return Card(
       elevation: 4,
       margin: const EdgeInsets.symmetric(vertical: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+        side: const BorderSide(color: Colors.red, width: 2),
+      ),
       color: Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(16),

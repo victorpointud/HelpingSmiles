@@ -103,7 +103,7 @@ class _OrgHistoryScreenState extends State<OrgHistoryScreen> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const SizedBox(height: 20),
-                  _buildSection("Completed Events", completedEvents, Icons.event, "No completed events yet."),
+                  _buildEventsCard("Completed Events", completedEvents, Icons.event, "No completed events yet."),
                   const SizedBox(height: 20),
                   _buildVolCountCard(),
                   const SizedBox(height: 20),
@@ -120,7 +120,10 @@ class _OrgHistoryScreenState extends State<OrgHistoryScreen> {
   Widget _buildVolCountCard() {
   return Card(
     elevation: 4,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+    shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+        side: const BorderSide(color: Colors.red, width: 2),
+      ),
     color: Colors.white,
     child: Padding(
       padding: const EdgeInsets.all(16),
@@ -152,7 +155,10 @@ class _OrgHistoryScreenState extends State<OrgHistoryScreen> {
   Widget _buildLevelCard() {
     return Card(
       elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+        side: const BorderSide(color: Colors.red, width: 2),
+      ),
       color: Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -179,10 +185,13 @@ class _OrgHistoryScreenState extends State<OrgHistoryScreen> {
     );
   }
 
-  Widget _buildSection(String title, List<Map<String, dynamic>> items, IconData icon, String emptyMessage) {
+  Widget _buildEventsCard(String title, List<Map<String, dynamic>> items, IconData icon, String emptyMessage) {
     return Card(
       elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+        side: const BorderSide(color: Colors.red, width: 2),
+      ),
       color: Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(16),

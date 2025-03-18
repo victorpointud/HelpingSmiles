@@ -214,7 +214,10 @@ class _OrgEventsListScreenState extends State<OrgEventsListScreen> {
       child: Card(
         elevation: 4,
         margin: const EdgeInsets.symmetric(vertical: 10),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+          side: const BorderSide(color: Colors.red, width: 2),
+        ),
         color: Colors.white,
         child: Padding(
           padding: const EdgeInsets.all(16.0),
