@@ -116,7 +116,7 @@ class _AllExtraOrgsScreenState extends State<AllExtraOrgsScreen> {
               const SizedBox(height: 5),
               Text(org["mission"], style: const TextStyle(fontSize: 14, color: Colors.black)),
               const SizedBox(height: 5),
-              const Text("Tap to view details", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
+              const Text("Tap to view details.", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
             ],
           ),
         ),
