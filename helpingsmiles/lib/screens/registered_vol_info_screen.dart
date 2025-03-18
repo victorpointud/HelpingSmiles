@@ -80,7 +80,6 @@ class _RegisteredVolInfoScreenState extends State<RegisteredVolInfoScreen> {
     );
   }
 
-  /// 🔥 **Elimina el voluntario de Firestore**
   Future<void> _deleteVolunteer(String volunteerId) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -89,7 +88,6 @@ class _RegisteredVolInfoScreenState extends State<RegisteredVolInfoScreen> {
       final orgRef = FirebaseFirestore.instance.collection('organizations').doc(user.uid);
       await orgRef.collection('registrations').doc(volunteerId).delete();
 
-      /// 🔥 **Actualiza la lista local después de eliminar**
       setState(() {
         registeredVolunteers.removeWhere((volunteer) => volunteer['id'] == volunteerId);
         totalVolunteers = registeredVolunteers.length;
@@ -133,11 +131,13 @@ class _RegisteredVolInfoScreenState extends State<RegisteredVolInfoScreen> {
               padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
-                  /// 🔥 **Muestra el total de voluntarios**
                   Card(
                     color: Colors.white,
                     elevation: 5,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                      side: const BorderSide(color: Colors.red, width: 2),
+                    ),
                     child: Padding(
                       padding: const EdgeInsets.all(15),
                       child: Row(
@@ -148,6 +148,7 @@ class _RegisteredVolInfoScreenState extends State<RegisteredVolInfoScreen> {
                           Text(
                             "Total Volunteers: $totalVolunteers",
                             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+                          
                           ),
                         ],
                       ),
@@ -155,7 +156,6 @@ class _RegisteredVolInfoScreenState extends State<RegisteredVolInfoScreen> {
                   ),
                   const SizedBox(height: 10),
 
-                  /// 🔥 **Lista de voluntarios**
                   Expanded(
                     child: registeredVolunteers.isEmpty
                         ? const Center(child: Text("No registered volunteers.", style: TextStyle(color: Colors.white)))
@@ -176,12 +176,14 @@ class _RegisteredVolInfoScreenState extends State<RegisteredVolInfoScreen> {
     );
   }
 
-  /// 🔥 **Construye la tarjeta de cada voluntario**
   Widget _buildVolunteerCard(Map<String, dynamic> volunteer) {
     return Card(
       elevation: 3,
       margin: const EdgeInsets.symmetric(vertical: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+        side: const BorderSide(color: Colors.red, width: 2),
+      ),
       color: Colors.white,
       child: Stack(
         children: [
@@ -206,7 +208,7 @@ class _RegisteredVolInfoScreenState extends State<RegisteredVolInfoScreen> {
                     children: [
                       Text(volunteer["name"], style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
                       Text("${volunteer["email"]} • ${volunteer["phone"]}", style: const TextStyle(color: Colors.black)),
-                      const Text("Tap to view details", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
+                      const Text("Tap to view details.", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
                     ],
                   ),
                 ),

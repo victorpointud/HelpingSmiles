@@ -93,6 +93,10 @@ class VolHomeScreenState extends State<VolHomeScreen> {
                               backgroundColor: const Color.fromRGBO(230, 74, 63, 1),
                               foregroundColor: Colors.white,
                               iconColor: Colors.black,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                side: const BorderSide(color: Color.fromARGB(255, 0, 0, 0), width: 2),
+                              ),
                               padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
                             ),
                           ),
@@ -116,6 +120,10 @@ class VolHomeScreenState extends State<VolHomeScreen> {
                               backgroundColor: const Color.fromRGBO(230, 74, 63, 1),
                               foregroundColor: Colors.white,
                               iconColor: Colors.black,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                side: const BorderSide(color: Color.fromARGB(255, 0, 0, 0), width: 2),
+                              ),
                               padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
                             ),
                           ),
@@ -138,6 +146,10 @@ class VolHomeScreenState extends State<VolHomeScreen> {
                               backgroundColor: const Color.fromRGBO(230, 74, 63, 1),
                               foregroundColor: Colors.white,
                               iconColor: Colors.black,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                side: const BorderSide(color: Color.fromARGB(255, 0, 0, 0), width: 2),
+                              ),
                               padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
                             ),
                           ),
@@ -160,6 +172,10 @@ class VolHomeScreenState extends State<VolHomeScreen> {
                               backgroundColor: const Color.fromRGBO(230, 74, 63, 1),
                               foregroundColor: Colors.white,
                               iconColor: Colors.black,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                                side: const BorderSide(color: Color.fromARGB(255, 0, 0, 0), width: 2),
+                              ),
                               padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
                             ),
                           ),
@@ -393,7 +409,10 @@ class VolHomeScreenState extends State<VolHomeScreen> {
       child: Card(
         elevation: 3,
         margin: const EdgeInsets.symmetric(vertical: 8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+          side: const BorderSide(color: Colors.red, width: 2),
+        ),
         color: Colors.white,
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -404,7 +423,7 @@ class VolHomeScreenState extends State<VolHomeScreen> {
               const SizedBox(height: 5),
               Text("${org["date"]} • ${org["mission"]}", style: const TextStyle(color: Colors.black)),
               const SizedBox(height: 5),
-              const Text("Tap to view details", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
+              const Text("Tap to view details.", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
             ],
           ),
         ),
@@ -418,7 +437,10 @@ class VolHomeScreenState extends State<VolHomeScreen> {
       child: Card(
         elevation: 3,
         margin: const EdgeInsets.symmetric(vertical: 8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+          side: const BorderSide(color: Colors.red, width: 2),
+        ),
         color: Colors.white,
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -429,7 +451,7 @@ class VolHomeScreenState extends State<VolHomeScreen> {
               const SizedBox(height: 5),
               Text("${org["date"]} • ${org["mission"]}", style: const TextStyle(color: Colors.black)),
               const SizedBox(height: 5),
-              const Text("Tap to view details", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
+              const Text("Tap to view details.", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
             ],
           ),
         ),
@@ -461,7 +483,10 @@ class VolHomeScreenState extends State<VolHomeScreen> {
       child: Card(
         elevation: 3,
         margin: const EdgeInsets.symmetric(vertical: 8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+          side: const BorderSide(color: Colors.red, width: 2),
+        ),
         color: Colors.white,
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -472,7 +497,7 @@ class VolHomeScreenState extends State<VolHomeScreen> {
               const SizedBox(height: 5),
               Text("${event["date"]} • ${event["location"]}", style: const TextStyle(color: Colors.black)),
               const SizedBox(height: 5),
-              const Text("Tap to view details", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
+              const Text("Tap to view details.", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
             ],
           ),
         ),
@@ -486,7 +511,10 @@ class VolHomeScreenState extends State<VolHomeScreen> {
       child: Card(
         elevation: 3,
         margin: const EdgeInsets.symmetric(vertical: 8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+          side: const BorderSide(color: Colors.red, width: 2),
+        ),
         color: Colors.white,
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -497,7 +525,7 @@ class VolHomeScreenState extends State<VolHomeScreen> {
               const SizedBox(height: 5),
               Text("${event["date"]} • ${event["location"]}", style: const TextStyle(color: Colors.black)),
               const SizedBox(height: 5),
-              const Text("Tap to view details", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
+              const Text("Tap to view details.", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
             ],
           ),
         ),

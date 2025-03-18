@@ -201,7 +201,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       ],
                     ),
                     const SizedBox(height: 10),
-                    const Text("Tap to view details", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
+                    const Text("Tap to view details.", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
                   ],
                 ),
               ),
