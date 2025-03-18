@@ -174,13 +174,6 @@ class EventInfoScreenState extends State<EventInfoScreen> {
         ],
       ),
     );
-
-    
-Future.delayed(const Duration(seconds: 2), () {
-  if (mounted) {  // Verifica si el widget aún está en pantalla
-    Navigator.pop(context);
-  }
-});
   }
 
   void _showErrorDialog(String message) {
