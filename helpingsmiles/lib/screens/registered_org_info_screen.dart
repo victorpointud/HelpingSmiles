@@ -109,11 +109,6 @@ class _RegisteredOrgInfoScreenState extends State<RegisteredOrgInfoScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                Text(
-                                  orgData!["name"] ?? "Unnamed Organization",
-                                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.red),
-                                ),
-                                const SizedBox(height: 15),
                                 _buildDetailRow(Icons.phone, "Phone", orgData!["phone"] ?? "Not specified"),
                                 _buildDetailRow(Icons.calendar_today, "Date Created", orgData!["date"] ?? "Not specified"),
                                 _buildDetailRow(Icons.flag, "Mission", orgData!["mission"] ?? "Not specified"),
@@ -194,7 +189,10 @@ class _RegisteredOrgInfoScreenState extends State<RegisteredOrgInfoScreen> {
       return Card(
         color: Colors.white,
         elevation: 4,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+          side: const BorderSide(color: Colors.red, width: 2),
+        ),
         child: const Padding(
           padding: EdgeInsets.all(16),
           child: Text(
@@ -208,7 +206,10 @@ class _RegisteredOrgInfoScreenState extends State<RegisteredOrgInfoScreen> {
     return Card(
       color: Colors.white,
       elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+        side: const BorderSide(color: Colors.red, width: 2),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

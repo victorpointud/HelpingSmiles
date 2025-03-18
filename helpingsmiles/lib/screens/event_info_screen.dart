@@ -153,7 +153,7 @@ class _EventInfoScreenState extends State<EventInfoScreen> {
     );
   }
 
-   Widget _buildDetailRow(IconData icon, String title, String value) {
+  Widget _buildDetailRow(IconData icon, String title, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -197,7 +197,10 @@ class _EventInfoScreenState extends State<EventInfoScreen> {
     return Card(
       color: Colors.white,
       elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+        side: const BorderSide(color: Colors.red, width: 2),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
