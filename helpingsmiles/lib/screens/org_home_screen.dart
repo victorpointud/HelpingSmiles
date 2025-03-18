@@ -260,9 +260,33 @@ void _navigateToAllExtraOrgs() {
     );
   }
 
-  void _navigateToProfile() {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => const OrgProfileScreen()));
+void _navigateToProfile() async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user != null) {
+    try {
+      final doc = await FirebaseFirestore.instance.collection('organizations').doc(user.uid).get();
+      if (doc.exists) {
+        final orgId = doc.id;
+        final orgName = doc["name"] ?? "Unknown Organization";
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => OrgProfileScreen(
+              organizationId: orgId,
+              organizationName: orgName,
+            ),
+          ),
+        );
+      } else {
+        debugPrint("No organization found for user.");
+      }
+    } catch (e) {
+      debugPrint("Error fetching organization data: $e");
+    }
   }
+}
+
 
   void _navigateToRegisteredOrgInfo(String orgId, String orgName) {
   Navigator.push(
