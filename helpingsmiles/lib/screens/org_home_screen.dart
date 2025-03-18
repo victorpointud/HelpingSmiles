@@ -25,15 +25,12 @@ class OrgHomeScreenState extends State<OrgHomeScreen> {
   String? organizationId;
   List<Map<String, dynamic>> events = [];
   List<Map<String, dynamic>> otherOrganizations = [];
-  List<Map<String, dynamic>> feedbackList = [];
-
 
   @override
   void initState() {
     super.initState();
     _loadOrganizationData();
     _loadOtherOrganizations();
-    _loadOrganizationFeedback();
   }
 
   Future<void> _loadOrganizationData() async {
@@ -109,36 +106,6 @@ class OrgHomeScreenState extends State<OrgHomeScreen> {
       debugPrint("Error loading events: $e");
     }
   }
-
-  Future<void> _loadOrganizationFeedback() async {
-  if (organizationId == null) return;
-
-  try {
-    final querySnapshot = await FirebaseFirestore.instance
-        .collection('activity_feedback')
-        .get();
-
-    if (!mounted) return;
-
-    setState(() {
-      feedbackList = querySnapshot.docs
-          .where((doc) => events.any((event) => event['id'] == doc['eventId'])) // Filtrar feedback de eventos de la organización
-          .map((doc) {
-        return {
-          'feedback': doc['feedback'],
-          'eventId': doc['eventId'],
-          'timestamp': doc['timestamp'] != null
-              ? (doc['timestamp'] as Timestamp).toDate().toString()
-              : "Unknown date",
-        };
-      }).toList();
-    });
-
-    debugPrint("Feedback cargado en organización: $feedbackList");
-  } catch (e) {
-    debugPrint("Error cargando feedback de la organización: $e");
-  }
-}
 
   void _navigate(BuildContext context, Widget screen) {
     if (!mounted) return; // Evita usar `context` si el widget ya no está en pantalla
@@ -262,41 +229,6 @@ void _navigateToAllExtraOrgs() {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    "Volunteer Feedback:",
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
-                  ),
-                  const SizedBox(height: 10),
-                  feedbackList.isEmpty
-                      ? Column(
-                          children: [
-                            const Icon(Icons.sentiment_dissatisfied, color: Colors.grey, size: 50),
-                            const SizedBox(height: 10),
-                            const Text("No feedback yet.", style: TextStyle(color: Colors.grey, fontSize: 16)),
-                          ],
-                        )
-                      : Column(
-                          children: feedbackList.map((feedback) {
-                            return Card(
-                              color: Colors.white,
-                              elevation: 3,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                              margin: const EdgeInsets.symmetric(vertical: 5),
-                              child: ListTile(
-                                leading: const Icon(Icons.comment, color: Colors.red, size: 28),
-                                title: Text(
-                                  feedback['feedback'],
-                                  style: const TextStyle(fontSize: 16, color: Colors.black),
-                                ),
-                                subtitle: Text(
-                                  "Event ID: ${feedback['eventId']} | Submitted on: ${feedback['timestamp']}",
-                                  style: const TextStyle(fontSize: 12, color: Colors.grey),
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        ),
                   const SizedBox(height: 20),
                   _buildSectionTitle("Volunteers Enrolled"),
                   const SizedBox(height: 10),

@@ -332,72 +332,6 @@ void _navigateToMoreRegisteredOrgs() {
     debugPrint(" Error loading registered events: $e");
   }
   }
-  void _submitFeedback(String eventId, String feedback) async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-
-    try {
-      await FirebaseFirestore.instance.collection('activity_feedback').add({
-        'eventId': eventId,
-        'userId': user.uid,
-        'feedback': feedback,
-        'timestamp': FieldValue.serverTimestamp(),
-      });
-    } catch (e) {
-      debugPrint("Error submitting feedback: $e");
-    }
-  }
-
-  void _showFeedbackDialog(String eventId) {
-  TextEditingController feedbackController = TextEditingController();
-
-  showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      backgroundColor: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      title: Row(
-        children: const [
-          Icon(Icons.feedback, color: Colors.red, size: 28), 
-          SizedBox(width: 10),
-          Text("Leave Feedback", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-        ],
-      ),
-      content: TextField(
-        controller: feedbackController,
-        decoration: InputDecoration(
-          hintText: "Write your feedback...",
-          hintStyle: const TextStyle(color: Colors.grey),
-          filled: true,
-          fillColor: Colors.white,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-          focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.red),
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-        maxLines: 4,
-        style: const TextStyle(color: Colors.black),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text("Cancel", style: TextStyle(color: Colors.black)),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            if (feedbackController.text.trim().isNotEmpty) {
-              _submitFeedback(eventId, feedbackController.text.trim());
-              Navigator.pop(context);
-            }
-          },
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-          child: const Text("Submit", style: TextStyle(color: Colors.white)),
-        ),
-      ],
-    ),
-  );
-}
 
   void _logout() async {
     await AuthManager.logoutUser();
@@ -504,38 +438,30 @@ void _navigateToMoreRegisteredOrgs() {
   }
 
   Widget _buildEventCard(Map<String, dynamic> event) {
-  return GestureDetector(
-    onTap: () => _navigateToRegisteredEventInfoDetails(event["id"]),
-    child: Card(
-      elevation: 3,
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      color: Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(event["name"], style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
-            const SizedBox(height: 5),
-            Text("${event["date"]} • ${event["location"]}", style: const TextStyle(color: Colors.black)),
-            const SizedBox(height: 5),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text("Click to see more info", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
-                IconButton(
-                  icon: const Icon(Icons.feedback, color: Colors.red),
-                  onPressed: () => _showFeedbackDialog(event["id"]),
-                ),
-              ],
-            ),
-          ],
+    return GestureDetector(
+      onTap: () => _navigateToRegisteredEventInfoDetails(event["id"]),
+      child: Card(
+        elevation: 3,
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        color: Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(event["name"], style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
+              const SizedBox(height: 5),
+              Text("${event["date"]} • ${event["location"]}", style: const TextStyle(color: Colors.black)),
+              const SizedBox(height: 5),
+              const Text("Click to see more info", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
+            ],
+          ),
         ),
       ),
-    ),
-);
+    );
   }
+  
   Widget _buildRegisteredEventCard(Map<String, dynamic> event) {
     return GestureDetector(
       onTap: () => _navigateToRegisteredEventInfoDetails(event["id"]),
