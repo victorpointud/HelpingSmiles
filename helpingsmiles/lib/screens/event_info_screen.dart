@@ -222,37 +222,6 @@ class _EventInfoScreenState extends State<EventInfoScreen> {
     );
   }
   
-  Future<void> _registerForEvent(String eventId) async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      try {
-        final volunteerDoc = await FirebaseFirestore.instance.collection('volunteers').doc(user.uid).get();
-
-        if (!volunteerDoc.exists) {
-          _showErrorDialog("Volunteer profile not found!");
-          return;
-        }
-
-        final volunteerData = volunteerDoc.data() ?? {};
-        await FirebaseFirestore.instance.collection('events').doc(eventId).collection('registrations').doc(user.uid).set({
-          'userId': user.uid,
-          'name': volunteerData['name'] ?? "Not specified",
-          'email': user.email ?? "Not specified",
-          'phone': volunteerData['phone'] ?? "Not specified",
-          'skills': volunteerData['skills'] ?? [],
-          'interests': volunteerData['interests'] ?? [],
-          'location': volunteerData['location'] ?? "Not specified",
-          'date': volunteerData['date'] ?? "Not specified",
-          'timestamp': FieldValue.serverTimestamp(),
-        });
-
-        _showSuccessDialog("You have successfully registered for this event.");
-      } catch (e) {
-        _showErrorDialog("Failed to register for event.");
-      }
-    }
-  }
-
   Future<void> _registerAsRequest(String eventId) async {
   final user = FirebaseAuth.instance.currentUser;
   if (user != null) {
