@@ -175,19 +175,14 @@ void _navigateToMetrics() {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Center(
-                                    child: Text(
-                                      "Organization Profile",
-                                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 20),
                                   _buildDetailRow(Icons.phone, "Phone", orgData!["phone"] ?? "Not specified"),
                                   _buildDetailRow(Icons.calendar_today, "Date Created", orgData!["date"] ?? "Not specified"),
                                   _buildDetailRow(Icons.flag, "Mission", orgData!["mission"] ?? "Not specified"),
                                   _buildDetailList(Icons.list, "Objectives", orgData!["objectives"] ?? []),
                                   _buildDetailList(Icons.people, "Volunteer Types", orgData!["volunteerTypes"] ?? []),
                                   _buildDetailList(Icons.location_on, "Locations", orgData!["locations"] ?? []),
+                                  const SizedBox(height: 20),
+                                  _buildRepresentativeSection(),
                                   const SizedBox(height: 20),
                                   Center(
                                   child: ElevatedButton(
@@ -200,8 +195,6 @@ void _navigateToMetrics() {
                                     child: const Text("View Metrics", style: TextStyle(color: Colors.white, fontSize: 16)),
                                   ),
                                 ),
-                                const SizedBox(height: 20),
-                                  _buildRepresentativeSection(),
                                 ],
                               ),
                             ),
