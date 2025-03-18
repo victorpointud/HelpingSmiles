@@ -297,36 +297,124 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 ElevatedButton(
-                  onPressed: () {
-                    // Action to reject the volunteer
+                  onPressed: () async {
+                    final eventId = user["eventId"];
+                    final userId = user["userId"];
+
+                    try {
+                      // Obtén la referencia al documento en la colección 'requests'
+                      final requestRef = FirebaseFirestore.instance
+                          .collection('events')
+                          .doc(eventId)
+                          .collection('requests')
+                          .doc(userId);
+
+                      // Verifica si el documento existe antes de eliminarlo
+                      final requestDoc = await requestRef.get();
+                      if (requestDoc.exists) {
+                        // Elimina el documento de la colección 'requests'
+                        await requestRef.delete();
+
+                        // Actualiza la lista de usuarios registrados para reflejar el cambio
+                        _loadRegisteredUsers();
+
+                        // Muestra un mensaje de confirmación
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("User request declined successfully.")),
+                        );
+                      }
+                    } catch (e) {
+                      // Manejo de errores
+                      print("Error declining user request: $e");
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Error declining user request.")),
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12), // Aumentar el padding
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   ),
                   child: const Text(
                     "Decline",
-                    style: TextStyle(color: Colors.white, fontSize: 16), // Aumentar el tamaño de la fuente
+                    style: TextStyle(color: Colors.white, fontSize: 16),
                   ),
                 ),
                 const SizedBox(width: 12), // Aumentar el espacio entre los botones
                 ElevatedButton(
-                  onPressed: () {
-                    // Action to approve the volunteer
+                  onPressed: () async {
+                    final eventId = user["eventId"];
+                    final userId = user["userId"];
+
+                    try {
+                      // Verificar si el usuario ya está en la colección 'registrations'
+                      final registrationRef = FirebaseFirestore.instance
+                          .collection('events')
+                          .doc(eventId)
+                          .collection('registrations')
+                          .doc(userId);
+
+                      final registrationDoc = await registrationRef.get();
+                      if (registrationDoc.exists) {
+                        // Si el usuario ya está registrado, mostrar mensaje de error
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Error: The user is already registered."),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                        return; // Salir sin registrar nuevamente
+                      }
+
+                      // Obtener referencia al documento en 'requests'
+                      final requestRef = FirebaseFirestore.instance
+                          .collection('events')
+                          .doc(eventId)
+                          .collection('requests')
+                          .doc(userId);
+
+                      final requestDoc = await requestRef.get();
+                      if (requestDoc.exists) {
+                        // Mover el usuario a 'registrations'
+                        await registrationRef.set(requestDoc.data()!);
+
+                        // Eliminar de 'requests'
+                        await requestRef.delete();
+
+                        // Actualizar la lista de usuarios registrados
+                        _loadRegisteredUsers();
+
+                        // Mostrar mensaje de éxito
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("User successfully registered."),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      print("Error approving user: $e");
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("An error occurred while approving the user."),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green, // Color verde para el botón "Approved"
+                    backgroundColor: Colors.green,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12), // Aumentar el padding
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   ),
                   child: const Text(
-                    "Approved",
-                    style: TextStyle(color: Colors.white, fontSize: 16), // Aumentar el tamaño de la fuente
+                    "Approve",
+                    style: TextStyle(color: Colors.white, fontSize: 16),
                   ),
                 ),
               ],
