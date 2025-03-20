@@ -159,7 +159,7 @@ class VolHomeScreenState extends State<VolHomeScreen> {
                   
                     const SizedBox(height: 20),
                     _buildSectionTitle("My Registered Events"),
-                    _buildRegisteredEventList(_getRandomElements(registeredEventInfo)),
+                    _buildRegisteredEventList(registeredEventInfo),
                     const SizedBox(height: 10),
                     Center(
                       child: Column(
@@ -338,11 +338,13 @@ class VolHomeScreenState extends State<VolHomeScreen> {
   try {
     List<Map<String, dynamic>> tempEvents = [];
 
+   
     final eventsSnapshot = await FirebaseFirestore.instance.collection('events').get();
 
     for (var eventDoc in eventsSnapshot.docs) {
       final eventId = eventDoc.id;
 
+     
       final registrationRef = eventDoc.reference.collection('registrations').doc(user.uid);
       final registrationDoc = await registrationRef.get();
 
@@ -351,7 +353,9 @@ class VolHomeScreenState extends State<VolHomeScreen> {
           'id': eventId,
           'name': eventDoc['name'] ?? "Unknown Event",
           'date': eventDoc['date'] ?? "No date provided",
-          'location': eventDoc['location'] ?? "No location provided",
+          'location': (eventDoc.data().containsKey('locations') && eventDoc['locations'] is List && eventDoc['locations'].isNotEmpty)
+              ? eventDoc['locations'][0]
+              : "No location provided",
         });
       }
     }
@@ -360,10 +364,11 @@ class VolHomeScreenState extends State<VolHomeScreen> {
     setState(() {
       registeredEventInfo = tempEvents;
     });
-        debugPrint("Registered Events Loaded: $registeredEventInfo");
+
+    debugPrint("Registered Events Loaded: $registeredEventInfo");
 
   } catch (e) {
-    debugPrint(" Error loading registered events: $e");
+    debugPrint("Error loading registered events: $e");
   }
 }
 
