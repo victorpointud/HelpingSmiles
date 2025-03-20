@@ -87,7 +87,7 @@ class VolHomeScreenState extends State<VolHomeScreen> {
                         children: [
                           ElevatedButton.icon(
                             onPressed: _navigateToMoreEvents,
-                            icon: const Icon(Icons.event),
+                            icon: const Icon(Icons.event_note),
                             label: const Text("More Events"),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color.fromRGBO(230, 74, 63, 1),
@@ -114,7 +114,7 @@ class VolHomeScreenState extends State<VolHomeScreen> {
                         children: [
                           ElevatedButton.icon(
                             onPressed: _navigateToMoreOrgs,
-                            icon: const Icon(Icons.event),
+                            icon: const Icon(Icons.business),
                             label: const Text("More Organizations"),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color.fromRGBO(230, 74, 63, 1),
@@ -140,7 +140,7 @@ class VolHomeScreenState extends State<VolHomeScreen> {
                         children: [
                           ElevatedButton.icon(
                             onPressed: _navigateToMoreRegisteredOrgs,
-                            icon: const Icon(Icons.event),
+                            icon: const Icon(Icons.group_add),
                             label: const Text("More Registered Organizations"),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color.fromRGBO(230, 74, 63, 1),
@@ -166,7 +166,7 @@ class VolHomeScreenState extends State<VolHomeScreen> {
                         children: [
                           ElevatedButton.icon(
                             onPressed: _navigateToMoreRegisteredEvents,
-                            icon: const Icon(Icons.event),
+                            icon: const Icon(Icons.assignment_turned_in),
                             label: const Text("More Registered Events"),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color.fromRGBO(230, 74, 63, 1),

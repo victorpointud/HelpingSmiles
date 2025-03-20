@@ -151,7 +151,7 @@ class OrgHomeScreenState extends State<OrgHomeScreen> {
                   Center(
                     child: ElevatedButton.icon(
                       onPressed: organizationId != null ? _navigateToAllOrgEvents : null,
-                      icon: const Icon(Icons.event),
+                      icon: const Icon(Icons.event_note),
                       label: const Text("More Events"),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color.fromRGBO(230, 74, 63, 1),
@@ -173,7 +173,7 @@ class OrgHomeScreenState extends State<OrgHomeScreen> {
                   Center(
                     child: ElevatedButton.icon(
                       onPressed: organizationId != null ? _navigateToAllExtraOrgs : null,
-                      icon: const Icon(Icons.event),
+                      icon: const Icon(Icons.business),
                       label: const Text("More Organizations"),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color.fromRGBO(230, 74, 63, 1),
