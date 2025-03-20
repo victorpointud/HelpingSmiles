@@ -26,36 +26,64 @@ class _AllRegisteredEventsScreenState extends State<AllRegisteredEventsScreen> {
     _loadRegisteredEvents();
   }
 
-Future<void> _loadRegisteredEvents() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
+  Future<void> _loadRegisteredEvents() async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return;
 
-    try {
-      List<Map<String, dynamic>> tempEvents = [];
-      final eventsSnapshot = await FirebaseFirestore.instance.collection('events').get();
+  try {
+    List<Map<String, dynamic>> tempEvents = [];
+    final eventsSnapshot = await FirebaseFirestore.instance.collection('events').get();
 
-      for (var eventDoc in eventsSnapshot.docs) {
-        final eventId = eventDoc.id;
-        final registrationRef = eventDoc.reference.collection('registrations').doc(user.uid);
-        final registrationDoc = await registrationRef.get();
+    for (var eventDoc in eventsSnapshot.docs) {
+      final eventId = eventDoc.id;
+      final registrationRef = eventDoc.reference.collection('registrations').doc(user.uid);
+      final registrationDoc = await registrationRef.get();
 
-        if (registrationDoc.exists) {
-          tempEvents.add({
-            'id': eventId,
-            'name': eventDoc['name'] ?? "Unknown event",
-            'duration': (eventDoc['duration'] != null && eventDoc['duration'] is List)
-                ? (eventDoc['duration'] as List).map((e) => e.toString()).toList()
-                : [],
-           'interest': (eventDoc['interest'] != null && eventDoc['interest'] is List)
-                ? (eventDoc['interest'] as List).map((e) => e.toString()).toList()
-                : [],
-            'skills': (eventDoc['skills'] != null && eventDoc['skills'] is List)
-                ? (eventDoc['skills'] as List).map((e) => e.toString()).toList()
-                : [],
+      if (registrationDoc.exists) {
+        // Verifica si el campo 'name' existe en el documento
+        String name = eventDoc.data().containsKey('name') ? eventDoc['name'] : "Not provided";
 
-          });
+        // Verifica si el campo 'date' existe en el documento
+        String date = eventDoc.data().containsKey('date') ? eventDoc['date'] : "Not provided";
+
+        // Verifica si el campo 'location' existe en el documento
+        String location = eventDoc.data().containsKey('location') ? eventDoc['location'] : "Not provided";
+
+        // Verifica si el campo 'duration' existe en el documento
+        String duration = eventDoc.data().containsKey('duration') ? eventDoc['duration'].toString() : "Not provided";
+
+        // Verifica si el campo 'interest' existe en el documento
+        List<String> interestList = [];
+        if (eventDoc.data().containsKey('interest')) {
+          if (eventDoc['interest'] is List) {
+            interestList = (eventDoc['interest'] as List).map((e) => e.toString()).toList();
+          } else if (eventDoc['interest'] is String) {
+            interestList = [eventDoc['interest'].toString()]; // Si es un String, conviértelo a una lista
+          }
+        } else {
+          interestList = ["Not provided"]; // Valor predeterminado si el campo no existe
         }
+
+        // Verifica si el campo 'skills' existe en el documento
+        List<String> skillsList = [];
+        if (eventDoc.data().containsKey('skills') && eventDoc['skills'] is List) {
+          skillsList = (eventDoc['skills'] as List).map((e) => e.toString()).toList();
+        } else {
+          skillsList = ["Not provided"]; // Valor predeterminado si el campo no existe
+        }
+
+        // Añade el evento a la lista temporal
+        tempEvents.add({
+          'id': eventId,
+          'name': name,
+          'date': date,
+          'location': location,
+          'duration': duration,
+          'interest': interestList,
+          'skills': skillsList,
+        });
       }
+    }
 
     if (!mounted) return;
 
@@ -63,18 +91,21 @@ Future<void> _loadRegisteredEvents() async {
       registeredEvents = tempEvents;
       filteredRegisteredEvents = List.from(registeredEvents);
 
+      // Obtener intereses únicos para los filtros
       interests = registeredEvents
           .expand((event) => (event['interest'] as List<String>))
           .toSet()
           .toList();
       interests.insert(0, "All");
 
+      // Obtener duraciones únicas para los filtros
       durations = registeredEvents
-          .expand((event) => (event['duration'] as List<String>))
+          .map((event) => event['duration'].toString())
           .toSet()
           .toList();
       durations.insert(0, "All");
-      
+
+      // Obtener habilidades únicas para los filtros
       skills = registeredEvents
           .expand((event) => (event['skills'] as List<String>))
           .toSet()
@@ -83,26 +114,25 @@ Future<void> _loadRegisteredEvents() async {
     });
 
   } catch (e) {
-    print("Error loading registered eventanizations: $e");
+    print("Error loading registered events: $e");
   }
 }
 
-
-   void _applyFilters() {
+  void _applyFilters() {
     setState(() {
       filteredRegisteredEvents = registeredEvents.where((org) {
 
         final matchesInterest = selectedInterest == "All" ||
             selectedInterest == null ||
-            org['volunteerTypes'].contains(selectedInterest);
+            org['interest'].contains(selectedInterest);
 
         final matchesSkill = selectedSkill == "All" ||
             selectedSkill == null ||
-            org['locations'].contains(selectedSkill);
+            org['skills'].contains(selectedSkill);
 
         final matchesDuration = selectedDuration == "All" ||
             selectedDuration == null ||
-            org['locations'].contains(selectedDuration);
+            org['duration'].contains(selectedDuration);
 
         return matchesInterest && matchesSkill && matchesDuration;
       }).toList();
@@ -239,32 +269,34 @@ Future<void> _loadRegisteredEvents() async {
   }
 
   Widget _buildEventCard(Map<String, dynamic> event) {
-    return GestureDetector(
-      onTap: () => _navigateToRegisteredEventInfo(event["id"]),
-      child: Card(
-        elevation: 3,
-        margin: const EdgeInsets.symmetric(vertical: 8),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-          side: const BorderSide(color: Colors.red, width: 2),
-        ),
-        color: Colors.white,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(event["name"], style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red)),
-              const SizedBox(height: 5),
-              Text("${event["date"]} • ${event["location"]} • ${event["duration"]}h • ${event["interest"]}", style: const TextStyle(color: Colors.black)),
-              const Text("Tap to view details", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
-            ],
-          ),
+  return GestureDetector(
+    onTap: () => _navigateToRegisteredEventInfo(event["id"]),
+    child: Card(
+      elevation: 3,
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+        side: const BorderSide(color: Colors.red, width: 2),
+      ),
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(event["name"], style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red)),
+            const SizedBox(height: 5),
+            Text(
+              "${event["date"]} • ${event["location"]} • ${event["duration"]}h • ${event["interest"].join(", ")}",
+              style: const TextStyle(color: Colors.black),
+            ),
+            const Text("Tap to view details", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
+          ],
         ),
       ),
-    );
-  }
-
+    ),
+  );
+}
   void _navigateToRegisteredEventInfo(String eventId) {
     Navigator.push(
       context,
