@@ -325,6 +325,7 @@ class VolHomeScreenState extends State<VolHomeScreen> {
         setState(() {
           registeredOrganizations = tempOrganizations;
         });
+
       } catch (e) {
         debugPrint("Error loading registered organizations: $e");
 
@@ -371,6 +372,106 @@ class VolHomeScreenState extends State<VolHomeScreen> {
     debugPrint("Error loading registered events: $e");
   }
 }
+
+void _showFeedbackDialog(String eventId) {
+  TextEditingController feedbackController = TextEditingController();
+  
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        title: const Center(
+          child: Text(
+            "Share Your Feedback",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+              color: Colors.red,
+            ),
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              "Tell us about your experience with this event.",
+              style: TextStyle(fontSize: 16, color: Colors.black),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: feedbackController,
+              maxLines: 4,
+              decoration: InputDecoration(
+                hintText: "Write your feedback here...",
+                hintStyle: TextStyle(color: Colors.grey.shade600),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: Colors.red, width: 2),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: Colors.red, width: 2),
+                ),
+                filled: true,
+                fillColor: Colors.grey.shade100,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel", style: TextStyle(color: Colors.black)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              await _submitFeedback(eventId, feedbackController.text);
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color.fromRGBO(230, 74, 63, 1),
+              foregroundColor: Colors.white,
+              side: const BorderSide(color: Colors.black, width: 2), 
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            child: const Text("Submit"),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+  Future<void> _submitFeedback(String eventId, String feedback) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null || feedback.isEmpty) return;
+
+    try {
+      await FirebaseFirestore.instance.collection('activity_feedback').add({
+        'eventId': eventId,
+        'userId': user.uid,
+        'feedback': feedback,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Feedback submitted successfully!"))
+      );
+
+    } catch (e) {
+      debugPrint("Error submitting feedback: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to submit feedback. Try again."))
+      );
+    }
+  }
 
   void _logout() async {
     await AuthManager.logoutUser();
@@ -510,33 +611,64 @@ class VolHomeScreenState extends State<VolHomeScreen> {
     );
   }
 
-  Widget _buildRegisteredEventCard(Map<String, dynamic> event) {
-    return GestureDetector(
-      onTap: () => _navigateToRegisteredEventInfoDetails(event["id"]),
-      child: Card(
-        elevation: 3,
-        margin: const EdgeInsets.symmetric(vertical: 8),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-          side: const BorderSide(color: Colors.red, width: 2),
-        ),
-        color: Colors.white,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(event["name"], style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
-              const SizedBox(height: 5),
-              Text("${event["date"]} • ${event["location"]}", style: const TextStyle(color: Colors.black)),
-              const SizedBox(height: 5),
-              const Text("Tap to view details.", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
-            ],
+Widget _buildRegisteredEventCard(Map<String, dynamic> event) {
+  return Card(
+    elevation: 3,
+    margin: const EdgeInsets.symmetric(vertical: 8),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(10),
+    ),
+    color: Colors.white,
+    child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            event["name"],
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+              color: Colors.red,
+            ),
           ),
-        ),
+          const SizedBox(height: 5),
+          Text(
+            "${event["date"]} • ${event["location"]}",
+            style: const TextStyle(color: Colors.black),
+          ),
+          const SizedBox(height: 10),
+          GestureDetector(
+            onTap: () => _navigateToRegisteredEventInfoDetails(event["id"]),
+            child: Text(
+              "View Details",
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.red,
+                decoration: TextDecoration.underline, 
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          ElevatedButton.icon(
+            onPressed: () => _showFeedbackDialog(event["id"]),
+            icon: const Icon(Icons.feedback, color: Colors.black), 
+            label: const Text("Leave Feedback"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color.fromRGBO(230, 74, 63, 1), 
+              foregroundColor: Colors.white,
+              side: const BorderSide(color: Colors.black, width: 2), 
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 
 }
 
