@@ -4,11 +4,14 @@ import 'registered_event_info_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class AllRegisteredEventsScreen extends StatefulWidget {
-  const AllRegisteredEventsScreen({super.key});
+  final List<Map<String, dynamic>>? registeredEvents;
+
+  const AllRegisteredEventsScreen({super.key, this.registeredEvents});
 
   @override
   _AllRegisteredEventsScreenState createState() => _AllRegisteredEventsScreenState();
 }
+
 
 class _AllRegisteredEventsScreenState extends State<AllRegisteredEventsScreen> {
   List<Map<String, dynamic>> registeredEvents = [];
@@ -20,11 +23,19 @@ class _AllRegisteredEventsScreenState extends State<AllRegisteredEventsScreen> {
   List<String> interests = [];
   List<String> skills = [];
 
-  @override
-  void initState() {
-    super.initState();
+@override
+void initState() {
+  super.initState();
+
+  if (widget.registeredEvents != null) {
+    // Usa la lista si ya fue pasada desde VolHomeScreen
+    registeredEvents = widget.registeredEvents!;
+    filteredRegisteredEvents = List.from(registeredEvents);
+  } else {
+    // Si no se pasó la lista, entonces carga los datos desde Firestore
     _loadRegisteredEvents();
   }
+}
 
   Future<void> _loadRegisteredEvents() async {
   final user = FirebaseAuth.instance.currentUser;
@@ -268,7 +279,7 @@ class _AllRegisteredEventsScreenState extends State<AllRegisteredEventsScreen> {
     );
   }
 
-  Widget _buildEventCard(Map<String, dynamic> event) {
+Widget _buildEventCard(Map<String, dynamic> event) {
   return GestureDetector(
     onTap: () => _navigateToRegisteredEventInfo(event["id"]),
     child: Card(
@@ -284,19 +295,27 @@ class _AllRegisteredEventsScreenState extends State<AllRegisteredEventsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(event["name"], style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red)),
+            Text(
+              event["name"],
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red),
+            ),
             const SizedBox(height: 5),
             Text(
-              "${event["date"]} • ${event["location"]} • ${event["duration"]}h • ${event["interest"].join(", ")}",
-              style: const TextStyle(color: Colors.black),
+              "${(event["interest"] is List) ? (event["interest"] as List).join(", ") : "No interests"}",
+              style: const TextStyle(color: Colors.black), 
             ),
-            const Text("Tap to view details", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
+            const SizedBox(height: 5), 
+            const Text(
+              "Tap to view details",
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black),
+            ),
           ],
         ),
       ),
     ),
   );
 }
+
   void _navigateToRegisteredEventInfo(String eventId) {
     Navigator.push(
       context,
