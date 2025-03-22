@@ -42,6 +42,15 @@ class VolHomeScreenState extends State<VolHomeScreen> {
     _loadregisteredEventInfo();
   }
 
+    // Función para obtener 2 eventos aleatorios
+  List<Map<String, dynamic>> _getRandomElements(List<Map<String, dynamic>> list) {
+    if (list.length <= 2) return list; // Si hay 2 o menos, devuelve todo.
+    final random = Random();
+    list.shuffle(random); // Mezcla los eventos
+    return list.take(2).toList(); // Toma solo 2
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -159,7 +168,7 @@ class VolHomeScreenState extends State<VolHomeScreen> {
                   
                     const SizedBox(height: 20),
                     _buildSectionTitle("My Registered Events"),
-                    _buildRegisteredEventList(registeredEventInfo),
+                    _buildRegisteredEventList(_getRandomElements(registeredEventInfo)),
                     const SizedBox(height: 10),
                     Center(
                       child: Column(
@@ -192,12 +201,6 @@ class VolHomeScreenState extends State<VolHomeScreen> {
     );
   }
 
-  List<Map<String, dynamic>> _getRandomElements(List<Map<String, dynamic>> list) {
-    if (list.length <= 2) return list; 
-    final random = Random();
-    list.shuffle(random); 
-    return list.take(2).toList();
-  }
 
   void _navigateToProfile() {
     Navigator.push(context, MaterialPageRoute(builder: (_) => const VolProfileScreen()));
@@ -239,8 +242,13 @@ class VolHomeScreenState extends State<VolHomeScreen> {
   Navigator.push(context, MaterialPageRoute(builder: (_) => const AllOrgsScreen()),);
 }
 
-  void _navigateToMoreRegisteredEvents() {
-  Navigator.push(context, MaterialPageRoute(builder: (_) => const AllRegisteredEventsScreen()),);
+void _navigateToMoreRegisteredEvents() {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => AllRegisteredEventsScreen(registeredEvents: registeredEventInfo),
+    ),
+  );
 }
 
   void _navigateToMoreRegisteredOrgs() {
