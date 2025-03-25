@@ -527,8 +527,9 @@ Widget _buildRegisteredEventCard(Map<String, dynamic> event) {
     elevation: 3,
     margin: const EdgeInsets.symmetric(vertical: 8),
     shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(10),
-    ),
+          borderRadius: BorderRadius.circular(15),
+          side: const BorderSide(color: Colors.red, width: 2),
+        ),
     color: Colors.white,
     child: Padding(
       padding: const EdgeInsets.all(16),
@@ -539,7 +540,7 @@ Widget _buildRegisteredEventCard(Map<String, dynamic> event) {
             event["name"],
             style: const TextStyle(
               fontWeight: FontWeight.bold,
-              fontSize: 18,
+              fontSize: 16,
               color: Colors.red,
             ),
           ),
@@ -552,12 +553,10 @@ Widget _buildRegisteredEventCard(Map<String, dynamic> event) {
           GestureDetector(
             onTap: () => _navigateToRegisteredEventInfoDetails(event["id"]),
             child: Text(
-              "View Details",
+              "Tap to view details.",
               style: const TextStyle(
-                fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Colors.red,
-                decoration: TextDecoration.underline, 
+                color: Color.fromARGB(255, 0, 0, 0),
               ),
             ),
           ),

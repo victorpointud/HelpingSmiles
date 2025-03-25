@@ -105,7 +105,9 @@ class _OrgInfoScreenState extends State<OrgInfoScreen> {
                         child: Card(
                           color: Colors.white,
                           elevation: 10,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
                           child: Padding(
                             padding: const EdgeInsets.all(20),
                             child: Column(
@@ -224,7 +226,10 @@ class _OrgInfoScreenState extends State<OrgInfoScreen> {
       return Card(
         color: Colors.white,
         elevation: 4,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+          side: const BorderSide(color: Colors.red, width: 2),
+        ),
         child: const Padding(
           padding: EdgeInsets.all(16),
           child: Text(
@@ -238,7 +243,10 @@ class _OrgInfoScreenState extends State<OrgInfoScreen> {
     return Card(
       color: Colors.white,
       elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+          side: const BorderSide(color: Colors.red, width: 2),
+        ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
