@@ -94,6 +94,7 @@ Future<void> _loadHistory() async {
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -170,7 +171,7 @@ Future<void> _loadHistory() async {
     );
   }
 
-  Widget _buildSection(String title, List<Map<String, dynamic>> items, IconData icon, String emptyMessage, {required bool isOrg}) {
+   Widget _buildSection(String title, List<Map<String, dynamic>> items, IconData icon, String emptyMessage, {required bool isOrg}) {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
@@ -210,17 +211,36 @@ Future<void> _loadHistory() async {
                           color: Colors.white,
                           child: Padding(
                             padding: const EdgeInsets.all(16),
-                            child: Row(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(isOrg ? Icons.business : Icons.event, color: Colors.red),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Text(
-                                    item["name"],
-                                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
-                                  ),
+                                Row(
+                                  children: [
+                                    Icon(isOrg ? Icons.business : Icons.event, color: Colors.red),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        item["name"],
+                                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
+                                      ),
+                                    ),
+                                    const Icon(Icons.arrow_forward_ios, color: Colors.black, size: 16),
+                                  ],
                                 ),
-                                const Icon(Icons.arrow_forward_ios, color: Colors.black, size: 16),
+                                const SizedBox(height: 10),
+                                // Solo mostrar el botón de feedback en eventos completados
+                                if (!isOrg)
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      _showFeedbackDialog(item["id"]);
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.red,
+                                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                    ),
+                                    child: const Text("Leave Feedback", style: TextStyle(fontSize: 16, color: Colors.white)),
+                                  ),
                               ],
                             ),
                           ),
@@ -233,6 +253,7 @@ Future<void> _loadHistory() async {
       ),
     );
   }
+
 
   void _navigateToRegisteredOrgInfo(String orgId, String orgName) {
     Navigator.push(
@@ -251,4 +272,102 @@ Future<void> _loadHistory() async {
       ),
     );
   }
+void _showFeedbackDialog(String eventId) {
+  TextEditingController feedbackController = TextEditingController();
+
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+          side: const BorderSide(color: Colors.red, width: 2),
+        ),
+        title: const Center(
+          child: Text(
+            "Leave Feedback",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+              color: Colors.red,
+            ),
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: feedbackController,
+              maxLines: 4,
+              decoration: InputDecoration(
+                hintText: "Write your feedback here...",
+                hintStyle: const TextStyle(color: Colors.black),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: Colors.red, width: 2),
+                ),
+                filled: true,
+                fillColor: Colors.white,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel", style: TextStyle(color: Colors.black)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              await _submitFeedback(eventId, feedbackController.text);
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            child: const Text("Submit"),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+
+Future<void> _submitFeedback(String eventId, String feedback) async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null || feedback.trim().isEmpty) return;
+
+  try {
+    await FirebaseFirestore.instance.collection('activity_feedback').add({
+      'eventId': eventId,
+      'userId': user.uid,
+      'feedback': feedback.trim(),
+      'timestamp': FieldValue.serverTimestamp(),
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Feedback submitted successfully!", style: TextStyle(color: Colors.black)),
+        backgroundColor: Colors.white,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  } catch (e) {
+    debugPrint("Error submitting feedback: $e");
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Failed to submit feedback. Try again.", style: TextStyle(color: Colors.black)),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+}
+
 }
