@@ -22,56 +22,65 @@ class _VolHistoryScreenState extends State<VolHistoryScreen> {
     _loadHistory();
   }
 
-  Future<void> _loadHistory() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
+Future<void> _loadHistory() async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return;
 
-    try {
-      final orgsSnapshot = await FirebaseFirestore.instance
-          .collection('organizations')
-          .get();
+  try {
+    // Cargar organizaciones en las que el usuario está registrado
+    final orgsSnapshot = await FirebaseFirestore.instance.collection('organizations').get();
+    List<Map<String, dynamic>> tempOrgs = [];
 
-      List<Map<String, dynamic>> tempOrgs = [];
-      for (var doc in orgsSnapshot.docs) {
-        final registrationRef = doc.reference.collection('registrations').doc(user.uid);
-        final registrationDoc = await registrationRef.get();
+    for (var doc in orgsSnapshot.docs) {
+      final registrationRef = doc.reference.collection('registrations').doc(user.uid);
+      final registrationDoc = await registrationRef.get();
 
-        if (registrationDoc.exists) {
-          tempOrgs.add({
-            'id': doc.id,
-            'name': doc.data()['name'] ?? "Unnamed Organization",
-          });
-        }
+      if (registrationDoc.exists) {
+        tempOrgs.add({
+          'id': doc.id,
+          'name': doc.data()['name'] ?? "Unnamed Organization",
+        });
       }
-
-      final eventsSnapshot = await FirebaseFirestore.instance
-          .collection('events')
-          .get();
-
-      List<Map<String, dynamic>> tempEvents = [];
-      for (var doc in eventsSnapshot.docs) {
-        final registrationRef = doc.reference.collection('registrations').doc(user.uid);
-        final registrationDoc = await registrationRef.get();
-
-        if (registrationDoc.exists && registrationDoc.data()?['status'] == 'completed') {
-          tempEvents.add({
-            'id': doc.id,
-            'name': doc.data()['name'] ?? "Unnamed Event",
-          });
-        }
-      }
-
-      int calculatedPoints = (tempOrgs.length * 2) + tempEvents.length;
-
-      setState(() {
-        registeredOrganizations = tempOrgs;
-        completedEvents = tempEvents;
-        totalPoints = calculatedPoints;
-      });
-    } catch (e) {
-      print("Error loading history: $e");
     }
+
+    // Cargar eventos completados en los que el usuario está registrado
+    final eventsSnapshot = await FirebaseFirestore.instance
+        .collection('events')
+        .where('status', isEqualTo: true) // Filtra solo eventos terminados
+        .get();
+
+    List<Map<String, dynamic>> tempEvents = [];
+
+    for (var doc in eventsSnapshot.docs) {
+      final registrationRef = doc.reference.collection('registrations').doc(user.uid);
+      final registrationDoc = await registrationRef.get();
+
+      if (registrationDoc.exists) {
+        tempEvents.add({
+          'id': doc.id,
+          'name': doc.data()['name'] ?? "Unnamed Event",
+          'date': doc.data()['date'] ?? "No Date",
+          'location': doc.data()['locations'] != null && doc.data()['locations'].isNotEmpty
+              ? doc.data()['locations'][0] // Primera ubicación si hay varias
+              : "No Location",
+        });
+      }
+    }
+
+    int calculatedPoints = (tempOrgs.length * 2) + tempEvents.length;
+
+    // Actualiza la UI con los datos obtenidos
+    setState(() {
+      registeredOrganizations = tempOrgs;
+      completedEvents = tempEvents;
+      totalPoints = calculatedPoints;
+    });
+
+  } catch (e) {
+    debugPrint("Error loading history: $e");
   }
+}
+
 
   String _determineLevel() {
     if (totalPoints >= 30) {
