@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'registered_event_info_screen.dart';
+import 'event_comments_screen.dart';
+
 
 class OrgHistoryScreen extends StatefulWidget {
   const OrgHistoryScreen({super.key});
@@ -192,43 +194,42 @@ Future<void> _loadHistory() async {
     );
   }
 
-  Widget _buildEventsCard(String title, List<Map<String, dynamic>> items, IconData icon, String emptyMessage) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-        side: const BorderSide(color: Colors.red, width: 2),
-      ),
-      color: Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                Icon(icon, color: Colors.red),
-                const SizedBox(width: 10),
-                Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
-              ],
-            ),
-            const SizedBox(height: 10),
-            items.isEmpty
-                ? Text(emptyMessage, style: const TextStyle(fontSize: 16, color: Colors.black))
-                : Column(
-                    children: items.map((item) {
-                      return GestureDetector(
-                        onTap: () {
-                          _navigateToRegisteredEventInfo(item["id"]);
-                        },
-                        child: Card(
-                          elevation: 3,
-                          margin: const EdgeInsets.symmetric(vertical: 8),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          color: Colors.white,
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Row(
+Widget _buildEventsCard(String title, List<Map<String, dynamic>> items, IconData icon, String emptyMessage,) {
+  return Card(
+    elevation: 4,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(15),
+      side: const BorderSide(color: Colors.red, width: 2),
+    ),
+    color: Colors.white,
+    child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: Colors.red),
+              const SizedBox(width: 10),
+              Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black)),
+            ],
+          ),
+          const SizedBox(height: 10),
+          items.isEmpty
+              ? Text(emptyMessage, style: const TextStyle(fontSize: 16, color: Colors.black))
+              : Column(
+                  children: items.map((item) {
+                    return Card(
+                      elevation: 3,
+                      margin: const EdgeInsets.symmetric(vertical: 8),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      color: Colors.white,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
                               children: [
                                 Icon(Icons.event, color: Colors.red),
                                 const SizedBox(width: 10),
@@ -238,19 +239,52 @@ Future<void> _loadHistory() async {
                                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
                                   ),
                                 ),
-                                const Icon(Icons.arrow_forward_ios, color: Colors.black, size: 16),
                               ],
                             ),
-                          ),
+                            const SizedBox(height: 10),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                ElevatedButton(
+                                  onPressed: () {
+                                    _navigateToRegisteredEventInfo(item["id"]);
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.red,
+                                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  ),
+                                  child: const Text("View Details", style: TextStyle(fontSize: 16, color: Colors.white)),
+                                ),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      _navigateToEventCommentsScreen(context, item["id"]);
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                      side: const BorderSide(color: Colors.red, width: 2),
+                                    ),
+                                    child: const Text(
+                                      "View Feedback",
+                                      style: TextStyle(fontSize: 16, color: Colors.red),
+                                    ),
+                                  ),
+                                ],
+                            ),
+                          ],
                         ),
-                      );
-                    }).toList(),
-                  ),
-          ],
-        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
+
 
   void _navigateToRegisteredEventInfo(String eventId) {
     Navigator.push(
@@ -261,3 +295,15 @@ Future<void> _loadHistory() async {
     );
   }
 }
+void _navigateToEventCommentsScreen(BuildContext context, String eventId) {
+  debugPrint("Navigating to comments for eventId: $eventId"); // <-- Verifica si es correcto
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => EventCommentsScreen(eventId: eventId),
+    ),
+  );
+}
+
+
+
