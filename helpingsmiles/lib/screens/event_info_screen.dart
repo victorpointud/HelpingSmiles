@@ -200,9 +200,9 @@ class _EventInfoScreenState extends State<EventInfoScreen> {
       color: Colors.white,
       elevation: 4,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-        side: const BorderSide(color: Colors.red, width: 2),
-      ),
+          borderRadius: BorderRadius.circular(15),
+          side: const BorderSide(color: Colors.red, width: 2),
+        ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
