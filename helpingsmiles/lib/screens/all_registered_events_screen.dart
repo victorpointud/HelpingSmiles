@@ -301,7 +301,7 @@ Widget _buildEventCard(Map<String, dynamic> event) {
             ),
             const SizedBox(height: 5),
             Text(
-              "${(event["interest"] is List) ? (event["interest"] as List).join(", ") : "No interests"}",
+              (event["interest"] is List) ? (event["interest"] as List).join(", ") : "No interests",
               style: const TextStyle(color: Colors.black), 
             ),
             const SizedBox(height: 5), 

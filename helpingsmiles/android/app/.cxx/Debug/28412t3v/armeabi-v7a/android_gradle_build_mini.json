@@ -1,0 +1,20 @@
+{
+  "buildFiles": [
+    "/Users/victorpointud/flutter/packages/flutter_tools/gradle/src/main/groovy/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/Users/victorpointud/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+      "-C",
+      "/Users/victorpointud/Documents/GitHub/HelpingSmiles/helpingsmiles/android/app/.cxx/Debug/28412t3v/armeabi-v7a",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/Users/victorpointud/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+    "-C",
+    "/Users/victorpointud/Documents/GitHub/HelpingSmiles/helpingsmiles/android/app/.cxx/Debug/28412t3v/armeabi-v7a",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {}
+}

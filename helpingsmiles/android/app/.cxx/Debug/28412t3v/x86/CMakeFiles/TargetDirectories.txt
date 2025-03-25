@@ -1,0 +1,2 @@
+/Users/victorpointud/Documents/GitHub/HelpingSmiles/helpingsmiles/android/app/.cxx/Debug/28412t3v/x86/CMakeFiles/edit_cache.dir
+/Users/victorpointud/Documents/GitHub/HelpingSmiles/helpingsmiles/android/app/.cxx/Debug/28412t3v/x86/CMakeFiles/rebuild_cache.dir

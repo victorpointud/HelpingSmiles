@@ -79,7 +79,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
     // Recorrer los eventos de la organización
     for (var eventDoc in eventsSnapshot.docs) {
-      final eventData = eventDoc.data() as Map<String, dynamic>;
+      final eventData = eventDoc.data();
       final eventId = eventDoc.id;
       final eventName = eventData['name'] ?? "Unnamed Event";
 
