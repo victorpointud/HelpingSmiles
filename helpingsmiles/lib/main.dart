@@ -62,6 +62,7 @@ class MyAppState extends State<MyApp> {
     return MaterialApp(
       title: 'Helping Smiles',
       theme: ThemeData(
+        fontFamily: 'Montserrat',
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
