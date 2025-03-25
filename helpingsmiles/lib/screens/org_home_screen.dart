@@ -204,7 +204,16 @@ class OrgHomeScreenState extends State<OrgHomeScreen> {
                             side: const BorderSide(color: Colors.red, width: 2),
                           ),
                         ),
-                        child: const Text("View Volunteers", style: TextStyle(fontSize: 18, color: Color.fromARGB(255, 0, 0, 0))),
+                        child: const Text(
+                          "View Volunteers",
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Color.fromARGB(255, 0, 0, 0),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+
+
                       ),
                     ),
                   ),

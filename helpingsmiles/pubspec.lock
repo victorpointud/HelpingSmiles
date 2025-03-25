@@ -194,10 +194,10 @@ packages:
     dependency: "direct dev"
     description:
       name: flutter_launcher_icons
-      sha256: "526faf84284b86a4cb36d20a5e45147747b7563d921373d4ee0559c54fcdbcea"
+      sha256: bfa04787c85d80ecb3f8777bde5fc10c3de809240c48fa061a2c2bf15ea5211c
       url: "https://pub.dev"
     source: hosted
-    version: "0.13.1"
+    version: "0.14.3"
   flutter_lints:
     dependency: "direct dev"
     description:
@@ -385,18 +385,18 @@ packages:
     dependency: transitive
     description:
       name: syncfusion_flutter_core
-      sha256: "59b6d2a7deacade6129d2f15615ca49ed56278fea055cd2e52cace78a343dd5e"
+      sha256: f56ee689d572c86a0d96cc986120a1e81a9cee9ff6d3c33acb030766a2ad1c04
       url: "https://pub.dev"
     source: hosted
-    version: "28.2.11"
+    version: "29.1.33"
   syncfusion_flutter_gauges:
     dependency: "direct main"
     description:
       name: syncfusion_flutter_gauges
-      sha256: aa06bd6ddec908ac7b4a8e762e268b43b7a6f08da4f8de9719719807db5cef77
+      sha256: "150321562862699cfc7d854ebd27a08519c9ec5701c24d7e2756bef3a08acbb3"
       url: "https://pub.dev"
     source: hosted
-    version: "28.2.11"
+    version: "29.1.33"
   table_calendar:
     dependency: "direct main"
     description:
