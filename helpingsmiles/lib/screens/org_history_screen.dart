@@ -21,46 +21,53 @@ class _OrgHistoryScreenState extends State<OrgHistoryScreen> {
     _loadHistory();
   }
 
-  Future<void> _loadHistory() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
+Future<void> _loadHistory() async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return;
 
-    try {
+  try {
+    // Filtrar eventos terminados de la organización
+    final eventsSnapshot = await FirebaseFirestore.instance
+        .collection('events')
+        .where('organizationId', isEqualTo: user.uid)
+        .where('status', isEqualTo: true) // Solo eventos terminados
+        .get();
 
-      final eventsSnapshot = await FirebaseFirestore.instance
-          .collection('events')
-          .where('organizationId', isEqualTo: user.uid)
-          .where('status', isEqualTo: 'completed')
-          .get();
-
-      List<Map<String, dynamic>> tempEvents = [];
-      for (var doc in eventsSnapshot.docs) {
-        tempEvents.add({
-          'id': doc.id,
-          'name': doc.data()['name'] ?? "Unnamed Event",
-        });
-      }
-
-      final volunteersSnapshot = await FirebaseFirestore.instance
-          .collection('organizations')
-          .doc(user.uid)
-          .collection('registrations')
-          .get();
-
-      int volunteerCount = volunteersSnapshot.docs.length;
-
-      int calculatedPoints = (tempEvents.length * 2) + volunteerCount;
-
-      setState(() {
-        completedEvents = tempEvents;
-        totalVolunteers = volunteerCount;
-        totalPoints = calculatedPoints;
+    List<Map<String, dynamic>> tempEvents = [];
+    for (var doc in eventsSnapshot.docs) {
+      tempEvents.add({
+        'id': doc.id,
+        'name': doc.data()['name'] ?? "Unnamed Event",
+        'date': doc.data()['date'] ?? "No Date",
+        'location': doc.data()['locations'] != null && doc.data()['locations'].isNotEmpty
+            ? doc.data()['locations'][0] // Primera ubicación si hay varias
+            : "No Location",
       });
-
-    } catch (e) {
-      debugPrint("Error loading history: $e");
     }
+
+    // Obtener cantidad de voluntarios registrados en la organización
+    final volunteersSnapshot = await FirebaseFirestore.instance
+        .collection('organizations')
+        .doc(user.uid)
+        .collection('registrations')
+        .get();
+
+    int volunteerCount = volunteersSnapshot.docs.length;
+
+    int calculatedPoints = (tempEvents.length * 2) + volunteerCount;
+
+    // Actualizar el estado para mostrar los eventos en la pantalla
+    setState(() {
+      completedEvents = tempEvents;
+      totalVolunteers = volunteerCount;
+      totalPoints = calculatedPoints;
+    });
+
+  } catch (e) {
+    debugPrint("Error loading history: $e");
   }
+}
+
 
   String _determineLevel() {
     if (totalPoints >= 30) {
