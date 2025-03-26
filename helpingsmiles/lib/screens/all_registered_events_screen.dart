@@ -280,41 +280,31 @@ void initState() {
   }
 
 Widget _buildEventCard(Map<String, dynamic> event) {
-  return GestureDetector(
-    onTap: () => _navigateToRegisteredEventInfo(event["id"]),
-    child: Card(
-      elevation: 3,
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-        side: const BorderSide(color: Colors.red, width: 2),
-      ),
-      color: Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              event["name"],
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red),
-            ),
-            const SizedBox(height: 5),
-            Text(
-              (event["interest"] is List) ? (event["interest"] as List).join(", ") : "No interests",
-              style: const TextStyle(color: Colors.black), 
-            ),
-            const SizedBox(height: 5), 
-            const Text(
-              "Tap to view details",
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black),
-            ),
-          ],
+    return GestureDetector(
+      onTap: () => _navigateToRegisteredEventInfo(event["id"]),
+      child: Card(
+        elevation: 3,
+        margin: const EdgeInsets.symmetric(vertical: 8),
+          shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+          side: const BorderSide(color: Colors.red, width: 2),
+        ),
+        color: Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(event["name"], style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red)),
+              const SizedBox(height: 5),
+              Text("${event["date"]} • ${event["location"]}", style: const TextStyle(color: Colors.black)),
+              const Text("Tap to view details.", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   void _navigateToRegisteredEventInfo(String eventId) {
     Navigator.push(

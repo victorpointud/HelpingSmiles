@@ -115,8 +115,6 @@ class _RegisteredEventInfoScreenState extends State<RegisteredEventInfoScreen> {
                                 _buildDetailRow(Icons.location_on, "Location", eventData!["location"] ?? "No location provided"),
                                 _buildDetailRow(Icons.timelapse, "Duration", "${eventData!["duration"] ?? "N/A"} hours"),
                                 _buildDetailRow(Icons.people, "Volunteer Type", eventData!["volunteerType"] ?? "Not specified"),
-                                _buildDetailRow(Icons.people, "Organization", "${eventData!["organizationName"] ?? "Not specified"}"),
-                                _buildDetailRow(Icons.people, "Org Type", "${eventData!["organizationType"] ?? "Not specified"}"),
                                 const SizedBox(height: 20),
                                 _buildRepresentativeSection(), 
                                 const SizedBox(height: 20),
@@ -185,7 +183,10 @@ class _RegisteredEventInfoScreenState extends State<RegisteredEventInfoScreen> {
     return Card(
       color: Colors.white,
       elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+          side: const BorderSide(color: Colors.red, width: 2),
+        ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

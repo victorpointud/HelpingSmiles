@@ -220,7 +220,7 @@ Future<void> _loadEvents() async {
             children: [
               Text(event["name"], style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red)),
               const SizedBox(height: 5),
-              Text("${event["date"]} • ${event["location"]} • ${event["duration"]}h • ${event["interest"]}", style: const TextStyle(color: Colors.black)),
+              Text("${event["date"]} • ${event["duration"]}h • ${event["interest"]}", style: const TextStyle(color: Colors.black)),
               const Text("Tap to view details.", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
             ],
           ),

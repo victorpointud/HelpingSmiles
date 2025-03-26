@@ -140,9 +140,10 @@ class _EditOrgProfileManagerState extends State<EditOrgProfileManager> {
         _showSuccessDialog();
 
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error updating profile: ${e.toString()}")),
-        );
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Error updating profile: ${e.toString()}")),
+          );
       }
     }
   }

@@ -512,7 +512,7 @@ void _navigateToMoreRegisteredEvents() {
             children: [
               Text(event["name"], style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.red)),
               const SizedBox(height: 5),
-              Text("${event["date"]} • ${event["location"]}", style: const TextStyle(color: Colors.black)),
+              Text("${event["date"]}", style: const TextStyle(color: Colors.black)),
               const SizedBox(height: 5),
               const Text("Tap to view details.", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
             ],
