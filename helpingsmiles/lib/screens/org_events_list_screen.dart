@@ -233,14 +233,6 @@ class _OrgEventsListScreenState extends State<OrgEventsListScreen> {
                   Text(event["date"], style: const TextStyle(color: Colors.black, fontSize: 16)),
                 ],
               ),
-              const SizedBox(height: 5),
-              Row(
-                children: [
-                  const Icon(Icons.location_on, color: Colors.red),
-                  const SizedBox(width: 10),
-                  Text(event["location"], style: const TextStyle(color: Colors.black, fontSize: 16)),
-                ],
-              ),
               const SizedBox(height: 10),
               const Text("Tap to view details", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
             ],
