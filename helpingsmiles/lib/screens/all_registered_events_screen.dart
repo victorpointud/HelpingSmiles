@@ -28,11 +28,9 @@ void initState() {
   super.initState();
 
   if (widget.registeredEvents != null) {
-    // Usa la lista si ya fue pasada desde VolHomeScreen
     registeredEvents = widget.registeredEvents!;
     filteredRegisteredEvents = List.from(registeredEvents);
   } else {
-    // Si no se pasó la lista, entonces carga los datos desde Firestore
     _loadRegisteredEvents();
   }
 }
@@ -51,39 +49,33 @@ void initState() {
       final registrationDoc = await registrationRef.get();
 
       if (registrationDoc.exists) {
-        // Verifica si el campo 'name' existe en el documento
+
         String name = eventDoc.data().containsKey('name') ? eventDoc['name'] : "Not provided";
 
-        // Verifica si el campo 'date' existe en el documento
         String date = eventDoc.data().containsKey('date') ? eventDoc['date'] : "Not provided";
 
-        // Verifica si el campo 'location' existe en el documento
         String location = eventDoc.data().containsKey('location') ? eventDoc['location'] : "Not provided";
 
-        // Verifica si el campo 'duration' existe en el documento
         String duration = eventDoc.data().containsKey('duration') ? eventDoc['duration'].toString() : "Not provided";
 
-        // Verifica si el campo 'interest' existe en el documento
         List<String> interestList = [];
         if (eventDoc.data().containsKey('interest')) {
           if (eventDoc['interest'] is List) {
             interestList = (eventDoc['interest'] as List).map((e) => e.toString()).toList();
           } else if (eventDoc['interest'] is String) {
-            interestList = [eventDoc['interest'].toString()]; // Si es un String, conviértelo a una lista
+            interestList = [eventDoc['interest'].toString()]; 
           }
         } else {
-          interestList = ["Not provided"]; // Valor predeterminado si el campo no existe
+          interestList = ["Not provided"]; 
         }
 
-        // Verifica si el campo 'skills' existe en el documento
         List<String> skillsList = [];
         if (eventDoc.data().containsKey('skills') && eventDoc['skills'] is List) {
           skillsList = (eventDoc['skills'] as List).map((e) => e.toString()).toList();
         } else {
-          skillsList = ["Not provided"]; // Valor predeterminado si el campo no existe
+          skillsList = ["Not provided"]; 
         }
 
-        // Añade el evento a la lista temporal
         tempEvents.add({
           'id': eventId,
           'name': name,
@@ -102,21 +94,18 @@ void initState() {
       registeredEvents = tempEvents;
       filteredRegisteredEvents = List.from(registeredEvents);
 
-      // Obtener intereses únicos para los filtros
       interests = registeredEvents
           .expand((event) => (event['interest'] as List<String>))
           .toSet()
           .toList();
       interests.insert(0, "All");
 
-      // Obtener duraciones únicas para los filtros
       durations = registeredEvents
           .map((event) => event['duration'].toString())
           .toSet()
           .toList();
       durations.insert(0, "All");
 
-      // Obtener habilidades únicas para los filtros
       skills = registeredEvents
           .expand((event) => (event['skills'] as List<String>))
           .toSet()

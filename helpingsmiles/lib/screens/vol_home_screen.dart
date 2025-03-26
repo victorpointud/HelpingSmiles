@@ -41,13 +41,11 @@ class VolHomeScreenState extends State<VolHomeScreen> {
     _loadRegisteredOrganizations();
     _loadregisteredEventInfo();
   }
-
-    // Función para obtener 2 eventos aleatorios
   List<Map<String, dynamic>> _getRandomElements(List<Map<String, dynamic>> list) {
-    if (list.length <= 2) return list; // Si hay 2 o menos, devuelve todo.
+    if (list.length <= 2) return list; 
     final random = Random();
-    list.shuffle(random); // Mezcla los eventos
-    return list.take(2).toList(); // Toma solo 2
+    list.shuffle(random); 
+    return list.take(2).toList();
   }
 
 

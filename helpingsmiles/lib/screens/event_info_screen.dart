@@ -130,7 +130,7 @@ class _EventInfoScreenState extends State<EventInfoScreen> {
                                 Center(
                                   child: ElevatedButton(
                                     onPressed: () async {
-                                      await _registerAsRequest(widget.eventId); // Envía una solicitud
+                                      await _registerAsRequest(widget.eventId);
                                     },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Colors.red,

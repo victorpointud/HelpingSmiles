@@ -57,8 +57,6 @@ class _AllRegisteredOrgsScreenState extends State<AllRegisteredOrgsScreen> {
     setState(() {
       registeredOrganizations = tempOrganizations;
       filteredRegisteredOrganizations = List.from(registeredOrganizations);
-
-      // 🔹 Carga opciones únicas para dropdowns
       volunteerTypes = registeredOrganizations
           .expand((org) => (org['volunteerTypes'] as List<String>))
           .toSet()

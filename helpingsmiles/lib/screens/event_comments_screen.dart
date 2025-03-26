@@ -37,7 +37,6 @@ class EventCommentsScreenState extends State<EventCommentsScreen> {
         final feedback = data['feedback'] ?? '';
         final timestamp = data['timestamp'];
 
-        // Obtener el nombre del usuario desde la colección 'users'
         final userDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
         final userName = userDoc.exists && userDoc.data() != null
             ? userDoc.data()!['name'] ?? 'Unknown User'
@@ -71,16 +70,15 @@ class EventCommentsScreenState extends State<EventCommentsScreen> {
       ),
       body: Stack(
         children: [
-          // ✅ Usa el mismo fondo que en OrgHistoryScreen
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('lib/assets/background.png'), // Asegúrate de que esta imagen exista en assets
+                image: AssetImage('lib/assets/background.png'), 
                 fit: BoxFit.cover,
               ),
             ),
           ),
-          Container(color: Colors.black.withOpacity(0.3)), // ✅ Filtro para mejorar contraste del texto
+          Container(color: Colors.black.withOpacity(0.3)), 
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(16),

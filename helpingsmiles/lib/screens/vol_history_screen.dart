@@ -27,7 +27,6 @@ Future<void> _loadHistory() async {
   if (user == null) return;
 
   try {
-    // Cargar organizaciones en las que el usuario está registrado
     final orgsSnapshot = await FirebaseFirestore.instance.collection('organizations').get();
     List<Map<String, dynamic>> tempOrgs = [];
 
@@ -43,10 +42,9 @@ Future<void> _loadHistory() async {
       }
     }
 
-    // Cargar eventos completados en los que el usuario está registrado
     final eventsSnapshot = await FirebaseFirestore.instance
         .collection('events')
-        .where('status', isEqualTo: true) // Filtra solo eventos terminados
+        .where('status', isEqualTo: true) 
         .get();
 
     List<Map<String, dynamic>> tempEvents = [];
@@ -61,15 +59,13 @@ Future<void> _loadHistory() async {
           'name': doc.data()['name'] ?? "Unnamed Event",
           'date': doc.data()['date'] ?? "No Date",
           'location': doc.data()['locations'] != null && doc.data()['locations'].isNotEmpty
-              ? doc.data()['locations'][0] // Primera ubicación si hay varias
+              ? doc.data()['locations'][0] 
               : "No Location",
         });
       }
     }
 
     int calculatedPoints = (tempOrgs.length * 2) + tempEvents.length;
-
-    // Actualiza la UI con los datos obtenidos
     setState(() {
       registeredOrganizations = tempOrgs;
       completedEvents = tempEvents;
@@ -228,7 +224,6 @@ Future<void> _loadHistory() async {
                                   ],
                                 ),
                                 const SizedBox(height: 10),
-                                // Solo mostrar el botón de feedback en eventos completados
                                 if (!isOrg)
                                   ElevatedButton(
                                     onPressed: () {

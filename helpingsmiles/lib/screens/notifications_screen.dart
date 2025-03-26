@@ -63,30 +63,25 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   Future<void> _loadRegisteredUsers() async {
   final user = FirebaseAuth.instance.currentUser;
-  if (user == null) return; // Si no hay usuario autenticado, salir
+  if (user == null) return; 
 
   try {
-    // Obtener el UID de la organización autenticada
     final orgId = user.uid;
 
-    // Obtener todos los eventos organizados por la organización autenticada
     final eventsSnapshot = await FirebaseFirestore.instance
         .collection('events')
-        .where('organizationId', isEqualTo: orgId) // Filtrar por organización
+        .where('organizationId', isEqualTo: orgId) 
         .get();
 
     List<Map<String, dynamic>> tempUsers = [];
 
-    // Recorrer los eventos de la organización
     for (var eventDoc in eventsSnapshot.docs) {
       final eventData = eventDoc.data();
       final eventId = eventDoc.id;
       final eventName = eventData['name'] ?? "Unnamed Event";
 
-      // Obtener las solicitudes de ese evento
       final requestsSnapshot = await eventDoc.reference.collection('requests').get();
 
-      // Agregar las solicitudes a la lista temporal
       for (var reqDoc in requestsSnapshot.docs) {
         tempUsers.add({
           'eventId': eventId,
@@ -107,19 +102,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   Future<void> _loadOrganizationRequests() async {
   final user = FirebaseAuth.instance.currentUser;
-  if (user == null) return; // Si no hay usuario autenticado, salir
+  if (user == null) return; 
 
   try {
-    // Obtener el UID de la organización autenticada
     final orgId = user.uid;
-
-    // Referencia a la colección requestsOrg de la organización autenticada
     final requestsOrgRef = FirebaseFirestore.instance
         .collection('organizations')
         .doc(orgId)
         .collection('requestsOrg');
 
-    // Obtener las solicitudes de la organización autenticada
     final requestsOrgSnapshot = await requestsOrgRef.get();
     List<Map<String, dynamic>> tempOrgs = [];
 
@@ -521,14 +512,11 @@ Widget build(BuildContext context) {
                   final requestId = orgRequest["requestId"];
 
                   try {
-                    // Referencia al documento de la solicitud en requestsOrg
                     final requestRef = FirebaseFirestore.instance
                         .collection('organizations')
                         .doc(orgId)
                         .collection('requestsOrg')
                         .doc(requestId);
-
-                    // Verificar si el documento existe antes de eliminarlo
                     final requestDoc = await requestRef.get();
                     if (!requestDoc.exists) {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -540,13 +528,8 @@ Widget build(BuildContext context) {
                       return;
                     }
 
-                    // Eliminar la solicitud de requestsOrg
                     await requestRef.delete();
-
-                    // Actualizar la lista de solicitudes
                     _loadOrganizationRequests();
-
-                    // Mostrar un mensaje de éxito
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text("Organization request declined and removed from requestsOrg."),
@@ -582,14 +565,11 @@ Widget build(BuildContext context) {
                   final requestId = orgRequest["requestId"];
 
                   try {
-                    // Referencia al documento de la solicitud en requestsOrg
                     final requestRef = FirebaseFirestore.instance
                         .collection('organizations')
                         .doc(orgId)
                         .collection('requestsOrg')
                         .doc(requestId);
-
-                    // Obtener los datos de la solicitud
                     final requestDoc = await requestRef.get();
 
                     if (!requestDoc.exists) {
@@ -601,24 +581,14 @@ Widget build(BuildContext context) {
                       );
                       return;
                     }
-
-                    // Crear la subcolección "registrations" y mover los datos
                     final registrationRef = FirebaseFirestore.instance
                         .collection('organizations')
                         .doc(orgId)
                         .collection('registrations')
                         .doc(requestId);
-
-                    // Guardar los datos en la nueva subcolección
                     await registrationRef.set(requestDoc.data()!);
-
-                    // Eliminar la solicitud de requestsOrg
                     await requestRef.delete();
-
-                    // Actualizar la lista de solicitudes
                     _loadOrganizationRequests();
-
-                    // Mostrar un mensaje de éxito
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text("Organization approved and moved to registrations."),

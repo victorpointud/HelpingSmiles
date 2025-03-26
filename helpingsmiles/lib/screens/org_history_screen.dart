@@ -28,11 +28,10 @@ Future<void> _loadHistory() async {
   if (user == null) return;
 
   try {
-    // Filtrar eventos terminados de la organización
     final eventsSnapshot = await FirebaseFirestore.instance
         .collection('events')
         .where('organizationId', isEqualTo: user.uid)
-        .where('status', isEqualTo: true) // Solo eventos terminados
+        .where('status', isEqualTo: true) 
         .get();
 
     List<Map<String, dynamic>> tempEvents = [];
@@ -42,12 +41,10 @@ Future<void> _loadHistory() async {
         'name': doc.data()['name'] ?? "Unnamed Event",
         'date': doc.data()['date'] ?? "No Date",
         'location': doc.data()['locations'] != null && doc.data()['locations'].isNotEmpty
-            ? doc.data()['locations'][0] // Primera ubicación si hay varias
+            ? doc.data()['locations'][0] 
             : "No Location",
       });
     }
-
-    // Obtener cantidad de voluntarios registrados en la organización
     final volunteersSnapshot = await FirebaseFirestore.instance
         .collection('organizations')
         .doc(user.uid)
@@ -58,7 +55,6 @@ Future<void> _loadHistory() async {
 
     int calculatedPoints = (tempEvents.length * 2) + volunteerCount;
 
-    // Actualizar el estado para mostrar los eventos en la pantalla
     setState(() {
       completedEvents = tempEvents;
       totalVolunteers = volunteerCount;
@@ -296,7 +292,7 @@ Widget _buildEventsCard(String title, List<Map<String, dynamic>> items, IconData
   }
 }
 void _navigateToEventCommentsScreen(BuildContext context, String eventId) {
-  debugPrint("Navigating to comments for eventId: $eventId"); // <-- Verifica si es correcto
+  debugPrint("Navigating to comments for eventId: $eventId"); 
   Navigator.push(
     context,
     MaterialPageRoute(

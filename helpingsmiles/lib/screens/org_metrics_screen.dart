@@ -80,7 +80,6 @@ class OrgMetricsScreenState extends State<OrgMetricsScreen> {
       ),
       body: Stack(
         children: [
-          // Fondo con opacidad
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
